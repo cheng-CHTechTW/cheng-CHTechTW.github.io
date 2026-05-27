@@ -360,3 +360,8 @@
     grid-template-columns:1fr!important;
   }
 }
+
+/* 005 v15 logo sync */
+.login-logo{
+  object-fit:contain!important;
+}

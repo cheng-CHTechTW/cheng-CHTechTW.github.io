@@ -331,7 +331,15 @@ function bindImg(){
       const file = e.target.files[0];
       if(!file) return;
       const reader = new FileReader();
-      reader.onload = () => { images[inp.dataset.imgkey] = reader.result; render(); };
+      reader.onload = () => {
+        images[inp.dataset.imgkey] = reader.result;
+        if(inp.dataset.imgkey==="logo"){
+          images.siteLogo = reader.result;
+          images.headerLogo = reader.result;
+        }
+        syncAdminLogoImages();
+        render();
+      };
       reader.readAsDataURL(file);
     };
   });
@@ -613,7 +621,7 @@ function render(){
 
   if(currentTab==="images"){
     c.innerHTML = `<div class="group"><h2>圖片管理</h2>
-      ${imgUpload("logo","網站Logo","assets/images/logo.png")}
+      ${imgUpload("logo","網站 Logo（更換後首頁、頁尾、後台登入同步）","assets/images/logo.png")}
       ${imgUpload("heroBg","首頁主圖","assets/images/hero-bg.jpg")}${imgUpload("lineQr","LINE QR 圖片","assets/images/line-qr.png")}
       ${data.cases.map((x,i)=>imgUpload("case"+i,`案例圖 ${i+1}`,x.image)).join("")}
       ${data.partners.map((x,i)=>imgUpload("partner"+i,`關係企業圖 ${i+1}`,x.image)).join("")}
@@ -706,9 +714,18 @@ function updateMobileCurrentTab(){
   if(span&&active)span.textContent=active.textContent.trim();
 }
 
+
+function syncAdminLogoImages(){
+  try{
+    const logo=(images&&images.logo)||"assets/images/logo.png";
+    document.querySelectorAll('#loginLogo,.login-logo,[data-admin-logo]').forEach(el=>{el.src=logo;});
+  }catch(e){}
+}
+
 function bootAdmin(){
   try{
     initLogin();
+    syncAdminLogoImages();
     initMobileAdminMenu();
     updateMobileCurrentTab();
     const saveEl=document.getElementById("saveBtn");
