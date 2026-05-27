@@ -341,6 +341,7 @@ function render(){
   if(currentUser && !hasPerm(currentTab)){
     currentTab = firstAllowedTab();
     setActiveTabButton();
+    updateMobileCurrentTab();
   }
   const c = document.getElementById("adminContent");
 
@@ -674,9 +675,42 @@ function closePreview(){
   previewModal.classList.remove("show");
 }
 
+
+function initMobileAdminMenu(){
+  const layout=document.querySelector(".admin-layout");
+  const aside=document.querySelector(".admin-layout aside");
+  if(!layout||!aside||document.querySelector(".mobile-admin-menu-bar"))return;
+
+  const bar=document.createElement("div");
+  bar.className="mobile-admin-menu-bar";
+  bar.innerHTML=`<div class="mobile-admin-menu-title">目前：<span id="mobileCurrentTab">基本資料</span></div><button type="button" class="mobile-admin-menu-toggle" id="mobileAdminMenuToggle">選擇編輯項目 ☰</button>`;
+  layout.parentNode.insertBefore(bar,layout);
+
+  const toggle=document.getElementById("mobileAdminMenuToggle");
+  toggle.onclick=()=>{
+    aside.classList.toggle("open");
+    toggle.textContent=aside.classList.contains("open")?"關閉目錄 ✕":"選擇編輯項目 ☰";
+  };
+
+  document.addEventListener("click",(e)=>{
+    if(window.innerWidth>760)return;
+    if(!aside.classList.contains("open"))return;
+    if(aside.contains(e.target)||toggle.contains(e.target))return;
+    aside.classList.remove("open");
+    toggle.textContent="選擇編輯項目 ☰";
+  });
+}
+function updateMobileCurrentTab(){
+  const active=document.querySelector(".admin-layout aside button.active");
+  const span=document.getElementById("mobileCurrentTab");
+  if(span&&active)span.textContent=active.textContent.trim();
+}
+
 function bootAdmin(){
   try{
     initLogin();
+    initMobileAdminMenu();
+    updateMobileCurrentTab();
     const saveEl=document.getElementById("saveBtn");
     const previewEl=document.getElementById("previewBtn");
     const closePreviewEl=document.getElementById("closePreviewBtn");
