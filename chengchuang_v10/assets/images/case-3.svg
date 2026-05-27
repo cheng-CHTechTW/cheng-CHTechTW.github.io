@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">
-<defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#7c2d12"/><stop offset="1" stop-color="#020617"/></linearGradient></defs>
-<rect width="900" height="540" fill="url(#g)"/><circle cx="740" cy="110" r="180" fill="rgba(255,255,255,.12)"/>
-<rect x="70" y="300" width="760" height="120" rx="22" fill="rgba(0,0,0,.38)"/>
-<text x="70" y="110" fill="white" font-size="64" font-family="Arial,'Microsoft JhengHei'" font-weight="900">美食廣場</text>
-<text x="90" y="375" fill="white" font-size="34" font-family="Arial,'Microsoft JhengHei'" font-weight="700">誠創科技 POS 解決方案</text></svg>
