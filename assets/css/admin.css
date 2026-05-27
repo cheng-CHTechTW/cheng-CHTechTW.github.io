@@ -188,3 +188,14 @@
 .item input[type="date"]{
   color-scheme:dark;
 }
+
+/* 001 v11 admin mobile settings */
+@media(max-width:760px){
+ .login-card{width:92vw!important;padding:24px!important}
+ .login-logo{height:64px!important;max-width:220px!important}
+ .admin-layout{display:block!important}
+ .admin-layout aside{position:sticky;top:0;z-index:20;display:flex;overflow-x:auto;gap:8px;padding:10px;background:#020617}
+ .admin-layout aside button{flex:0 0 auto;white-space:nowrap;min-width:auto}
+ .panel{padding:14px!important}
+ .group{padding:18px!important}
+}

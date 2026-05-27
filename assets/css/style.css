@@ -274,3 +274,144 @@
 @media(max-width:760px){
   .news-extra-images{grid-template-columns:1fr;}
 }
+
+/* 001 v11 mobile/logo/QR/form fixes */
+:root{--site-logo-desktop-h:56px;--site-logo-mobile-h:64px;--footer-qr-size:150px}
+.logo img{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
+.footer-logo{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:10px}
+.fake-qr{width:var(--footer-qr-size);height:var(--footer-qr-size);background:#fff;color:#111827;border-radius:14px;padding:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.fake-qr img{width:100%;height:100%;object-fit:contain;display:block}
+.qr-box p{text-align:center;margin:0}
+body.modal-open{overflow:hidden!important;touch-action:none}
+.modal{overflow:hidden;align-items:flex-start!important;justify-content:center;padding:18px 12px}
+.modal-box{width:min(720px,96vw);max-height:calc(100dvh - 42px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:auto 0}
+#leadForm{padding-bottom:28px}
+#leadForm input,#leadForm select,#leadForm textarea{font-size:16px;min-height:46px}
+#leadForm textarea{min-height:130px}
+@media(max-width:760px){
+  .header,.nav{min-height:74px}
+  .nav{padding:0 18px}
+  .logo img{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
+  .footer-logo{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
+  .mobile-toggle{font-size:34px!important;width:54px;height:54px}
+  .menu.show{max-height:calc(100dvh - 74px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .footer-grid,.responsive-footer{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
+  .contact-lines{grid-template-columns:1fr!important}
+  .contact-lines div{grid-template-columns:96px 1fr!important;font-size:16px}
+  .modal{padding:12px 8px}
+  .modal-box{width:96vw!important;max-height:calc(100dvh - 24px)!important;border-radius:16px!important;padding:20px!important}
+}
+
+
+/* 003 v13：手機版右側快捷按鈕顯示修正 */
+.float-actions,
+.floating-actions,
+.quick-actions,
+.side-actions,
+.side-contact,
+.fixed-contact,
+.contact-float{
+  z-index:9999!important;
+}
+
+@media(max-width:760px){
+  .float-actions,
+  .floating-actions,
+  .quick-actions,
+  .side-actions,
+  .side-contact,
+  .fixed-contact,
+  .contact-float{
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    position:fixed!important;
+    right:10px!important;
+    top:auto!important;
+    bottom:88px!important;
+    transform:none!important;
+    flex-direction:column!important;
+    gap:0!important;
+    width:58px!important;
+    max-width:58px!important;
+    pointer-events:auto!important;
+  }
+
+  .float-actions a,
+  .float-actions button,
+  .floating-actions a,
+  .floating-actions button,
+  .quick-actions a,
+  .quick-actions button,
+  .side-actions a,
+  .side-actions button,
+  .side-contact a,
+  .side-contact button,
+  .fixed-contact a,
+  .fixed-contact button,
+  .contact-float a,
+  .contact-float button{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:58px!important;
+    min-width:58px!important;
+    height:50px!important;
+    padding:0!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+    writing-mode:horizontal-tb!important;
+    border-radius:0!important;
+    background:rgba(15,23,42,.92)!important;
+    border:1px solid rgba(148,163,184,.35)!important;
+    color:#fff!important;
+    text-align:center!important;
+    font-weight:900!important;
+    backdrop-filter:blur(10px);
+  }
+
+  .float-actions a:first-child,
+  .float-actions button:first-child,
+  .floating-actions a:first-child,
+  .floating-actions button:first-child,
+  .quick-actions a:first-child,
+  .quick-actions button:first-child,
+  .side-actions a:first-child,
+  .side-actions button:first-child,
+  .side-contact a:first-child,
+  .side-contact button:first-child,
+  .fixed-contact a:first-child,
+  .fixed-contact button:first-child,
+  .contact-float a:first-child,
+  .contact-float button:first-child{
+    border-radius:12px 12px 0 0!important;
+  }
+
+  .float-actions a:last-child,
+  .float-actions button:last-child,
+  .floating-actions a:last-child,
+  .floating-actions button:last-child,
+  .quick-actions a:last-child,
+  .quick-actions button:last-child,
+  .side-actions a:last-child,
+  .side-actions button:last-child,
+  .side-contact a:last-child,
+  .side-contact button:last-child,
+  .fixed-contact a:last-child,
+  .fixed-contact button:last-child,
+  .contact-float a:last-child,
+  .contact-float button:last-child{
+    border-radius:0 0 12px 12px!important;
+  }
+}
+
+/* 若原本 class 名稱是 floating-contact，手機也強制顯示 */
+@media(max-width:760px){
+  [class*="float"],
+  [class*="Float"],
+  [class*="quick"],
+  [class*="Quick"]{
+    pointer-events:auto;
+  }
+}

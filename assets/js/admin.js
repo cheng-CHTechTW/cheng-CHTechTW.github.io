@@ -3,7 +3,7 @@ const IMG_KEY="cc_full_site_images";
 
 const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
-  users:"使用者權限", editEntry:"編輯入口", hero:"主視覺", services:"服務項目",
+  users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
   cases:"成功案例", partners:"關係企業", news:"最新消息", faq:"常見問題",
   form:"表單設定", images:"圖片管理", backup:"備份/還原", masterAccount:"工程總帳號修改"
 };
@@ -23,11 +23,22 @@ function merge(a,b){
   return a;
 }
 function loadData(){
-  const saved = localStorage.getItem(DATA_KEY);
-  return saved ? merge(clone(window.DEFAULT_DATA), JSON.parse(saved)) : clone(window.DEFAULT_DATA);
+  try{
+    const saved = localStorage.getItem(DATA_KEY);
+    return saved ? merge(clone(window.DEFAULT_DATA), JSON.parse(saved)) : clone(window.DEFAULT_DATA);
+  }catch(err){
+    console.warn("後台資料讀取失敗，已改用預設資料", err);
+    localStorage.removeItem(DATA_KEY);
+    return clone(window.DEFAULT_DATA);
+  }
 }
 function loadImages(){
-  return JSON.parse(localStorage.getItem(IMG_KEY) || "{}");
+  try{
+    return JSON.parse(localStorage.getItem(IMG_KEY) || "{}");
+  }catch(err){
+    localStorage.removeItem(IMG_KEY);
+    return {};
+  }
 }
 function ensureUsers(){
   if(!Array.isArray(data.adminUsers) || data.adminUsers.length===0){
@@ -91,7 +102,51 @@ function showLogin(){
   document.getElementById("loginScreen").style.display = "flex";
   document.getElementById("adminApp").classList.add("locked");
 }
+
+function quickBindLoginFallback(){
+  const loginBtn = document.getElementById("loginBtn");
+  const loginUser = document.getElementById("loginUser");
+  const loginPass = document.getElementById("loginPass");
+  const loginMsg = document.getElementById("loginMsg");
+  const eye = document.getElementById("toggleLoginPass");
+  if(eye && loginPass){
+    eye.onclick = function(){
+      loginPass.type = loginPass.type === "password" ? "text" : "password";
+      eye.textContent = loginPass.type === "password" ? "👁" : "🙈";
+    };
+  }
+  if(loginBtn && loginUser && loginPass){
+    loginBtn.onclick = function(){
+      try{
+        data = loadData();
+        ensureUsers();
+        const u = loginUser.value.trim();
+        const p = loginPass.value;
+        const found = data.adminUsers.find(x=>x.enabled!==false && x.username===u && x.password===p);
+        if(found){
+          currentUser = found;
+          sessionStorage.setItem("cc_admin_logged_in","1");
+          sessionStorage.setItem("cc_admin_user",found.username);
+          showAdmin();
+          refreshPermissionMenu();
+          currentTab = firstAllowedTab();
+          setActiveTabButton();
+          logAdminChange("登入後台","使用者登入後台");
+          render();
+        }else{
+          loginMsg.textContent = "帳號或密碼錯誤，預設：admin / 123456";
+          loginPass.value = "";
+        }
+      }catch(err){
+        console.error(err);
+        loginMsg.textContent = "後台啟動錯誤，請清除瀏覽器快取後再試。";
+      }
+    };
+  }
+}
+
 function initLogin(){
+  quickBindLoginFallback();
   ensureUsers();
 
   const logged = sessionStorage.getItem("cc_admin_user");
@@ -451,6 +506,18 @@ function render(){
     editPosition.onchange = e => data.editEntry.position=e.target.value;
   }
 
+
+  if(currentTab==="appearance"){
+    if(!data.appearanceConfig)data.appearanceConfig={desktopLogoHeight:56,mobileLogoHeight:64,adminLoginLogoHeight:58,footerLineQrShow:true,footerLineQrLabel:"官方 LINE",footerLineQrImage:"assets/images/line-qr.png",footerLineQrSize:150};
+    c.innerHTML=`<div class="group"><h2>手機 / 圖片顯示設定</h2>
+    <p>可調整手機與桌機 Logo 大小，以及頁尾 LINE QR 圖片顯示。</p>
+    <div class="item"><h3>Logo 顯示大小</h3>${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}</div>
+    <div class="item"><h3>頁尾 LINE QR</h3><label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}<p class="small">圖片可放在 assets/images/line-qr.png；若不要顯示請取消勾選。</p></div>
+    </div>`;
+    bindInputs();
+    footerLineQrShow.onchange=e=>data.appearanceConfig.footerLineQrShow=e.target.checked;
+  }
+
   if(currentTab==="hero"){
     c.innerHTML = `<div class="group"><h2>主視覺</h2>
       ${input("hero.eyebrow","小標")}
@@ -546,7 +613,7 @@ function render(){
   if(currentTab==="images"){
     c.innerHTML = `<div class="group"><h2>圖片管理</h2>
       ${imgUpload("logo","網站Logo","assets/images/logo.png")}
-      ${imgUpload("heroBg","首頁主圖","assets/images/hero-bg.jpg")}
+      ${imgUpload("heroBg","首頁主圖","assets/images/hero-bg.jpg")}${imgUpload("lineQr","LINE QR 圖片","assets/images/line-qr.png")}
       ${data.cases.map((x,i)=>imgUpload("case"+i,`案例圖 ${i+1}`,x.image)).join("")}
       ${data.partners.map((x,i)=>imgUpload("partner"+i,`關係企業圖 ${i+1}`,x.image)).join("")}
     </div>`;
@@ -607,20 +674,33 @@ function closePreview(){
   previewModal.classList.remove("show");
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initLogin();
-  document.getElementById("saveBtn").onclick = save;
-  document.getElementById("previewBtn").onclick = openPreview;
-  document.getElementById("closePreviewBtn").onclick = closePreview;
-  document.querySelectorAll("aside button").forEach(btn=>{
-    btn.onclick = () => {
-      if(!hasPerm(btn.dataset.tab)){
-        alert("此帳號沒有此功能權限");
-        return;
-      }
-      currentTab = btn.dataset.tab;
-      setActiveTabButton();
-      render();
-    };
-  });
-});
+function bootAdmin(){
+  try{
+    initLogin();
+    const saveEl=document.getElementById("saveBtn");
+    const previewEl=document.getElementById("previewBtn");
+    const closePreviewEl=document.getElementById("closePreviewBtn");
+    if(saveEl)saveEl.onclick = save;
+    if(previewEl)previewEl.onclick = openPreview;
+    if(closePreviewEl)closePreviewEl.onclick = closePreview;
+    document.querySelectorAll("aside button").forEach(btn=>{
+      btn.onclick = () => {
+        if(!hasPerm(btn.dataset.tab)){
+          alert("此帳號沒有此功能權限");
+          return;
+        }
+        currentTab = btn.dataset.tab;
+        setActiveTabButton();
+        render();
+      };
+    });
+  }catch(err){
+    console.error("後台啟動失敗",err);
+    quickBindLoginFallback();
+  }
+}
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded", bootAdmin);
+}else{
+  bootAdmin();
+}

@@ -9,6 +9,25 @@ function publishedNews(arr){const today=todayYMD();return visibleItems(arr).filt
 
 function imgVal(key, fallback){return getImgs()[key]||fallback||""}
 
+function applyAppearanceConfig(d){
+ const a=d.appearanceConfig||{};
+ document.documentElement.style.setProperty("--site-logo-desktop-h",(a.desktopLogoHeight||56)+"px");
+ document.documentElement.style.setProperty("--site-logo-mobile-h",(a.mobileLogoHeight||64)+"px");
+ document.documentElement.style.setProperty("--footer-qr-size",(a.footerLineQrSize||150)+"px");
+}
+function renderFooterQr(d){
+ const a=d.appearanceConfig||{}, box=document.querySelector('[data-footer-block="qr"]');
+ if(!box)return;
+ if((d.footerVisibility&&d.footerVisibility.qr===false)||a.footerLineQrShow===false){box.style.display="none";return}
+ box.style.display="";
+ const label=a.footerLineQrLabel||"官方 LINE";
+ const img=(getImgs().lineQr)||a.footerLineQrImage||"assets/images/line-qr.png";
+ const url=(d.contact&&d.contact.lineUrl)||"#";
+ const lineId=(d.contactFields&&d.contactFields.lineId&&d.contactFields.lineId.value)||(d.contact&&d.contact.lineId)||"";
+ box.innerHTML=`<a class="fake-qr" href="${url}" target="_blank"><img src="${img}" alt="${label}"></a><p>${label}<br><strong>${lineId}</strong></p>`;
+}
+
+
 function parseExtraLinks(s){
   return String(s||"").split("\n").map(x=>x.trim()).filter(Boolean).map(x=>{
     let p=x.split("|");
@@ -24,7 +43,19 @@ function renderNewsExtras(n){
 function icon(n){return {monitor:"🖥️",printer:"🖨️",invoice:"📄",payment:"💳",code:"</>",headset:"🎧"}[n]||"●"}
 function renderNav(d){let defs=[["home","home"],["about","about"],["pos","posDetail"],["invoice","invoiceDetail"],["payment","paymentDetail"],["solutions","industries"],["cases","cases"],["partners","partners"],["news","news"],["faq","faq"]];menu.innerHTML=defs.filter(x=>d.headerVisibility?.[x[0]]!==false).map(x=>`<a data-scroll="${x[1]}">${d.navLabels?.[x[0]]||x[0]}</a>`).join("")+(d.headerVisibility?.contact!==false?`<button data-open-form>${d.navLabels?.contact||"聯絡我們"}</button>`:"")}
 function renderCards(list, limit, renderer){let vis=visibleItems(list);return {shown:vis.slice(0,limit).map(renderer).join(""), all:vis.map(renderer).join(""), more:vis.length>limit}}
-function apply(){const d=getData(),im=getImgs();document.title=d.siteTitle;renderNav(d);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=im[k]});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${im.heroBg})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");statsGrid.innerHTML=d.stats.map(s=>`<div class="stat"><strong>${s.number}</strong><span>${s.label}</span></div>`).join("");shippingGrid.innerHTML=d.shipping.map((s,i)=>`<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);bind()}
+
+function ensureMobileFloatingButtons(){
+  if(document.querySelector(".float-actions,.floating-actions,.quick-actions,.side-actions,.side-contact,.fixed-contact,.contact-float")) return;
+  const d=getData();
+  const wrap=document.createElement("div");
+  wrap.className="float-actions";
+  const line=(d.contact&&d.contact.lineUrl)||"#";
+  const phone=(d.contact&&d.contact.phone)||"";
+  wrap.innerHTML=`<a href="${line}" target="_blank">LINE</a><a href="tel:${phone.replace(/[^0-9+]/g,"")}">電話</a><button type="button" data-open-form>表單</button><button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">TOP</button>`;
+  document.body.appendChild(wrap);
+}
+
+function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);document.title=d.siteTitle;renderNav(d);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=im[k]});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${im.heroBg})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");statsGrid.innerHTML=d.stats.map(s=>`<div class="stat"><strong>${s.number}</strong><span>${s.label}</span></div>`).join("");shippingGrid.innerHTML=d.shipping.map((s,i)=>`<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);bind()}
 function renderFooter(d){const f=d.contactFields||{};footerContactLines.innerHTML=Object.keys(f).filter(k=>f[k].show!==false).map(k=>`<div class="${k==="address"||k==="email"||k==="hours"?"wide":""}"><b>${f[k].label}</b><span>${f[k].value}</span></div>`).join("");document.querySelectorAll("[data-footer-block]").forEach(el=>{let k=el.dataset.footerBlock;el.style.display=d.footerVisibility?.[k]===false?"none":""})}
 function renderCases(d){let conf=d.casesDisplay||{limit:4};let r=renderCards(d.cases,conf.limit||4,(c,i)=>`<article><img src="${imgVal("case"+i,c.image)}"><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</article>`);caseGrid.innerHTML=r.shown;caseMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="cases">顯示更多成功案例</button>`:""}
 function renderPartners(d){partners.style.display=d.partnersDisplay?.visible===false?"none":"";let conf=d.partnersDisplay||{limit:4};let r=renderCards(d.partners,conf.limit||4,(p,i)=>`<article class="partner-card"><img src="${imgVal("partner"+i,p.image)}"><div class="partner-body"><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p><div class="partner-links">${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}${p.lineUrl?`<a href="${p.lineUrl}" target="_blank">LINE</a>`:""}${p.facebookUrl?`<a href="${p.facebookUrl}" target="_blank">粉專</a>`:""}</div></div></article>`);partnerGrid.innerHTML=r.shown;partnerMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="partners">顯示更多關係企業</button>`:""}
