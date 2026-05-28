@@ -804,3 +804,246 @@ if(document.readyState==="loading"){
 }else{
   bootAdmin();
 }
+
+
+/* 009 footer social visibility admin injection */
+function injectFooterSocialVisibility009(){
+  if(typeof currentTab!=="undefined" && currentTab!=="footer") return;
+  const c=document.getElementById("adminContent");
+  if(!c || document.getElementById("footerSocialVisibility009")) return;
+  if(!data.socialVisibility) data.socialVisibility={facebook:true,instagram:true,youtube:true,email:true,line:true};
+  const box=document.createElement("div");
+  box.className="item";
+  box.id="footerSocialVisibility009";
+  box.innerHTML=`<h3>公司資訊底部社群 / 快捷顯示</h3>
+  <p class="small">勾選後手機、平板、電腦同步顯示；取消勾選則隱藏。</p>
+  <label class="check-row"><input type="checkbox" data-social-visible="facebook" ${data.socialVisibility.facebook!==false?"checked":""}> 顯示 Facebook / 粉絲專頁</label>
+  <label class="check-row"><input type="checkbox" data-social-visible="instagram" ${data.socialVisibility.instagram!==false?"checked":""}> 顯示 Instagram</label>
+  <label class="check-row"><input type="checkbox" data-social-visible="youtube" ${data.socialVisibility.youtube!==false?"checked":""}> 顯示 YouTube</label>
+  <label class="check-row"><input type="checkbox" data-social-visible="email" ${data.socialVisibility.email!==false?"checked":""}> 顯示 Email / 表單 ICON</label>
+  <label class="check-row"><input type="checkbox" data-social-visible="line" ${data.socialVisibility.line!==false?"checked":""}> 顯示 LINE 快捷</label>`;
+  (c.querySelector(".group")||c).appendChild(box);
+  box.querySelectorAll("[data-social-visible]").forEach(el=>{
+    el.onchange=()=>{data.socialVisibility[el.dataset.socialVisible]=el.checked;};
+  });
+}
+(function(){
+  const oldRender=window.render||render;
+  window.render=render=function(){
+    oldRender();
+    setTimeout(injectFooterSocialVisibility009,0);
+  };
+})();
+
+/* v19 social icon visibility */
+function injectSocialIconVisibilityV19(){
+  const c=document.getElementById("adminContent");
+  if(!c)return;
+  if(document.getElementById("socialIconVisibilityV19"))return;
+
+  if(!data.socialIconVisibility){
+    data.socialIconVisibility={
+      facebook:true,
+      instagram:true,
+      youtube:true,
+      email:true
+    };
+  }
+
+  const box=document.createElement("div");
+  box.className="item";
+  box.id="socialIconVisibilityV19";
+  box.innerHTML=`
+  <h3>底部 ICON 顯示控制</h3>
+  <p class="small">專業 POS 下方 ICON 可控制顯示/隱藏（手機/平板/桌機同步）</p>
+
+  <label class="check-row">
+    <input type="checkbox" data-icon-visible="facebook" ${data.socialIconVisibility.facebook!==false?'checked':''}>
+    Facebook ICON 顯示
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" data-icon-visible="instagram" ${data.socialIconVisibility.instagram!==false?'checked':''}>
+    IG ICON 顯示
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" data-icon-visible="youtube" ${data.socialIconVisibility.youtube!==false?'checked':''}>
+    YouTube ICON 顯示
+  </label>
+
+  <label class="check-row">
+    <input type="checkbox" data-icon-visible="email" ${data.socialIconVisibility.email!==false?'checked':''}>
+    Email / 表單 ICON 顯示
+  </label>
+  `;
+
+  c.appendChild(box);
+
+  box.querySelectorAll("[data-icon-visible]").forEach(el=>{
+    el.onchange=()=>{
+      data.socialIconVisibility[el.dataset.iconVisible]=el.checked;
+    };
+  });
+}
+
+setTimeout(()=>{
+  try{
+    injectSocialIconVisibilityV19();
+  }catch(e){}
+},1500);
+
+
+/* 010 v20：後台快捷工具設定、浮動操作、目錄自動收回 */
+(function(){
+  function d010(){
+    if(typeof data!=="undefined") return data;
+    return window.DEFAULT_DATA || {};
+  }
+  function markDirty010(){
+    window.__ccDirty010=true;
+    const save=document.getElementById("saveBtn");
+    if(save){
+      save.classList.add("dirty");
+      save.textContent="儲存修改*";
+    }
+  }
+
+  function injectQuickToolSetting010(){
+    try{
+      if(typeof currentTab!=="undefined" && currentTab!=="footer") return;
+      const c=document.getElementById("adminContent");
+      if(!c || document.getElementById("quickToolSetting010")) return;
+
+      const d=d010();
+      if(!d.quickToolVisibility){
+        d.quickToolVisibility={show:true,line:true,phone:true,form:true,top:true};
+      }
+
+      const box=document.createElement("div");
+      box.className="item";
+      box.id="quickToolSetting010";
+      box.innerHTML=`<h3>快捷工具設定</h3>
+      <p class="small">控制右側/手機下方快捷工具是否顯示，手機、平板、桌機同步。</p>
+      <label class="check-row"><input type="checkbox" data-qt="show" ${d.quickToolVisibility.show!==false?"checked":""}> 顯示快捷工具</label>
+      <label class="check-row"><input type="checkbox" data-qt="line" ${d.quickToolVisibility.line!==false?"checked":""}> 顯示 LINE</label>
+      <label class="check-row"><input type="checkbox" data-qt="phone" ${d.quickToolVisibility.phone!==false?"checked":""}> 顯示 電話</label>
+      <label class="check-row"><input type="checkbox" data-qt="form" ${d.quickToolVisibility.form!==false?"checked":""}> 顯示 表單</label>
+      <label class="check-row"><input type="checkbox" data-qt="top" ${d.quickToolVisibility.top!==false?"checked":""}> 顯示 TOP</label>`;
+
+      (c.querySelector(".group") || c).appendChild(box);
+
+      box.querySelectorAll("[data-qt]").forEach(el=>{
+        el.onchange=()=>{
+          d.quickToolVisibility[el.dataset.qt]=el.checked;
+          markDirty010();
+        };
+      });
+    }catch(e){}
+  }
+
+  function ensureAdminFloatingTools010(){
+    if(document.getElementById("adminFloatingTools010")) return;
+    const wrap=document.createElement("div");
+    wrap.id="adminFloatingTools010";
+    wrap.className="admin-floating-tools";
+    const user=sessionStorage.getItem("cc_admin_user") || "admin";
+    wrap.innerHTML=`<div class="admin-user-name" title="點選登出">${user}</div>
+      <button type="button" data-admin-menu>目錄</button>
+      <button type="button" data-admin-preview>預覽</button>
+      <button type="button" data-admin-save>儲存</button>
+      <a href="index.html" target="_blank">首頁</a>`;
+    document.body.appendChild(wrap);
+
+    wrap.querySelector("[data-admin-menu]").onclick=()=>toggleAdminMenu010();
+    wrap.querySelector("[data-admin-preview]").onclick=()=>document.getElementById("previewBtn")?.click();
+    wrap.querySelector("[data-admin-save]").onclick=()=>document.getElementById("saveBtn")?.click();
+    wrap.querySelector(".admin-user-name").onclick=()=>{
+      if(confirm("是否登出目前帳號？")){
+        document.getElementById("logoutBtn")?.click();
+      }
+    };
+  }
+
+  function ensureMobileMenuBar010(){
+    const layout=document.querySelector(".admin-layout");
+    const aside=document.querySelector(".admin-layout aside");
+    if(!layout || !aside || document.getElementById("mobileAdminMenuBar010")) return;
+    const bar=document.createElement("div");
+    bar.id="mobileAdminMenuBar010";
+    bar.className="mobile-admin-menu-bar";
+    bar.innerHTML=`<div class="mobile-admin-menu-title">目前：<span id="mobileCurrentTab010">基本資料</span></div>
+    <button type="button" class="mobile-admin-menu-toggle" id="mobileAdminMenuToggle010">選擇編輯項目 ☰</button>`;
+    layout.parentNode.insertBefore(bar,layout);
+    document.getElementById("mobileAdminMenuToggle010").onclick=()=>toggleAdminMenu010();
+  }
+
+  function updateCurrentTabName010(){
+    const active=document.querySelector(".admin-layout aside button.active,.admin-layout aside a.active");
+    const span=document.getElementById("mobileCurrentTab010");
+    if(span && active) span.textContent=active.textContent.trim();
+  }
+
+  function toggleAdminMenu010(){
+    const aside=document.querySelector(".admin-layout aside");
+    const btn=document.getElementById("mobileAdminMenuToggle010");
+    if(!aside) return;
+    aside.classList.toggle("open");
+    if(btn) btn.textContent=aside.classList.contains("open") ? "關閉目錄 ✕" : "選擇編輯項目 ☰";
+  }
+
+  function closeAdminMenu010(){
+    const aside=document.querySelector(".admin-layout aside");
+    const btn=document.getElementById("mobileAdminMenuToggle010");
+    if(!aside) return;
+    aside.classList.remove("open");
+    if(btn) btn.textContent="選擇編輯項目 ☰";
+  }
+
+  function bindMenuClose010(){
+    document.addEventListener("click",e=>{
+      const aside=document.querySelector(".admin-layout aside");
+      const btn=document.getElementById("mobileAdminMenuToggle010");
+      const float=document.getElementById("adminFloatingTools010");
+      if(!aside || !aside.classList.contains("open")) return;
+      if(aside.contains(e.target) || (btn&&btn.contains(e.target)) || (float&&float.contains(e.target))) return;
+      closeAdminMenu010();
+    },true);
+
+    document.querySelectorAll(".admin-layout aside button,.admin-layout aside a").forEach(el=>{
+      if(el.dataset.bound010) return;
+      el.dataset.bound010="1";
+      el.addEventListener("click",()=>{
+        updateCurrentTabName010();
+        closeAdminMenu010();
+        setTimeout(()=>{
+          const panel=document.querySelector(".panel,#adminContent,.admin-content");
+          if(panel) panel.scrollIntoView({behavior:"smooth",block:"start"});
+        },80);
+      },true);
+    });
+  }
+
+  function boot010(){
+    ensureMobileMenuBar010();
+    ensureAdminFloatingTools010();
+    bindMenuClose010();
+    injectQuickToolSetting010();
+    updateCurrentTabName010();
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot010);
+  }else{
+    boot010();
+  }
+  window.addEventListener("load",()=>{boot010();setTimeout(boot010,800);setTimeout(boot010,2000);});
+  const oldRender010=window.render;
+  if(typeof oldRender010==="function"){
+    window.render=function(){
+      oldRender010();
+      setTimeout(boot010,0);
+    };
+    try{render=window.render;}catch(e){}
+  }
+})();

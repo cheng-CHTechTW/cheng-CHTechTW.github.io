@@ -178,3 +178,126 @@ window.addEventListener("load",()=>{try{ccV17FloatingFollow()}catch(e){console.w
 document.addEventListener("DOMContentLoaded",()=>{try{ccV17FloatingFollow()}catch(e){}});
 setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},800);
 setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},2500);
+
+
+/* 009 footer social visibility */
+function applySocialVisibility009(d){
+  const cfg=(d&&d.socialVisibility)||{};
+  const pairs=[
+    ["facebook",'[data-social="facebookUrl"]'],
+    ["instagram",'[data-social="instagramUrl"]'],
+    ["youtube",'[data-social="youtubeUrl"]'],
+    ["email",'.social [data-open-form]'],
+    ["line",'[data-line],#ccFloatLine']
+  ];
+  pairs.forEach(([key,sel])=>{
+    const show=cfg[key]!==false;
+    document.querySelectorAll(sel).forEach(el=>{el.style.display=show?"":"none";});
+  });
+  const social=document.querySelector(".social");
+  if(social){
+    const any=[...social.children].some(el=>getComputedStyle(el).display!=="none");
+    social.style.display=any?"":"none";
+  }
+}
+
+window.addEventListener('load',()=>{try{applySocialVisibility009(getData())}catch(e){}});
+setTimeout(()=>{try{applySocialVisibility009(getData())}catch(e){}},800);
+
+/* v19 footer icon visibility */
+function applySocialIconVisibilityV19(d){
+  const cfg=(d&&d.socialIconVisibility)||{};
+  const map={
+    facebook:'[data-social="facebookUrl"]',
+    instagram:'[data-social="instagramUrl"]',
+    youtube:'[data-social="youtubeUrl"]',
+    email:'.social [data-open-form]'
+  };
+  Object.keys(map).forEach(key=>{
+    const show=cfg[key]!==false;
+    document.querySelectorAll(map[key]).forEach(el=>{
+      el.style.display=show?'':'none';
+    });
+  });
+}
+
+window.addEventListener('load',()=>{
+  try{
+    applySocialIconVisibilityV19(getData());
+  }catch(e){}
+});
+setTimeout(()=>{
+  try{
+    applySocialIconVisibilityV19(getData());
+  }catch(e){}
+},1000);
+
+
+/* 010 v20：前台快捷工具顯示/隱藏同步 */
+(function(){
+  function getSafeData(){
+    try{
+      return typeof getData==="function" ? getData() : (window.DEFAULT_DATA || {});
+    }catch(e){
+      return window.DEFAULT_DATA || {};
+    }
+  }
+  function getLineUrl(d){
+    return (d.appearanceConfig && d.appearanceConfig.lineJoinUrl) ||
+           (d.contact && d.contact.lineUrl) ||
+           "https://line.me/ti/p/@905dqqqw";
+  }
+  function getPhoneUrl(d){
+    const p=(d.contact && d.contact.phone) || "(02)-6623-7091";
+    return "tel:" + String(p).replace(/[^0-9+]/g,"");
+  }
+  function openForm010(){
+    const m=document.getElementById("leadModal");
+    if(m){
+      m.classList.add("show");
+      document.body.classList.add("modal-open");
+      return;
+    }
+    const btn=document.querySelector("[data-open-form]");
+    if(btn) btn.click();
+  }
+  function ensureQuickTools010(){
+    const d=getSafeData();
+    const q=d.quickToolVisibility || {show:true,line:true,phone:true,form:true,top:true};
+
+    let oldFloat=document.querySelector(".floatbar");
+    if(oldFloat) oldFloat.style.display="none";
+
+    let box=document.getElementById("ccQuickTools");
+    if(!box){
+      box=document.getElementById("ccMobileFloat") || document.createElement("div");
+      box.id="ccQuickTools";
+      box.className="cc-quick-tools";
+      if(!box.parentNode) document.body.appendChild(box);
+    }
+
+    if(q.show===false){
+      box.style.display="none";
+      return;
+    }
+
+    box.style.display="flex";
+    box.innerHTML=`
+      ${q.line!==false ? `<a href="${getLineUrl(d)}" target="_blank" rel="noopener">LINE</a>` : ""}
+      ${q.phone!==false ? `<a href="${getPhoneUrl(d)}">電話</a>` : ""}
+      ${q.form!==false ? `<button type="button" data-qt-form>表單</button>` : ""}
+      ${q.top!==false ? `<button type="button" data-qt-top>TOP</button>` : ""}
+    `;
+
+    const form=box.querySelector("[data-qt-form]");
+    if(form) form.onclick=openForm010;
+    const top=box.querySelector("[data-qt-top]");
+    if(top) top.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+  }
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",ensureQuickTools010);
+  }else{
+    ensureQuickTools010();
+  }
+  window.addEventListener("load",()=>{ensureQuickTools010();setTimeout(ensureQuickTools010,800);setTimeout(ensureQuickTools010,2000);});
+})();

@@ -382,3 +382,125 @@
   font-size:12px;
   margin-top:12px;
 }
+
+
+#footerSocialVisibility009 label{padding:8px 0;}
+
+
+/* 010 v20：後台目錄抽屜與浮動快捷工具 */
+.admin-floating-tools{
+  position:fixed!important;
+  right:14px!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  z-index:2147483000!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:96px!important;
+}
+.admin-floating-tools button,
+.admin-floating-tools a,
+.admin-floating-tools .admin-user-name{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:48px!important;
+  padding:8px!important;
+  border:1px solid rgba(148,163,184,.45)!important;
+  border-bottom:0!important;
+  background:rgba(15,23,42,.94)!important;
+  color:#fff!important;
+  font-weight:900!important;
+  font-size:13px!important;
+  text-decoration:none!important;
+  text-align:center!important;
+  cursor:pointer!important;
+  box-sizing:border-box!important;
+}
+.admin-floating-tools .admin-user-name{
+  color:#93c5fd!important;
+}
+.admin-floating-tools > *:first-child{
+  border-radius:16px 16px 0 0!important;
+}
+.admin-floating-tools > *:last-child{
+  border-bottom:1px solid rgba(148,163,184,.45)!important;
+  border-radius:0 0 16px 16px!important;
+}
+.admin-floating-tools .dirty{
+  background:#dc2626!important;
+}
+.mobile-admin-menu-bar{
+  display:none;
+}
+#quickToolSetting010 label{
+  padding:8px 0;
+}
+
+@media(max-width:900px){
+  .admin-floating-tools{
+    right:8px!important;
+    top:auto!important;
+    bottom:92px!important;
+    transform:none!important;
+    width:74px!important;
+  }
+  .admin-floating-tools button,
+  .admin-floating-tools a,
+  .admin-floating-tools .admin-user-name{
+    min-height:44px!important;
+    font-size:12px!important;
+    padding:6px!important;
+  }
+  .mobile-admin-menu-bar{
+    display:flex!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:9999!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    padding:12px 14px!important;
+    background:#020617!important;
+    border-bottom:1px solid rgba(148,163,184,.25)!important;
+  }
+  .mobile-admin-menu-title{
+    color:#e5edf7!important;
+    font-weight:900!important;
+  }
+  .mobile-admin-menu-toggle{
+    background:#2563eb!important;
+    color:#fff!important;
+    border:0!important;
+    border-radius:12px!important;
+    padding:10px 14px!important;
+    font-weight:900!important;
+  }
+  .admin-layout aside{
+    display:none!important;
+  }
+  .admin-layout aside.open{
+    display:grid!important;
+    position:fixed!important;
+    top:70px!important;
+    left:0!important;
+    right:0!important;
+    z-index:9998!important;
+    max-height:calc(100dvh - 70px)!important;
+    overflow-y:auto!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+    padding:16px!important;
+    background:rgba(2,6,23,.97)!important;
+  }
+  .admin-layout aside.open button,
+  .admin-layout aside.open a{
+    min-height:52px!important;
+    border-radius:12px!important;
+    white-space:normal!important;
+  }
+}
+@media(max-width:430px){
+  .admin-layout aside.open{
+    grid-template-columns:1fr!important;
+  }
+}

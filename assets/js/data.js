@@ -91,7 +91,10 @@ window.DEFAULT_DATA = {
     "instagramUrl": "https://instagram.com/",
     "youtubeUrl": "https://youtube.com/"
   },
-  "formConfig": {
+  "quickToolVisibility":{"show":true,"line":true,"phone":true,"form":true,"top":true},
+"socialVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true,"line":true},
+"socialIconVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true},
+"formConfig": {
     "googleScriptUrl": "",
     "sheetUrl": "",
     "notifyEmail": "chengchuang1012@gmail.com"

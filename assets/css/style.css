@@ -606,3 +606,108 @@ body.modal-open{
 .contact-float:not(#ccMobileFloat){
   z-index:9998!important;
 }
+
+
+/* 009 社群顯示/隱藏同步 */
+.social:empty{display:none!important}
+
+
+/* 010 v20：快捷工具桌機/平板/手機同步 */
+.cc-quick-tools,
+#ccQuickTools,
+#ccMobileFloat,
+.cc-mobile-float,
+.float-buttons,
+.floatbar{
+  position:fixed!important;
+  right:14px!important;
+  top:50%!important;
+  bottom:auto!important;
+  transform:translateY(-50%)!important;
+  z-index:2147483000!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:76px!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+
+.cc-quick-tools a,
+.cc-quick-tools button,
+#ccQuickTools a,
+#ccQuickTools button,
+#ccMobileFloat a,
+#ccMobileFloat button,
+.cc-mobile-float a,
+.cc-mobile-float button,
+.float-buttons a,
+.float-buttons button,
+.floatbar a,
+.floatbar button{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:76px!important;
+  height:56px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid rgba(148,163,184,.45)!important;
+  border-bottom:0!important;
+  background:rgba(15,23,42,.94)!important;
+  color:#fff!important;
+  font-weight:900!important;
+  font-size:15px!important;
+  text-decoration:none!important;
+  text-align:center!important;
+  cursor:pointer!important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  box-sizing:border-box!important;
+}
+
+.cc-quick-tools a:first-child,
+.cc-quick-tools button:first-child,
+#ccQuickTools a:first-child,
+#ccQuickTools button:first-child{
+  border-radius:16px 16px 0 0!important;
+}
+
+.cc-quick-tools a:last-child,
+.cc-quick-tools button:last-child,
+#ccQuickTools a:last-child,
+#ccQuickTools button:last-child{
+  border-bottom:1px solid rgba(148,163,184,.45)!important;
+  border-radius:0 0 16px 16px!important;
+}
+
+@media(max-width:900px){
+  .cc-quick-tools,
+  #ccQuickTools,
+  #ccMobileFloat,
+  .cc-mobile-float,
+  .float-buttons,
+  .floatbar{
+    right:8px!important;
+    top:auto!important;
+    bottom:92px!important;
+    transform:none!important;
+    width:58px!important;
+  }
+  .cc-quick-tools a,
+  .cc-quick-tools button,
+  #ccQuickTools a,
+  #ccQuickTools button,
+  #ccMobileFloat a,
+  #ccMobileFloat button,
+  .cc-mobile-float a,
+  .cc-mobile-float button,
+  .float-buttons a,
+  .float-buttons button,
+  .floatbar a,
+  .floatbar button{
+    width:58px!important;
+    height:48px!important;
+    font-size:12px!important;
+  }
+}
