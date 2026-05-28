@@ -610,3 +610,43 @@ body.admin-page .float-buttons,
 body.admin-page .floatbar{
   display:none!important;
 }
+
+
+/* 012 v22：手機版後台隱藏上方大按鈕區，保留右側浮動快捷 */
+@media(max-width:900px){
+  .admin-header .top-actions,
+  .top-actions,
+  .admin-header > .actions,
+  .admin-header > .admin-actions,
+  .admin-header .admin-actions,
+  #previewBtn,
+  #saveBtn,
+  #openHomeBtn,
+  #logoutBtn{
+    display:none!important;
+  }
+
+  /* 保留浮動快捷內的預覽/儲存/首頁 */
+  .admin-floating-tools #previewBtn,
+  .admin-floating-tools #saveBtn,
+  .admin-floating-tools #openHomeBtn,
+  .admin-floating-tools #logoutBtn,
+  .admin-floating-tools button,
+  .admin-floating-tools a{
+    display:flex!important;
+  }
+
+  .admin-header{
+    padding-bottom:18px!important;
+  }
+
+  .admin-header p{
+    margin-bottom:0!important;
+  }
+
+  /* 避免原本大按鈕區留下空白高度 */
+  .admin-header + .top-actions,
+  .top-actions + .mobile-admin-menu-bar{
+    margin-top:0!important;
+  }
+}

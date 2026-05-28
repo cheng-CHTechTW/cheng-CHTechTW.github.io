@@ -722,3 +722,16 @@ body.admin-page .float-buttons,
 body.admin-page .floatbar{
   display:none!important;
 }
+
+
+/* 012 v22：手機後台不顯示上方大按鈕區 */
+@media(max-width:900px){
+  body.admin-page .top-actions,
+  body.admin-page .admin-header .top-actions,
+  body.admin-page .admin-actions{
+    display:none!important;
+  }
+  body.admin-page .admin-floating-tools{
+    display:flex!important;
+  }
+}
