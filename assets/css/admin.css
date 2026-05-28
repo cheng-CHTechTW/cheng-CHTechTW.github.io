@@ -365,3 +365,20 @@
 .login-logo{
   object-fit:contain!important;
 }
+
+
+/* 006 v16：後台 Logo 去背與版本顯示 */
+.login-logo,
+.admin-header img,
+#loginLogo{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  object-fit:contain!important;
+}
+.admin-version{
+  color:#94a3b8;
+  opacity:.55;
+  font-size:12px;
+  margin-top:12px;
+}

@@ -415,3 +415,194 @@ body.modal-open{overflow:hidden!important;touch-action:none}
     pointer-events:auto;
   }
 }
+
+
+/* 006 v16：Logo 去背顯示、LINE QR、版本碼、手機顯示修正 */
+.logo,
+.logo a,
+.logo img,
+.footer-logo,
+.login-logo,
+.brand-logo img{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+.logo img,
+.footer-logo,
+.brand-logo img{
+  object-fit:contain!important;
+  mix-blend-mode:normal!important;
+}
+
+/* 若原本外層有黑底，手機改透明 */
+@media(max-width:760px){
+  .logo,
+  .brand,
+  .brand-logo,
+  .header-logo{
+    background:transparent!important;
+    box-shadow:none!important;
+    border:0!important;
+  }
+}
+
+/* LINE QR 顯示真實圖片：不再使用斜線假圖 */
+.fake-qr,
+.footer-line-qr-imgwrap{
+  background:#fff!important;
+  background-image:none!important;
+  color:transparent!important;
+  border-radius:14px!important;
+  padding:8px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.25)!important;
+}
+.fake-qr::before,
+.fake-qr::after{
+  content:none!important;
+  display:none!important;
+}
+.fake-qr img,
+.footer-line-qr-img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  display:block!important;
+  background:#fff!important;
+  border-radius:8px!important;
+}
+
+.footer-version,
+.site-version,
+.admin-version{
+  font-size:11px!important;
+  opacity:.38!important;
+  letter-spacing:.04em;
+  margin-top:12px;
+  user-select:none;
+}
+.footer-version{
+  color:#94a3b8!important;
+  text-align:center;
+}
+.admin-version{
+  color:#94a3b8!important;
+  margin-top:12px;
+}
+
+/* 手機浮動快捷 */
+@media(max-width:760px){
+  .float-actions{
+    right:8px!important;
+    bottom:78px!important;
+  }
+}
+
+/* 手機表單彈窗滑動再加強 */
+body.modal-open{
+  position:fixed;
+  width:100%;
+}
+.modal.show{
+  display:flex!important;
+}
+.modal-box{
+  touch-action:auto!important;
+}
+
+
+/* 007 v17：手機版快捷鈕固定跟隨 */
+.cc-mobile-float{
+  position:fixed!important;
+  right:12px!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  z-index:2147483000!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  width:62px!important;
+  pointer-events:auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+
+.cc-mobile-float a,
+.cc-mobile-float button{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:62px!important;
+  height:52px!important;
+  margin:0!important;
+  padding:0!important;
+  border:1px solid rgba(148,163,184,.38)!important;
+  border-bottom:0!important;
+  background:rgba(15,23,42,.94)!important;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  text-decoration:none!important;
+  line-height:1.1!important;
+  font-family:inherit!important;
+  writing-mode:horizontal-tb!important;
+  text-align:center!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+
+.cc-mobile-float a:first-child,
+.cc-mobile-float button:first-child{
+  border-radius:14px 14px 0 0!important;
+}
+
+.cc-mobile-float a:last-child,
+.cc-mobile-float button:last-child{
+  border-bottom:1px solid rgba(148,163,184,.38)!important;
+  border-radius:0 0 14px 14px!important;
+}
+
+@media(min-width:761px){
+  .cc-mobile-float{
+    top:50%!important;
+    right:18px!important;
+    width:76px!important;
+  }
+  .cc-mobile-float a,
+  .cc-mobile-float button{
+    width:76px!important;
+    height:56px!important;
+    font-size:15px!important;
+  }
+}
+
+@media(max-width:760px){
+  .cc-mobile-float{
+    display:flex!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:92px!important;
+    transform:none!important;
+    width:58px!important;
+  }
+  .cc-mobile-float a,
+  .cc-mobile-float button{
+    width:58px!important;
+    height:48px!important;
+    font-size:12px!important;
+  }
+}
+
+/* 避免舊快捷鈕與新版重複 */
+.float-actions:not(#ccMobileFloat),
+.floating-actions:not(#ccMobileFloat),
+.quick-actions:not(#ccMobileFloat),
+.side-actions:not(#ccMobileFloat),
+.side-contact:not(#ccMobileFloat),
+.fixed-contact:not(#ccMobileFloat),
+.contact-float:not(#ccMobileFloat){
+  z-index:9998!important;
+}

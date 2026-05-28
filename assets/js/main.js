@@ -75,3 +75,106 @@ function renderEditEntry(d){let a=adminEditEntry,c=d.editEntry||{};a.textContent
 function openList(type){const d=getData();let title="",body="";if(type==="cases"){title=d.casesTitle;body=visibleItems(d.cases).map((c,i)=>`<article class="modal-card"><img src="${imgVal("case"+i,c.image)}"><div><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</div></article>`).join("")}if(type==="partners"){title=d.partnersTitle;body=visibleItems(d.partners).map((p,i)=>`<article class="modal-card"><img src="${imgVal("partner"+i,p.image)}"><div><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p>${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}</div></article>`).join("")}if(type==="news"){title=d.newsTitle;body=publishedNews(d.news).map((n,i)=>`<article class="modal-card ${n.pinned?"pinned-news":""}"><div><div class="news-meta">${n.pinned?`<span class="pin-badge">置頂</span>`:""}${n.publishDate?`<time>${n.publishDate}</time>`:""}</div><h3>${n.title}</h3><p>${n.subtitle||""}</p><p>${n.text||""}</p>${renderNewsExtras(n)}</div></article>`).join("")}if(type==="faqs"){title=d.faqTitle;body=visibleItems(d.faqs).map(f=>`<div class="faq-item open"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join("")}contentModalTitle.textContent=title;contentModalBody.innerHTML=`<div class="${type==='faqs'?'faq-grid':'modal-list-grid'}">${body}</div>`;contentModal.classList.add("show");document.body.classList.add("modal-open")}
 function bind(){document.querySelectorAll("[data-scroll]").forEach(e=>e.onclick=x=>{x.preventDefault();scrollToSection(e.dataset.scroll)});document.querySelectorAll(".faq-q").forEach(q=>q.onclick=()=>q.parentElement.classList.toggle("open"));document.querySelectorAll("[data-open-form]").forEach(e=>e.onclick=x=>{x.preventDefault();openForm()});document.querySelectorAll("[data-open-list]").forEach(e=>e.onclick=x=>{x.preventDefault();openList(e.dataset.openList)})}
 function scrollToSection(id){let t=document.getElementById(id);if(!t)return;window.scrollTo({top:t.getBoundingClientRect().top+scrollY-86,behavior:"smooth"});menu.classList.remove("show")}mobileToggle.onclick=()=>menu.classList.toggle("show");function openForm(){leadModal.classList.add("show");document.body.classList.add("modal-open");formStatus.textContent=""}function closeForm(){leadModal.classList.remove("show");document.body.classList.remove("modal-open")}document.querySelectorAll("[data-close-form]").forEach(e=>e.onclick=closeForm);document.querySelectorAll("[data-close-content]").forEach(e=>e.onclick=()=>{contentModal.classList.remove("show");document.body.classList.remove("modal-open")});pageUrl.value=location.href;if(document.getElementById("notifyEmail"))notifyEmail.value=(getData().formConfig&&getData().formConfig.notifyEmail)||"";leadForm.onsubmit=async e=>{e.preventDefault();const d=getData(),url=d.formConfig?.googleScriptUrl||GOOGLE_SCRIPT_URL;if(notifyEmail)notifyEmail.value=d.formConfig?.notifyEmail||"";if(!url||url.includes("請貼上")){formStatus.textContent="尚未設定 Google Apps Script URL。";formStatus.className="err";return}let btn=leadForm.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="送出中...";let send=Object.fromEntries(new FormData(leadForm).entries());send.createdAt=new Date().toLocaleString("zh-TW",{hour12:false});try{await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(send)});formStatus.textContent="已送出，我們會盡快與您聯絡！";formStatus.className="ok";leadForm.reset();setTimeout(closeForm,1200)}catch(err){formStatus.textContent="送出失敗。";formStatus.className="err"}finally{btn.disabled=false;btn.textContent="送出表單"}};apply();
+
+/* 006 v16 post render fixes */
+function ccV16Enhance(){
+  const d=getData();
+  const im=getImgs();
+  const logo=im.logo||im.siteLogo||im.headerLogo||"assets/images/logo.png";
+
+  document.querySelectorAll('.logo img,.footer-logo,.brand-logo img,img[src*="logo"]').forEach(el=>{
+    if(el && logo) el.src=logo;
+    el.style.background='transparent';
+    el.style.border='0';
+    el.style.boxShadow='none';
+  });
+
+  const a=d.appearanceConfig||{};
+  const lineUrl=a.lineJoinUrl||(d.contact&&d.contact.lineUrl)||"#";
+  const qrImg=im.lineQr||a.footerLineQrImage||"assets/images/line-qr.png";
+  const qrSize=a.footerLineQrSize||150;
+  document.documentElement.style.setProperty("--footer-qr-size", qrSize+"px");
+
+  document.querySelectorAll('[data-footer-block="qr"],.qr-box').forEach(box=>{
+    if(!box)return;
+    if((d.footerVisibility&&d.footerVisibility.qr===false)||a.footerLineQrShow===false){
+      box.style.display='none';
+      return;
+    }
+    box.style.display='';
+    const label=a.footerLineQrLabel||"官方 LINE";
+    const lineId=(d.contactFields&&d.contactFields.lineId&&d.contactFields.lineId.value)||(d.contact&&d.contact.lineId)||"";
+    box.innerHTML=`<a class="fake-qr" style="width:${qrSize}px;height:${qrSize}px" href="${lineUrl}" target="_blank" rel="noopener"><img src="${qrImg}" alt="${label}"></a><p>${label}<br><a href="${lineUrl}" target="_blank" rel="noopener"><strong>${lineId}</strong></a></p>`;
+  });
+
+  /* 讓 LINE ID 文字也能直接點 LINE */
+  document.querySelectorAll('.contact-lines div,.footer-contact div').forEach(row=>{
+    const txt=row.textContent||"";
+    if(txt.toLowerCase().includes('line') || txt.includes('@905')){
+      if(!row.querySelector('a')){
+        row.style.cursor='pointer';
+        row.addEventListener('click',()=>window.open(lineUrl,'_blank'),{once:false});
+      }
+    }
+  });
+
+  /* 最下方版本碼：低調顯示 */
+  if(a.showVersion!==false && !document.querySelector('.footer-version')){
+    const footer=document.querySelector('footer,.footer');
+    if(footer){
+      const v=document.createElement('div');
+      v.className='footer-version';
+      v.textContent=a.versionLabel||d.siteVersion||'006_v16';
+      footer.appendChild(v);
+    }
+  }
+}
+
+window.addEventListener('load',()=>{try{ccV16Enhance()}catch(e){console.warn(e)}});
+setTimeout(()=>{try{ccV16Enhance()}catch(e){}},500);
+
+
+/* 007 v17 mobile floating follow fix */
+function ccV17FloatingFollow(){
+  const d=getData();
+  const a=d.appearanceConfig||{};
+  const lineUrl=a.lineJoinUrl||(d.contact&&d.contact.lineUrl)||"https://line.me/ti/p/@905dqqqw";
+  const phone=(d.contact&&d.contact.phone)||"";
+  let wrap=document.getElementById("ccMobileFloat");
+  if(!wrap){
+    wrap=document.createElement("div");
+    wrap.id="ccMobileFloat";
+    wrap.className="cc-mobile-float";
+    wrap.innerHTML=`<a id="ccFloatLine" href="#" target="_blank" rel="noopener">LINE</a><a id="ccFloatPhone" href="#">電話</a><button id="ccFloatForm" type="button">表單</button><button id="ccFloatTop" type="button">TOP</button>`;
+    document.body.appendChild(wrap);
+  }
+  wrap.style.display="flex";
+  wrap.style.position="fixed";
+  wrap.style.zIndex="2147483000";
+  const line=document.getElementById("ccFloatLine");
+  const tel=document.getElementById("ccFloatPhone");
+  const form=document.getElementById("ccFloatForm");
+  const top=document.getElementById("ccFloatTop");
+  if(line)line.href=lineUrl;
+  if(tel)tel.href="tel:"+String(phone).replace(/[^0-9+]/g,"");
+  if(form){
+    form.onclick=function(e){
+      e.preventDefault();
+      const btn=document.querySelector("[data-open-form],.open-form,[href='#contact']");
+      if(window.openForm) window.openForm();
+      else if(btn && btn!==form) btn.click();
+      else {
+        const modal=document.getElementById("leadModal");
+        if(modal){modal.classList.add("show");document.body.classList.add("modal-open");}
+        else location.hash="#contact";
+      }
+    };
+  }
+  if(top){
+    top.onclick=function(e){e.preventDefault();window.scrollTo({top:0,behavior:"smooth"});};
+  }
+}
+window.addEventListener("load",()=>{try{ccV17FloatingFollow()}catch(e){console.warn(e)}});
+document.addEventListener("DOMContentLoaded",()=>{try{ccV17FloatingFollow()}catch(e){}});
+setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},800);
+setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},2500);

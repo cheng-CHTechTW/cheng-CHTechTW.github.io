@@ -338,6 +338,7 @@ function bindImg(){
           images.headerLogo = reader.result;
         }
         syncAdminLogoImages();
+    ccV16AdminEnhance();
         render();
       };
       reader.readAsDataURL(file);
@@ -521,7 +522,7 @@ function render(){
     c.innerHTML=`<div class="group"><h2>手機 / 圖片顯示設定</h2>
     <p>可調整手機與桌機 Logo 大小，以及頁尾 LINE QR 圖片顯示。</p>
     <div class="item"><h3>Logo 顯示大小</h3>${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}</div>
-    <div class="item"><h3>頁尾 LINE QR</h3><label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}<p class="small">圖片可放在 assets/images/line-qr.png；若不要顯示請取消勾選。</p></div>
+    <div class="item"><h3>頁尾 LINE QR</h3><label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}${input("appearanceConfig.lineJoinUrl","點 QR / LINE ID 前往的 LINE 加入網址")}${input("appearanceConfig.versionLabel","版本號顯示文字")}<p class="small">圖片可放在 assets/images/line-qr.png；若不要顯示請取消勾選。</p></div>
     </div>`;
     bindInputs();
     footerLineQrShow.onchange=e=>data.appearanceConfig.footerLineQrShow=e.target.checked;
@@ -722,11 +723,59 @@ function syncAdminLogoImages(){
   }catch(e){}
 }
 
+
+function ccV16AdminEnhance(){
+  try{
+    if(!data.siteVersion)data.siteVersion="006_v16";
+    if(!data.appearanceConfig)data.appearanceConfig={};
+    if(!data.appearanceConfig.versionLabel)data.appearanceConfig.versionLabel=data.siteVersion;
+    const logo=(images&&images.logo)||images.siteLogo||images.headerLogo||"assets/images/logo.png";
+    document.querySelectorAll('#loginLogo,.login-logo,[data-admin-logo]').forEach(el=>{
+      el.src=logo;
+      el.style.background='transparent';
+      el.style.border='0';
+      el.style.boxShadow='none';
+    });
+    if(!document.querySelector('.login-card .admin-version')){
+      const card=document.querySelector('.login-card');
+      if(card){
+        const v=document.createElement('div');
+        v.className='admin-version';
+        v.textContent=data.appearanceConfig.versionLabel||data.siteVersion||"006_v16";
+        card.appendChild(v);
+      }
+    }
+    if(!document.querySelector('.admin-header .admin-version')){
+      const head=document.querySelector('.admin-header');
+      if(head){
+        const v=document.createElement('div');
+        v.className='admin-version';
+        v.textContent=data.appearanceConfig.versionLabel||data.siteVersion||"006_v16";
+        head.appendChild(v);
+      }
+    }
+  }catch(e){}
+}
+
+
+function ccV16CloseMobileMenuOutside(){
+  document.addEventListener("touchstart",function(e){
+    const aside=document.querySelector(".admin-layout aside");
+    const toggle=document.getElementById("mobileAdminMenuToggle");
+    if(!aside||!toggle||window.innerWidth>760)return;
+    if(!aside.classList.contains("open"))return;
+    if(aside.contains(e.target)||toggle.contains(e.target))return;
+    aside.classList.remove("open");
+    toggle.textContent="選擇編輯項目 ☰";
+  },true);
+}
+
 function bootAdmin(){
   try{
     initLogin();
     syncAdminLogoImages();
     initMobileAdminMenu();
+    ccV16CloseMobileMenuOutside();
     updateMobileCurrentTab();
     const saveEl=document.getElementById("saveBtn");
     const previewEl=document.getElementById("previewBtn");

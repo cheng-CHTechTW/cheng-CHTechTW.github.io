@@ -1,11 +1,12 @@
 window.DEFAULT_DATA = {
+  "siteVersion":"006_v16",
   "siteTitle": "誠創科技｜智慧 POS 解決方案",
   "adminUsers":[{"enabled":true,"isMaster":true,"username":"admin","password":"123456","displayName":"工程總帳號","email":"chengchuang1012@gmail.com","permissions":{"basic":true,"header":true,"footer":true,"security":true,"editEntry":true,"appearance":true,"hero":true,"services":true,"cases":true,"partners":true,"news":true,"faq":true,"form":true,"images":true,"backup":true,"masterAccount":true}}],
 "adminConfig": {
     "username": "admin",
     "password": "123456"
   },
-  "appearanceConfig":{"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150},
+  "appearanceConfig":{"versionLabel":"006_v16","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://line.me/ti/p/@905dqqqw"},
   "editEntry": {
     "show": true,
     "icon": "✎",
