@@ -65,7 +65,7 @@ function syncAllLogoImages(){
   });
 }
 
-function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.siteTitle;renderNav(d);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=im[k]});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${im.heroBg})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");statsGrid.innerHTML=d.stats.map(s=>`<div class="stat"><strong>${s.number}</strong><span>${s.label}</span></div>`).join("");shippingGrid.innerHTML=d.shipping.map((s,i)=>`<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);bind()}
+function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.siteTitle;renderNav(d);const align=d.appearanceConfig?.mobileMenuAlign||"right";menu.classList.remove("menu-left","menu-right");menu.classList.add("menu-"+align);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=im[k]});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${im.heroBg})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");statsGrid.innerHTML=d.stats.map(s=>`<div class="stat"><strong>${s.number}</strong><span>${s.label}</span></div>`).join("");shippingGrid.innerHTML=d.shipping.map((s,i)=>`<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);applySocialVisibility(d);bind()}
 function renderFooter(d){const f=d.contactFields||{};footerContactLines.innerHTML=Object.keys(f).filter(k=>f[k].show!==false).map(k=>`<div class="${k==="address"||k==="email"||k==="hours"?"wide":""}"><b>${f[k].label}</b><span>${f[k].value}</span></div>`).join("");document.querySelectorAll("[data-footer-block]").forEach(el=>{let k=el.dataset.footerBlock;el.style.display=d.footerVisibility?.[k]===false?"none":""})}
 function renderCases(d){let conf=d.casesDisplay||{limit:4};let r=renderCards(d.cases,conf.limit||4,(c,i)=>`<article><img src="${imgVal("case"+i,c.image)}"><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</article>`);caseGrid.innerHTML=r.shown;caseMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="cases">顯示更多成功案例</button>`:""}
 function renderPartners(d){partners.style.display=d.partnersDisplay?.visible===false?"none":"";let conf=d.partnersDisplay||{limit:4};let r=renderCards(d.partners,conf.limit||4,(p,i)=>`<article class="partner-card"><img src="${imgVal("partner"+i,p.image)}"><div class="partner-body"><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p><div class="partner-links">${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}${p.lineUrl?`<a href="${p.lineUrl}" target="_blank">LINE</a>`:""}${p.facebookUrl?`<a href="${p.facebookUrl}" target="_blank">粉專</a>`:""}</div></div></article>`);partnerGrid.innerHTML=r.shown;partnerMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="partners">顯示更多關係企業</button>`:""}
@@ -74,7 +74,7 @@ function renderFAQ(d){faq.style.display=d.faqDisplay?.visible===false?"none":"";
 function renderEditEntry(d){let a=adminEditEntry,c=d.editEntry||{};a.textContent=c.icon||"✎";a.title=c.title||"網站後台";a.className="admin-edit-entry";if(c.show===false)a.classList.add("hide");if(c.position)a.classList.add(c.position)}
 function openList(type){const d=getData();let title="",body="";if(type==="cases"){title=d.casesTitle;body=visibleItems(d.cases).map((c,i)=>`<article class="modal-card"><img src="${imgVal("case"+i,c.image)}"><div><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</div></article>`).join("")}if(type==="partners"){title=d.partnersTitle;body=visibleItems(d.partners).map((p,i)=>`<article class="modal-card"><img src="${imgVal("partner"+i,p.image)}"><div><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p>${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}</div></article>`).join("")}if(type==="news"){title=d.newsTitle;body=publishedNews(d.news).map((n,i)=>`<article class="modal-card ${n.pinned?"pinned-news":""}"><div><div class="news-meta">${n.pinned?`<span class="pin-badge">置頂</span>`:""}${n.publishDate?`<time>${n.publishDate}</time>`:""}</div><h3>${n.title}</h3><p>${n.subtitle||""}</p><p>${n.text||""}</p>${renderNewsExtras(n)}</div></article>`).join("")}if(type==="faqs"){title=d.faqTitle;body=visibleItems(d.faqs).map(f=>`<div class="faq-item open"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join("")}contentModalTitle.textContent=title;contentModalBody.innerHTML=`<div class="${type==='faqs'?'faq-grid':'modal-list-grid'}">${body}</div>`;contentModal.classList.add("show");document.body.classList.add("modal-open")}
 function bind(){document.querySelectorAll("[data-scroll]").forEach(e=>e.onclick=x=>{x.preventDefault();scrollToSection(e.dataset.scroll)});document.querySelectorAll(".faq-q").forEach(q=>q.onclick=()=>q.parentElement.classList.toggle("open"));document.querySelectorAll("[data-open-form]").forEach(e=>e.onclick=x=>{x.preventDefault();openForm()});document.querySelectorAll("[data-open-list]").forEach(e=>e.onclick=x=>{x.preventDefault();openList(e.dataset.openList)})}
-function scrollToSection(id){let t=document.getElementById(id);if(!t)return;window.scrollTo({top:t.getBoundingClientRect().top+scrollY-86,behavior:"smooth"});menu.classList.remove("show")}mobileToggle.onclick=()=>menu.classList.toggle("show");function openForm(){leadModal.classList.add("show");document.body.classList.add("modal-open");formStatus.textContent=""}function closeForm(){leadModal.classList.remove("show");document.body.classList.remove("modal-open")}document.querySelectorAll("[data-close-form]").forEach(e=>e.onclick=closeForm);document.querySelectorAll("[data-close-content]").forEach(e=>e.onclick=()=>{contentModal.classList.remove("show");document.body.classList.remove("modal-open")});pageUrl.value=location.href;if(document.getElementById("notifyEmail"))notifyEmail.value=(getData().formConfig&&getData().formConfig.notifyEmail)||"";leadForm.onsubmit=async e=>{e.preventDefault();const d=getData(),url=d.formConfig?.googleScriptUrl||GOOGLE_SCRIPT_URL;if(notifyEmail)notifyEmail.value=d.formConfig?.notifyEmail||"";if(!url||url.includes("請貼上")){formStatus.textContent="尚未設定 Google Apps Script URL。";formStatus.className="err";return}let btn=leadForm.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="送出中...";let send=Object.fromEntries(new FormData(leadForm).entries());send.createdAt=new Date().toLocaleString("zh-TW",{hour12:false});try{await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(send)});formStatus.textContent="已送出，我們會盡快與您聯絡！";formStatus.className="ok";leadForm.reset();setTimeout(closeForm,1200)}catch(err){formStatus.textContent="送出失敗。";formStatus.className="err"}finally{btn.disabled=false;btn.textContent="送出表單"}};apply();
+function scrollToSection(id){let t=document.getElementById(id);if(!t)return;window.scrollTo({top:t.getBoundingClientRect().top+scrollY-86,behavior:"smooth"});menu.classList.remove("show")}mobileToggle.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};document.addEventListener("click",e=>{if(window.innerWidth<=760&&menu.classList.contains("show")){if(!menu.contains(e.target)&&e.target!==mobileToggle){menu.classList.remove("show")}}});function openForm(){leadModal.classList.add("show");document.body.classList.add("modal-open");formStatus.textContent=""}function closeForm(){leadModal.classList.remove("show");document.body.classList.remove("modal-open")}document.querySelectorAll("[data-close-form]").forEach(e=>e.onclick=closeForm);document.querySelectorAll("[data-close-content]").forEach(e=>e.onclick=()=>{contentModal.classList.remove("show");document.body.classList.remove("modal-open")});pageUrl.value=location.href;if(document.getElementById("notifyEmail"))notifyEmail.value=(getData().formConfig&&getData().formConfig.notifyEmail)||"";leadForm.onsubmit=async e=>{e.preventDefault();const d=getData(),url=d.formConfig?.googleScriptUrl||GOOGLE_SCRIPT_URL;if(notifyEmail)notifyEmail.value=d.formConfig?.notifyEmail||"";if(!url||url.includes("請貼上")){formStatus.textContent="尚未設定 Google Apps Script URL。";formStatus.className="err";return}let btn=leadForm.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="送出中...";let send=Object.fromEntries(new FormData(leadForm).entries());send.createdAt=new Date().toLocaleString("zh-TW",{hour12:false});try{await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(send)});formStatus.textContent="已送出，我們會盡快與您聯絡！";formStatus.className="ok";leadForm.reset();setTimeout(closeForm,1200)}catch(err){formStatus.textContent="送出失敗。";formStatus.className="err"}finally{btn.disabled=false;btn.textContent="送出表單"}};apply();initSearch();setTimeout(syncFromCloudAndApply,100);
 
 /* 006 v16 post render fixes */
 function ccV16Enhance(){
@@ -180,60 +180,103 @@ setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},800);
 setTimeout(()=>{try{ccV17FloatingFollow()}catch(e){}},2500);
 
 
-/* 009 footer social visibility */
-function applySocialVisibility009(d){
-  const cfg=(d&&d.socialVisibility)||{};
-  const pairs=[
-    ["facebook",'[data-social="facebookUrl"]'],
-    ["instagram",'[data-social="instagramUrl"]'],
-    ["youtube",'[data-social="youtubeUrl"]'],
-    ["email",'.social [data-open-form]'],
-    ["line",'[data-line],#ccFloatLine']
-  ];
-  pairs.forEach(([key,sel])=>{
-    const show=cfg[key]!==false;
-    document.querySelectorAll(sel).forEach(el=>{el.style.display=show?"":"none";});
-  });
-  const social=document.querySelector(".social");
-  if(social){
-    const any=[...social.children].some(el=>getComputedStyle(el).display!=="none");
-    social.style.display=any?"":"none";
+/* Unified social media and link device visibility control */
+function applySocialVisibility(d) {
+  if (!d) return;
+  const isMobile = window.innerWidth <= 760;
+  
+  // Device visibility config
+  const visCfg = d.socialDeviceVisibility || {};
+  
+  // Default values check
+  const contact = d.contact || {};
+  const lineUrl = contact.lineUrl || "";
+  const fbUrl = contact.facebookUrl || "";
+  const igUrl = contact.instagramUrl || "";
+  const ytUrl = contact.youtubeUrl || "";
+  const emailVal = (d.contactFields && d.contactFields.email && d.contactFields.email.value) || contact.email || "";
+  
+  const defaultFB = "https://facebook.com/";
+  const defaultIG = "https://instagram.com/";
+  const defaultYT = "https://youtube.com/";
+  
+  function isUrlEmpty(url, defaultPrefix) {
+    if (!url) return true;
+    const trimmed = url.trim();
+    if (trimmed === "" || trimmed === "#" || trimmed === "index.html") return true;
+    if (defaultPrefix && trimmed === defaultPrefix) return true;
+    return false;
+  }
+  
+  function shouldShow(key, url, defaultPrefix) {
+    // 1. Check if URL is empty
+    if (key !== "email" && isUrlEmpty(url, defaultPrefix)) {
+      return false;
+    }
+    if (key === "email" && !emailVal.trim()) {
+      return false;
+    }
+    
+    // 2. Check Device visibility setting
+    const setting = visCfg[key] || "both";
+    if (setting === "hidden") return false;
+    if (setting === "desktop" && isMobile) return false;
+    if (setting === "mobile" && !isMobile) return false;
+    
+    return true;
+  }
+  
+  const map = {
+    line: '[data-line],#ccFloatLine',
+    facebook: '[data-social="facebookUrl"]',
+    instagram: '[data-social="instagramUrl"]',
+    youtube: '[data-social="youtubeUrl"]',
+    email: '.social [data-open-form]'
+  };
+  
+  const lineShow = shouldShow("line", lineUrl);
+  const fbShow = shouldShow("facebook", fbUrl, defaultFB);
+  const igShow = shouldShow("instagram", igUrl, defaultIG);
+  const ytShow = shouldShow("youtube", ytUrl, defaultYT);
+  const emailShow = shouldShow("email");
+  
+  document.querySelectorAll(map.line).forEach(el => el.style.display = lineShow ? "" : "none");
+  document.querySelectorAll(map.facebook).forEach(el => el.style.display = fbShow ? "" : "none");
+  document.querySelectorAll(map.instagram).forEach(el => el.style.display = igShow ? "" : "none");
+  document.querySelectorAll(map.youtube).forEach(el => el.style.display = ytShow ? "" : "none");
+  document.querySelectorAll(map.email).forEach(el => el.style.display = emailShow ? "" : "none");
+  
+  const social = document.querySelector(".social");
+  if (social) {
+    const anyVisible = fbShow || igShow || ytShow || emailShow;
+    social.style.display = anyVisible ? "" : "none";
   }
 }
 
-window.addEventListener('load',()=>{try{applySocialVisibility009(getData())}catch(e){}});
-setTimeout(()=>{try{applySocialVisibility009(getData())}catch(e){}},800);
+function applySocialVisibility009(d) { applySocialVisibility(d); }
+function applySocialIconVisibilityV19(d) { applySocialVisibility(d); }
+window.applySocialVisibility009 = applySocialVisibility009;
+window.applySocialIconVisibilityV19 = applySocialIconVisibilityV19;
+window.applySocialVisibility = applySocialVisibility;
 
-/* v19 footer icon visibility */
-function applySocialIconVisibilityV19(d){
-  const cfg=(d&&d.socialIconVisibility)||{};
-  const map={
-    facebook:'[data-social="facebookUrl"]',
-    instagram:'[data-social="instagramUrl"]',
-    youtube:'[data-social="youtubeUrl"]',
-    email:'.social [data-open-form]'
-  };
-  Object.keys(map).forEach(key=>{
-    const show=cfg[key]!==false;
-    document.querySelectorAll(map[key]).forEach(el=>{
-      el.style.display=show?'':'none';
-    });
-  });
-}
-
-window.addEventListener('load',()=>{
-  try{
-    applySocialIconVisibilityV19(getData());
-  }catch(e){}
+window.addEventListener('load', () => {
+  try { applySocialVisibility(getData()); } catch(e) {}
 });
-setTimeout(()=>{
-  try{
-    applySocialIconVisibilityV19(getData());
-  }catch(e){}
-},1000);
+window.addEventListener('resize', () => {
+  try { applySocialVisibility(getData()); } catch(e) {}
+});
+document.addEventListener('DOMContentLoaded', () => {
+  try { applySocialVisibility(getData()); } catch(e) {}
+});
+setTimeout(() => {
+  try { applySocialVisibility(getData()); } catch(e) {}
+}, 800);
+setTimeout(() => {
+  try { applySocialVisibility(getData()); } catch(e) {}
+}, 2500);
 
 
-/* 010 v20：前台快捷工具顯示/隱藏同步 */
+/* 010 v20：前台快捷工具顯示/隱藏與自訂清單同步 */
 (function(){
   function getSafeData(){
     try{
@@ -243,9 +286,9 @@ setTimeout(()=>{
     }
   }
   function getLineUrl(d){
-    return (d.appearanceConfig && d.appearanceConfig.lineJoinUrl) ||
-           (d.contact && d.contact.lineUrl) ||
-           "https://line.me/ti/p/@905dqqqw";
+    return (d.contact && d.contact.lineUrl) ||
+           (d.appearanceConfig && d.appearanceConfig.lineJoinUrl) ||
+           "https://line.me/R/ti/p/@905dqqqw";
   }
   function getPhoneUrl(d){
     const p=(d.contact && d.contact.phone) || "(02)-6623-7091";
@@ -263,7 +306,7 @@ setTimeout(()=>{
   }
   function ensureQuickTools010(){
     const d=getSafeData();
-    const q=d.quickToolVisibility || {show:true,line:true,phone:true,form:true,top:true};
+    const q=d.quickToolVisibility || {show:true};
 
     let oldFloat=document.querySelector(".floatbar");
     if(oldFloat) oldFloat.style.display="none";
@@ -282,22 +325,240 @@ setTimeout(()=>{
     }
 
     box.style.display="flex";
-    box.innerHTML=`
-      ${q.line!==false ? `<a href="${getLineUrl(d)}" target="_blank" rel="noopener">LINE</a>` : ""}
-      ${q.phone!==false ? `<a href="${getPhoneUrl(d)}">電話</a>` : ""}
-      ${q.form!==false ? `<button type="button" data-qt-form>表單</button>` : ""}
-      ${q.top!==false ? `<button type="button" data-qt-top>TOP</button>` : ""}
-    `;
+    const tools = d.quickTools || [
+      { type: "line", label: "LINE", url: "", visible: true },
+      { type: "phone", label: "電話", url: "", visible: true },
+      { type: "form", label: "表單", url: "", visible: true },
+      { type: "top", label: "TOP", url: "", visible: true }
+    ];
 
-    const form=box.querySelector("[data-qt-form]");
-    if(form) form.onclick=openForm010;
-    const top=box.querySelector("[data-qt-top]");
-    if(top) top.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+    box.innerHTML = tools.filter(t => t.visible !== false).map((t, idx) => {
+      if (t.type === "line") {
+        const url = getLineUrl(d);
+        return `<a href="${url}" target="_blank" rel="noopener">${t.label || 'LINE'}</a>`;
+      } else if (t.type === "phone") {
+        const url = t.url || getPhoneUrl(d);
+        return `<a href="${url}">${t.label || '電話'}</a>`;
+      } else if (t.type === "form") {
+        return `<button type="button" data-qt-action="form">${t.label || '表單'}</button>`;
+      } else if (t.type === "top") {
+        return `<button type="button" data-qt-action="top">${t.label || 'TOP'}</button>`;
+      } else { // custom
+        return `<a href="${t.url || '#'}" target="_blank" rel="noopener">${t.label || '自訂'}</a>`;
+      }
+    }).join("");
+
+    box.querySelectorAll("[data-qt-action='form']").forEach(btn => btn.onclick = openForm010);
+    box.querySelectorAll("[data-qt-action='top']").forEach(btn => btn.onclick = () => window.scrollTo({top:0,behavior:"smooth"}));
   }
   if(document.readyState==="loading"){
     document.addEventListener("DOMContentLoaded",ensureQuickTools010);
   }else{
     ensureQuickTools010();
   }
-  window.addEventListener("load",()=>{ensureQuickTools010();setTimeout(ensureQuickTools010,800);setTimeout(ensureQuickTools010,2000);});
 })();
+
+async function syncFromCloudAndApply(){
+  const d = getData();
+  const url = d.formConfig?.googleScriptUrl || GOOGLE_SCRIPT_URL;
+  if(url && !url.includes("請貼上")){
+    try {
+      const res = await fetch(url);
+      const cloud = await res.json();
+      let updated = false;
+      if(cloud && cloud.data){
+        const cloudStr = JSON.stringify(cloud.data);
+        const localStr = localStorage.getItem(DATA_KEY);
+        if(cloudStr !== localStr){
+          localStorage.setItem(DATA_KEY, cloudStr);
+          updated = true;
+        }
+      }
+      if(cloud && cloud.images){
+        const cloudImgStr = JSON.stringify(cloud.images);
+        const localImgStr = localStorage.getItem(IMG_KEY);
+        if(cloudImgStr !== localImgStr){
+          localStorage.setItem(IMG_KEY, cloudImgStr);
+          updated = true;
+        }
+      }
+      if(updated){
+        console.log("檢測到線上資料有更新，重新渲染頁面...");
+        apply();
+        if(window.ccV16Enhance) ccV16Enhance();
+        if(window.ccV17FloatingFollow) ccV17FloatingFollow();
+        if(window.applySocialVisibility009) applySocialVisibility009(getData());
+        if(window.applySocialIconVisibilityV19) applySocialIconVisibilityV19(getData());
+      }
+    } catch(e) {
+      console.warn("同步線上資料失敗，使用本地快取", e);
+    }
+  }
+}
+
+function initSearch() {
+  const input = document.getElementById("searchInput");
+  const btn = document.getElementById("searchBtn");
+  if (!input || !btn) return;
+  
+  function doSearch() {
+    const q = input.value.trim().toLowerCase();
+    if (!q) return;
+    
+    const d = getData();
+    const results = [];
+    const today = todayYMD();
+    
+    // Search Services
+    const matchedServices = (d.services || []).filter(s => 
+      String(s.title || "").toLowerCase().includes(q) || 
+      String(s.text || "").toLowerCase().includes(q)
+    );
+    if (matchedServices.length > 0) {
+      results.push({
+        category: "服務項目",
+        type: "services",
+        items: matchedServices.map(s => ({
+          title: s.title,
+          desc: s.text,
+          target: s.target
+        }))
+      });
+    }
+    
+    // Search Cases
+    const matchedCases = (d.cases || []).filter(c => 
+      c.visible !== false && (
+        String(c.title || "").toLowerCase().includes(q) || 
+        String(c.subtitle || "").toLowerCase().includes(q) || 
+        String(c.text || "").toLowerCase().includes(q)
+      )
+    );
+    if (matchedCases.length > 0) {
+      results.push({
+        category: "成功案例",
+        type: "cases",
+        items: matchedCases.map(c => ({
+          title: c.title,
+          desc: (c.subtitle ? `[${c.subtitle}] ` : "") + (c.text || ""),
+          url: c.url,
+          target: "cases"
+        }))
+      });
+    }
+    
+    // Search Partners
+    const matchedPartners = (d.partners || []).filter(p => 
+      p.visible !== false && (
+        String(p.companyName || "").toLowerCase().includes(q) || 
+        String(p.description || "").toLowerCase().includes(q) ||
+        String(p.phone || "").toLowerCase().includes(q)
+      )
+    );
+    if (matchedPartners.length > 0) {
+      results.push({
+        category: "關係企業",
+        type: "partners",
+        items: matchedPartners.map(p => ({
+          title: p.companyName,
+          desc: p.description,
+          url: p.websiteUrl,
+          target: "partners"
+        }))
+      });
+    }
+    
+    // Search News
+    const matchedNews = (d.news || []).filter(n => 
+      n.visible !== false && 
+      (!n.publishDate || n.publishDate <= today) && (
+        String(n.title || "").toLowerCase().includes(q) || 
+        String(n.subtitle || "").toLowerCase().includes(q) || 
+        String(n.text || "").toLowerCase().includes(q)
+      )
+    );
+    if (matchedNews.length > 0) {
+      results.push({
+        category: "最新消息",
+        type: "news",
+        items: matchedNews.map(n => ({
+          title: `[${n.publishDate}] ${n.title}`,
+          desc: n.text,
+          target: "news"
+        }))
+      });
+    }
+    
+    // Search FAQ
+    const matchedFaqs = (d.faqs || []).filter(f => 
+      f.visible !== false && (
+        String(f.q || "").toLowerCase().includes(q) || 
+        String(f.a || "").toLowerCase().includes(q)
+      )
+    );
+    if (matchedFaqs.length > 0) {
+      results.push({
+        category: "常見問題",
+        type: "faqs",
+        items: matchedFaqs.map(f => ({
+          title: `Q: ${f.q}`,
+          desc: `A: ${f.a}`,
+          target: "faq"
+        }))
+      });
+    }
+    
+    // Render Results
+    contentModalTitle.textContent = `搜尋結果: 『${input.value}』`;
+    if (results.length === 0) {
+      contentModalBody.innerHTML = `<div style="padding: 24px; text-align: center; color: #475569; font-size: 16px;">沒有找到與『${input.value}』相符的項目，請換個關鍵字試試。</div>`;
+    } else {
+      let html = `<div class="search-results-list" style="display:flex; flex-direction:column; gap:20px; color:#1e293b;">`;
+      results.forEach(cat => {
+        html += `
+          <div style="border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+            <h3 style="color:#2d9cff; margin:0 0 10px 0; font-size:18px; border-left:4px solid #2d9cff; padding-left:8px;">${cat.category}</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              ${cat.items.map(it => `
+                <div class="search-result-item" style="padding:8px; border-radius:6px; background:#f8fafc; transition:background 0.2s; cursor:pointer;" onclick="closeSearchAndNavigate('${it.target}', '${it.url || ''}')">
+                  <strong style="display:block; font-size:15px; color:#0f172a;">${it.title}</strong>
+                  <span style="font-size:13px; color:#475569; display:block; margin-top:2px;">${it.desc}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      contentModalBody.innerHTML = html;
+    }
+    
+    contentModal.classList.add("show");
+    document.body.classList.add("modal-open");
+  }
+  
+  btn.onclick = (e) => { e.preventDefault(); doSearch(); };
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      doSearch();
+    }
+  });
+}
+
+function closeSearchAndNavigate(target, url) {
+  contentModal.classList.remove("show");
+  document.body.classList.remove("modal-open");
+  
+  if (url && url !== "index.html" && !url.includes("index.html")) {
+    window.open(url, "_blank");
+    return;
+  }
+  
+  if (target) {
+    scrollToSection(target);
+  }
+}
+
+window.closeSearchAndNavigate = closeSearchAndNavigate;
+window.initSearch = initSearch;

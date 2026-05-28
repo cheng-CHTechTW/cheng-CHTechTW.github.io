@@ -1,8 +1,56 @@
+function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var configSheet = ss.getSheetByName("網站設定資料");
+    var dataStr = "";
+    var imagesStr = "";
+    
+    if (configSheet) {
+      var rows = configSheet.getDataRange().getValues();
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0] === "site_data") {
+          dataStr = rows[i][1];
+        } else if (rows[i][0] === "site_images") {
+          imagesStr = rows[i][1];
+        }
+      }
+    }
+    
+    var result = {
+      data: dataStr ? JSON.parse(dataStr) : null,
+      images: imagesStr ? JSON.parse(imagesStr) : null
+    };
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function doPost(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var d = JSON.parse(e.postData.contents);
 
+    // 處理網站設定存檔
+    if (d.type === "saveConfig") {
+      var configSheet = ss.getSheetByName("網站設定資料") || ss.insertSheet("網站設定資料");
+      configSheet.clear();
+      configSheet.appendRow(["key", "value"]);
+      configSheet.appendRow(["site_data", JSON.stringify(d.data)]);
+      configSheet.appendRow(["site_images", JSON.stringify(d.images)]);
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({ result: "success", type: "saveConfig" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 處理使用者稽核紀錄
     if (d.type === "adminLog") {
       var logSheet = ss.getSheetByName("使用者登入與變更紀錄") || ss.insertSheet("使用者登入與變更紀錄");
       if (logSheet.getLastRow() === 0) {
@@ -33,6 +81,7 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // 處理前台客戶聯絡表單
     var sh = ss.getSheetByName("表單紀錄") || ss.insertSheet("表單紀錄");
     if (sh.getLastRow() === 0) {
       sh.appendRow(["送出時間", "姓名/店名", "電話", "Email", "LINE ID", "營業地區", "門店狀態", "需求項目", "需求內容", "來源", "頁面網址"]);

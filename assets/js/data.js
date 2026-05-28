@@ -1,5 +1,5 @@
 window.DEFAULT_DATA = {
-  "siteVersion":"006_v16",
+  "siteVersion":"006_v21",
   "siteTitle": "誠創科技｜智慧 POS 解決方案",
   "adminUsers":[{"enabled":true,"isMaster":true,"username":"admin","password":"123456","displayName":"工程總帳號","email":"chengchuang1012@gmail.com","permissions":{"basic":true,"header":true,"footer":true,"security":true,"editEntry":true,"appearance":true,"hero":true,"services":true,"cases":true,"partners":true,"news":true,"faq":true,"form":true,"images":true,"backup":true,"masterAccount":true}}],
 "adminConfig": {
@@ -155,27 +155,27 @@ window.DEFAULT_DATA = {
     {
       "title": "餐飲業",
       "subtitle": "餐廳・咖啡廳・飲料店",
-      "image": "assets/images/industry-food.svg"
+      "image": "assets/images/industry-food.jpg"
     },
     {
       "title": "零售業",
       "subtitle": "服飾・百貨・連鎖零售",
-      "image": "assets/images/industry-retail.svg"
+      "image": "assets/images/industry-retail.jpg"
     },
     {
       "title": "美食街",
       "subtitle": "多櫃位・集中管理",
-      "image": "assets/images/industry-foodcourt.svg"
+      "image": "assets/images/industry-foodcourt.jpg"
     },
     {
       "title": "商圈店家",
       "subtitle": "商圈店面・複合店家",
-      "image": "assets/images/industry-district.svg"
+      "image": "assets/images/industry-district.jpg"
     },
     {
       "title": "小吃店",
       "subtitle": "小吃攤・早餐・滷味店",
-      "image": "assets/images/industry-snack.svg"
+      "image": "assets/images/industry-snack.jpg"
     }
   ],
   "solutionsTitle": "完整解決方案・打造智慧營運",
@@ -393,6 +393,16 @@ window.DEFAULT_DATA = {
       "facebookUrl": "https://facebook.com/",
       "websiteUrl": "index.html",
       "description": "POS 系統、電子發票、多元支付、網站與客製化開發整合服務。"
+    },
+    {
+      "visible": true,
+      "image": "assets/images/ihome/S__16375813_0.jpg",
+      "companyName": "愛家居系統櫥櫃",
+      "phone": "0955-149-470",
+      "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
+      "facebookUrl": "",
+      "websiteUrl": "ihome.html",
+      "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
     }
   ],
   "newsTitle": "最新消息",
@@ -466,5 +476,115 @@ window.DEFAULT_DATA = {
       "q": "可以遠端協助嗎？",
       "a": "可以，提供線上客服與遠端排除。"
     }
+  ],
+  "ihomeConfig": {
+    "banner": {
+      "logoText": "愛家居系統櫥櫃",
+      "logoSub": "I-HOME CABINETS",
+      "slogan": "打造理想收納空間，釋放生活無限可能",
+      "subtitle": "專屬您的現代簡約客製化設計，兼具高級質感與智慧收納規劃",
+      "bgImage": "assets/images/ihome/S__16375813_0.jpg",
+      "logoImage": "assets/images/ihome/logo.png"
+    },
+    "about": {
+      "visible": true,
+      "title": "設計初衷",
+      "subtitle": "為北部住宅與商業空間量身打造",
+      "content": "愛家居系統櫥櫃，融合現代極簡美學與實用收納科學。針對北部都會區居住空間特性，我們專注於「空間最佳化」與「動線流暢度」的完美平衡。從高級住宅到商業辦公空間，透過精準客製化與進口低甲醛環保板材，為每一位屋主編織專屬的居家故事，讓家不僅是避風港，更是展現個人品味的藝術空間。",
+      "features": [
+        "北部在地專業團隊",
+        "低甲醛環保綠建材",
+        "極致收納空間最佳化",
+        "一站式客製化設計服務"
+      ]
+    },
+    "services": {
+      "visible": true,
+      "title": "專業服務項目",
+      "subtitle": "為您規劃空間的每一寸可能",
+      "items": [
+        {
+          "image": "assets/images/ihome/S__16375815_0.jpg",
+          "title": "住宅空間收納規劃",
+          "desc": "針對玄關、客廳、臥室等生活區域，進行多功能櫃體整合與動線梳理，重塑開闊的居家視野。"
+        },
+        {
+          "image": "assets/images/ihome/S__16375818_0.jpg",
+          "title": "客製化系統廚具",
+          "desc": "考量人體工學與烹飪動線，打造乾淨洗鍊的現代廚房，讓收納井然有序、料理優雅從容。"
+        },
+        {
+          "image": "assets/images/ihome/S__16375816_0.jpg",
+          "title": "臥室衣帽間設計",
+          "desc": "結合開放式與封閉式櫃體、精品中島與智慧照明，客製符合衣物收納習慣的專屬更衣室。"
+        },
+        {
+          "image": "assets/images/ihome/S__16375828_0.jpg",
+          "title": "商業空間規劃",
+          "desc": "商業展店、辦公空間或公共場域收納，兼顧機能、法規與企業形象的質感商用規劃。"
+        },
+        {
+          "image": "assets/images/ihome/S__16375832_0.jpg",
+          "title": "多元收納機能配件",
+          "desc": "引進歐美高品質五金拉籃、轉角小怪物與抽屜分隔系統，提升櫃內收納效率與使用壽命。"
+        },
+        {
+          "image": "assets/images/ihome/S__16375835_0.jpg",
+          "title": "現場丈量與 3D 模擬",
+          "desc": "專業設計師到府精準丈量，提供擬真 3D 效果圖與材質樣板，讓您在施工前預見理想家園。"
+        }
+      ]
+    },
+    "philosophy": {
+      "visible": true,
+      "title": "空間收納理念",
+      "subtitle": "優雅，源自於井然有序的秩序美學",
+      "content": "我們相信，一個好的系統櫥櫃，不僅是物品的棲身之所，更是生活方式的延伸。空間優化不只是做滿櫃子，而是透過「隱藏式設計」與「機能分區」，將視覺繁雜感降到最低。我們深信「恰到好處的留白，能給心靈更多呼吸的空間」。",
+      "bgImage": "assets/images/ihome/空間理念.jpg"
+    },
+    "cases": {
+      "visible": true,
+      "title": "精選案例展示",
+      "subtitle": "用作品說故事，見證空間的華麗蛻變"
+    },
+    "contact": {
+      "visible": true,
+      "title": "預約您的空間規劃",
+      "subtitle": "即刻與專業設計師聊聊您的需求",
+      "phone": "0955-149-470",
+      "email": "ihome.cabinet@gmail.com",
+      "address": "新北市新莊區中原路261號",
+      "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
+      "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
+      "lineQr": "assets/images/line-qr.png",
+      "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
+    }
+  },
+  "ihomeCases": [
+    { "visible": true, "title": "客廳懸空收納電視牆", "image": "assets/images/ihome/s__7684107_0.jpg" },
+    { "visible": true, "title": "現代簡約雙色衣櫃", "image": "assets/images/ihome/S__16375833_0.jpg" },
+    { "visible": true, "title": "高級灰木紋系統櫥櫃", "image": "assets/images/ihome/S__16375813_0.jpg" },
+    { "visible": true, "title": "臥室多功能掀床儲物櫃", "image": "assets/images/ihome/S__16375815_0.jpg" },
+    { "visible": true, "title": "開放式精品更衣室", "image": "assets/images/ihome/S__16375816_0.jpg" },
+    { "visible": true, "title": "多功能折疊書桌櫃", "image": "assets/images/ihome/S__16375817_0.jpg" },
+    { "visible": true, "title": "極簡白色廚房收納中島", "image": "assets/images/ihome/S__16375818_0.jpg" },
+    { "visible": true, "title": "玄關懸空鞋櫃與展示收納", "image": "assets/images/ihome/S__16375819_0.jpg" },
+    { "visible": true, "title": "書房隱藏式折疊床系統", "image": "assets/images/ihome/S__16375820_0.jpg" },
+    { "visible": true, "title": "北歐木質風臥室衣櫃", "image": "assets/images/ihome/S__16375821_0.jpg" },
+    { "visible": true, "title": "都會套房多功能收納櫃", "image": "assets/images/ihome/S__16375822_0.jpg" },
+    { "visible": true, "title": "輕奢風大理石紋高櫃", "image": "assets/images/ihome/S__16375823_0.jpg" },
+    { "visible": true, "title": "兒童房機能收納雙層床", "image": "assets/images/ihome/S__16375824_0.jpg" },
+    { "visible": true, "title": "轉角拉籃與廚具櫃細節", "image": "assets/images/ihome/S__16375826_0.jpg" },
+    { "visible": true, "title": "日式無印風溫潤木質矮櫃", "image": "assets/images/ihome/S__16375827_0.jpg" },
+    { "visible": true, "title": "商用辦公大容量檔案收納櫃", "image": "assets/images/ihome/S__16375828_0.jpg" },
+    { "visible": true, "title": "玄關一體式穿鞋椅與收納衣帽架", "image": "assets/images/ihome/S__16375829_0.jpg" },
+    { "visible": true, "title": "輕工業風鐵件系統展示架", "image": "assets/images/ihome/S__16375830_0.jpg" },
+    { "visible": true, "title": "主臥化妝桌一體化衣櫃", "image": "assets/images/ihome/S__16375831_0.jpg" },
+    { "visible": true, "title": "多層拉出式零食儲藏高櫃", "image": "assets/images/ihome/S__16375832_0.jpg" },
+    { "visible": true, "title": "臥室滑門衣櫃與抽屜配件", "image": "assets/images/ihome/S__16375833_0.jpg" },
+    { "visible": true, "title": "微波爐電器收納專用櫃", "image": "assets/images/ihome/S__16375834_0.jpg" },
+    { "visible": true, "title": "高質感木皮貼面精品玄關櫃", "image": "assets/images/ihome/S__16375835_0.jpg" },
+    { "visible": true, "title": "吧檯底部多功能藏酒櫃", "image": "assets/images/ihome/S__16375837_0.jpg" },
+    { "visible": true, "title": "書房整面式書牆系統櫃", "image": "assets/images/ihome/S__16375838_0.jpg" }
   ]
 };

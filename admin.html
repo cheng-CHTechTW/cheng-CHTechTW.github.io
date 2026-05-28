@@ -1,26 +1,117 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>誠創科技網站後台</title><link rel="stylesheet" href="assets/css/admin.css"></head><body class="admin-page">
-<div id="loginScreen" class="login-screen"><div class="login-card"><img id="loginLogo" src="assets/images/logo.png" class="login-logo"><h1>後台登入</h1><p>請輸入帳號密碼後進入網站管理後台。</p><label>帳號<input id="loginUser" autocomplete="username" placeholder="admin"></label><label>密碼</label><div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password"><button type="button" id="toggleLoginPass" class="eye-btn">👁</button></div><button id="loginBtn">登入後台</button><div id="loginMsg" class="login-msg"></div></div></div>
-<div id="adminApp" class="admin-app locked"><header class="admin-header"><div><h1>誠創科技網站後台</h1><p>可編輯區塊、顯示/隱藏、排序、預覽與儲存。</p></div><div class="top-actions"><button id="previewBtn" class="preview-action">預覽</button><a href="index.html" target="_blank">開啟首頁</a><button id="saveBtn">儲存修改</button><button id="logoutBtn" class="logout-action">登出</button></div></header>
-<main class="admin-layout"><aside>
-<button data-tab="basic" class="active">基本資料</button><button data-tab="header">頁首欄位</button><button data-tab="footer">頁尾顯示</button><button data-tab="security">登入密碼</button><button data-tab="users">使用者權限</button><button data-tab="editEntry">編輯入口</button><button data-tab="appearance">手機/圖片顯示</button><button data-tab="hero">主視覺</button><button data-tab="services">服務項目</button><button data-tab="cases">成功案例</button><button data-tab="partners">關係企業</button><button data-tab="news">最新消息</button><button data-tab="faq">常見問題</button><button data-tab="form">表單設定</button><button data-tab="images">圖片管理</button><button data-tab="backup">備份/還原</button>
-</aside><section class="panel"><div id="adminContent"></div></section></main></div>
-<div id="previewModal" class="preview-modal"><div class="preview-toolbar"><strong>網站預覽</strong><span>目前為暫存預覽，尚未儲存。</span><button id="closePreviewBtn">關閉預覽</button></div><iframe id="previewFrame"></iframe></div>
-
-<script>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>誠創科技網站後台</title><script>
 (function(){
-  function bind(){
-    var pass=document.getElementById("loginPass"), eye=document.getElementById("toggleLoginPass");
-    if(pass&&eye&&!eye.dataset.quickBound){
-      eye.dataset.quickBound="1";
-      eye.addEventListener("click",function(){
-        pass.type=pass.type==="password"?"text":"password";
-        eye.textContent=pass.type==="password"?"👁":"🙈";
-      });
-    }
-  }
-  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",bind)}else{bind()}
+  var ver = "v23";
+  try {
+    var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
+    if (local && local.siteVersion) { ver = local.siteVersion; }
+  } catch(e) {}
+  document.write('<link rel="stylesheet" href="assets/css/admin.css?v=' + ver + '">');
 })();
-</script>
+</script></head><body class="admin-page">
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <img id="loginLogo" src="assets/images/logo.png" class="login-logo">
+    
+    <!-- 登入表單 -->
+    <div id="loginFormArea">
+      <h1>後台登入</h1>
+      <p>請輸入帳號密碼後進入網站管理後台。</p>
+      <label>帳號<input id="loginUser" autocomplete="username" placeholder="admin"></label>
+      <label>密碼</label>
+      <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password"><button type="button" id="toggleLoginPass" class="eye-btn">👁</button></div>
+      <button id="loginBtn">登入後台</button>
+      <div style="text-align:right; margin-top:12px;"><a href="#" id="forgetPassLink" style="color:#3b82f6; font-weight:800; font-size:14px; text-decoration:none;">忘記密碼？</a></div>
+      <div id="loginMsg" class="login-msg"></div>
+    </div>
+    
+    <!-- 忘記密碼驗證區 (預設隱藏) -->
+    <div id="forgetPassArea" style="display:none;">
+      <h1>安全密碼驗證</h1>
+      <p>請通過安全問題與工程密碼驗證以登入。</p>
+      
+      <!-- 步驟 1：輸入帳號 -->
+      <div id="forgetStep1">
+        <label>請輸入要登入的帳號<input id="forgetUser" placeholder="請輸入帳號"></label>
+        <button id="forgetNext1Btn" style="width:100%; margin-top:14px; background:#2563eb; color:#fff; border:0; border-radius:10px; padding:12px; font-weight:900; cursor:pointer;">下一步</button>
+      </div>
+      
+      <!-- 步驟 2：回答安全問題 -->
+      <div id="forgetStep2" style="display:none;">
+        <div id="q1Box" style="margin-bottom:12px;">
+          <label id="lblQ1">問題 1</label>
+          <input id="ans1" placeholder="請輸入回答">
+        </div>
+        <div id="q2Box" style="margin-bottom:12px;">
+          <label id="lblQ2">問題 2</label>
+          <input id="ans2" placeholder="請輸入回答">
+        </div>
+        <button id="forgetNext2Btn" style="width:100%; margin-top:14px; background:#2563eb; color:#fff; border:0; border-radius:10px; padding:12px; font-weight:900; cursor:pointer;">下一步</button>
+      </div>
+      
+      <!-- 步驟 3：工程密碼驗證 -->
+      <div id="forgetStep3" style="display:none;">
+        <label id="lblEngPass">請輸入工程驗證密碼</label>
+        <div class="password-wrap">
+          <input id="engineeringPass" type="password" placeholder="請輸入工程密碼">
+          <button type="button" id="toggleEngPass" class="eye-btn">👁</button>
+        </div>
+        <button id="forgetSubmitBtn" style="width:100%; margin-top:18px; background:#2563eb; color:#fff; border:0; border-radius:10px; padding:12px; font-weight:900; cursor:pointer;">驗證並登入</button>
+      </div>
+      
+      <div style="text-align:left; margin-top:14px;"><a href="#" id="backToLoginLink" style="color:#94a3b8; font-weight:800; font-size:14px; text-decoration:none;">← 返回登入</a></div>
+      <div id="forgetMsg" class="login-msg"></div>
+    </div>
+    
+  </div>
+</div>
+<div id="adminApp" class="admin-app locked"><header class="admin-header"><div><h1>誠創科技網站後台</h1><p>可編輯區塊、顯示/隱藏、排序、預覽與儲存。</p></div><div class="top-actions"><button id="previewBtn" class="preview-action">預覽</button><a href="index.html" target="_blank">開啟首頁</a><button id="saveBtn">儲存修改</button><button id="logoutBtn" class="logout-action">登出</button></div></header>
+<main class="admin-layout"><aside class="admin-sidebar">
+  <div class="menu-group">
+    <div class="menu-group-title">⚙️ 系統設定</div>
+    <button data-tab="basic" class="active">⚙️ 基本資料</button>
+    <button data-tab="header">🔝 頁首導覽</button>
+    <button data-tab="footer">🔚 頁尾顯示</button>
+    <button data-tab="editEntry">✏️ 入口管理</button>
+    <button data-tab="form">📝 表單設定</button>
+    <button data-tab="backup">💾 備份/還原</button>
+  </div>
+  <div class="menu-group">
+    <div class="menu-group-title">🖼️ 視覺與樣式</div>
+    <button data-tab="appearance">📱 手機/Logo顯示</button>
+    <button data-tab="hero">🖼️ 主視覺</button>
+  </div>
+  <div class="menu-group">
+    <div class="menu-group-title">🛠️ 內容模組管理</div>
+    <button data-tab="services">🛠️ 服務項目</button>
+    <button data-tab="details">📄 服務細節模組</button>
+    <button data-tab="cases">🏆 成功案例</button>
+    <button data-tab="partners">🏢 關係企業</button>
+    <button data-tab="ihome">🚪 愛家居系統櫥櫃</button>
+    <button data-tab="news">📢 最新消息</button>
+    <button data-tab="faq">❓ 常見問題</button>
+  </div>
+  <div class="menu-group">
+    <div class="menu-group-title">🔒 安全與權限</div>
+    <button data-tab="security">🔒 登入密碼</button>
+    <button data-tab="users">👥 人員權限</button>
+  </div>
+</aside><section class="panel"><div id="adminContent"></div></section></main></div>
+<div id="previewModal" class="preview-modal">
+  <div class="preview-toolbar">
+    <strong>網站預覽</strong>
+    <span>目前為暫存預覽，尚未儲存。</span>
+    <div class="preview-devices" style="display:inline-flex; gap:8px; margin-left:14px;">
+      <button id="previewDesktopBtn" class="device-btn active" style="background:#334155; color:#fff; border:0; border-radius:6px; padding:6px 12px; font-weight:800; cursor:pointer;" type="button">🖥️ 桌機</button>
+      <button id="previewTabletBtn" class="device-btn" style="background:#1e293b; color:#94a3b8; border:0; border-radius:6px; padding:6px 12px; font-weight:800; cursor:pointer;" type="button">📟 平板</button>
+      <button id="previewMobileBtn" class="device-btn" style="background:#1e293b; color:#94a3b8; border:0; border-radius:6px; padding:6px 12px; font-weight:800; cursor:pointer;" type="button">📱 手機</button>
+    </div>
+    <button id="closePreviewBtn">關閉預覽</button>
+  </div>
+  <div class="preview-body" style="flex:1; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto; padding:16px 0;">
+    <iframe id="previewFrame" style="transition: all 0.3s ease; display:block; background:#fff; border:0; box-shadow:0 12px 36px rgba(0,0,0,0.5); width:100%; height:100%;"></iframe>
+  </div>
+</div>
+<!-- 內嵌眼睛切換已移除，統一由 admin.js 控制 -->
 
 <script>
 (function(){
@@ -39,4 +130,14 @@
   }
 })();
 </script>
-<script src="assets/js/data.js?v=00616"></script><script src="assets/js/admin.js?v=00616"></script></body></html>
+<script>
+(function(){
+  var ver = "v23";
+  try {
+    var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
+    if (local && local.siteVersion) { ver = local.siteVersion; }
+  } catch(e) {}
+  document.write('<script src="assets/js/data.js?v=' + ver + '"><\/script>');
+  document.write('<script src="assets/js/admin.js?v=' + ver + '"><\/script>');
+})();
+</script></body></html>

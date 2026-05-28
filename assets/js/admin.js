@@ -4,15 +4,18 @@ const IMG_KEY="cc_full_site_images";
 const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
   users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
-  cases:"成功案例", partners:"關係企業", news:"最新消息", faq:"常見問題",
-  form:"表單設定", images:"圖片管理", backup:"備份/還原", masterAccount:"工程總帳號修改"
+  details:"服務細節模組", cases:"成功案例", partners:"關係企業", ihome:"愛家居系統櫥櫃", news:"最新消息", faq:"常見問題",
+  form:"表單設定", backup:"備份/還原", masterAccount:"工程總帳號修改"
 };
-const PERMISSION_KEYS = Object.keys(TAB_LABELS).filter(k=>k!=="masterAccount").concat(["masterAccount"]);
+const PERMISSION_KEYS = Object.keys(TAB_LABELS).filter(k=>k!=="masterAccount").concat(["masterAccount"]).concat(["images"]);
 
 let data = loadData();
 let images = loadImages();
 let currentTab = "basic";
 let currentUser = null;
+let userEditMode = "list";
+let editingUserIndex = -1;
+let originalData = clone(data);
 
 function clone(x){ return JSON.parse(JSON.stringify(x)); }
 function merge(a,b){
@@ -88,15 +91,264 @@ function logAdminChange(action, detail){
     fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(record)}).catch(()=>{});
   }
 }
+
+function compressImage(file, maxWidth, maxHeight, quality, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      if (height > maxHeight) {
+        width = Math.round((width * maxHeight) / height);
+        height = maxHeight;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+      callback(compressedBase64);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function validateUser(u, p) {
+  const uLower = String(u).trim().toLowerCase();
+  return data.adminUsers.find(x => {
+    if (x.enabled === false) return false;
+    if (x.password !== p) return false;
+    const usernameMatch = x.username.toLowerCase() === uLower;
+    const emailPrefixMatch = x.email && x.email.includes("@") && x.email.split("@")[0].toLowerCase() === uLower;
+    const rawEmailMatch = x.email && x.email.toLowerCase() === uLower;
+    return usernameMatch || emailPrefixMatch || rawEmailMatch;
+  });
+}
+
+function getDifference(oldVal, newVal) {
+  const diffs = [];
+  if (!oldVal || !newVal) return "變更網站設定";
+  
+  // Compare basic contact fields
+  if (oldVal.contactFields && newVal.contactFields) {
+    for (const key in newVal.contactFields) {
+      const oldF = oldVal.contactFields[key];
+      const newF = newVal.contactFields[key];
+      if (oldF && newF) {
+        if (oldF.value !== newF.value) {
+          diffs.push(`修改 ${newF.label || key}: "${oldF.value}" ➜ "${newF.value}"`);
+        }
+        if (oldF.show !== newF.show) {
+          diffs.push(`${newF.show ? "顯示" : "隱藏"} ${newF.label || key}`);
+        }
+      }
+    }
+  }
+  
+  // Compare social urls
+  if (oldVal.contact && newVal.contact) {
+    const keys = ["lineUrl", "facebookUrl", "instagramUrl", "youtubeUrl"];
+    keys.forEach(k => {
+      if (oldVal.contact[k] !== newVal.contact[k]) {
+        diffs.push(`修改社群 ${k}: "${oldVal.contact[k] || ''}" ➜ "${newVal.contact[k] || ''}"`);
+      }
+    });
+  }
+  
+  // Compare social device visibility
+  if (oldVal.socialDeviceVisibility && newVal.socialDeviceVisibility) {
+    for (const key in newVal.socialDeviceVisibility) {
+      if (oldVal.socialDeviceVisibility[key] !== newVal.socialDeviceVisibility[key]) {
+        diffs.push(`修改社群 ${key} 顯示裝置: "${oldVal.socialDeviceVisibility[key] || 'both'}" ➜ "${newVal.socialDeviceVisibility[key]}"`);
+      }
+    }
+  }
+  
+  // Compare Hero Title/Subtitle
+  if (oldVal.hero && newVal.hero) {
+    if (oldVal.hero.title !== newVal.hero.title) diffs.push(`修改主視覺標題`);
+    if (oldVal.hero.subtitle !== newVal.hero.subtitle) diffs.push(`修改主視覺副標題`);
+    if (oldVal.hero.eyebrow !== newVal.hero.eyebrow) diffs.push(`修改主視覺小標`);
+    if (JSON.stringify(oldVal.hero.points) !== JSON.stringify(newVal.hero.points)) diffs.push(`修改主視覺重點文字`);
+  }
+  
+  // Compare appearanceConfig
+  if (oldVal.appearanceConfig && newVal.appearanceConfig) {
+    const keys = ["desktopLogoHeight", "mobileLogoHeight", "footerLineQrShow", "footerLineQrLabel", "versionLabel"];
+    keys.forEach(k => {
+      if (oldVal.appearanceConfig[k] !== newVal.appearanceConfig[k]) {
+        diffs.push(`修改外觀 ${k}: "${oldVal.appearanceConfig[k]}" ➜ "${newVal.appearanceConfig[k]}"`);
+      }
+    });
+  }
+  
+  // Compare simple array counts or updates
+  const arrays = ["services", "cases", "partners", "news", "faqs"];
+  const arrayLabels = {services:"服務項目", cases:"成功案例", partners:"關係企業", news:"最新消息", faqs:"常見問題"};
+  arrays.forEach(arrName => {
+    const oldArr = oldVal[arrName] || [];
+    const newArr = newVal[arrName] || [];
+    if (oldArr.length !== newArr.length) {
+      diffs.push(`調整 ${arrayLabels[arrName] || arrName} 數量: 由 ${oldArr.length} ➜ ${newArr.length} 項`);
+    } else {
+      let changed = false;
+      for (let i = 0; i < newArr.length; i++) {
+        if (JSON.stringify(oldArr[i]) !== JSON.stringify(newArr[i])) {
+          changed = true;
+          break;
+        }
+      }
+      if (changed) {
+        diffs.push(`更新 ${arrayLabels[arrName] || arrName} 的項目內容`);
+      }
+    }
+  });
+  
+  // Compare details (5 modules)
+  if (oldVal.details && newVal.details) {
+    for (const key in newVal.details) {
+      if (JSON.stringify(oldVal.details[key]) !== JSON.stringify(newVal.details[key])) {
+        diffs.push(`更新 ${newVal.details[key]?.title || key} 的詳細介紹`);
+      }
+    }
+  }
+  
+  // Compare users
+  if (oldVal.adminUsers && newVal.adminUsers) {
+    if (oldVal.adminUsers.length !== newVal.adminUsers.length) {
+      diffs.push(`調整人員帳號數量: ${oldVal.adminUsers.length} ➜ ${newVal.adminUsers.length}`);
+    } else {
+      let userChanges = [];
+      newVal.adminUsers.forEach((u, idx) => {
+        const ou = oldVal.adminUsers[idx];
+        if (ou && JSON.stringify(ou) !== JSON.stringify(u)) {
+          userChanges.push(u.username);
+        }
+      });
+      if (userChanges.length > 0) {
+        diffs.push(`更新人員資料或權限: ${userChanges.join(", ")}`);
+      }
+    }
+  }
+
+  // Compare ihomeConfig and ihomeCases
+  if (oldVal.ihomeConfig && newVal.ihomeConfig) {
+    if (JSON.stringify(oldVal.ihomeConfig) !== JSON.stringify(newVal.ihomeConfig)) {
+      diffs.push(`更新愛家居系統櫥櫃頁面配置`);
+    }
+  }
+  if (oldVal.ihomeCases && newVal.ihomeCases) {
+    if (oldVal.ihomeCases.length !== newVal.ihomeCases.length) {
+      diffs.push(`調整愛家居系統櫥櫃精選案例數量: 由 ${oldVal.ihomeCases.length} ➜ ${newVal.ihomeCases.length} 項`);
+    } else if (JSON.stringify(oldVal.ihomeCases) !== JSON.stringify(newVal.ihomeCases)) {
+      diffs.push(`更新愛家居系統櫥櫃精選案例內容`);
+    }
+  }
+  
+  return diffs.length > 0 ? diffs.join("; ") : "儲存網站設定 (未變更實質內容)";
+}
+
 function save(){
+  // Auto increment version
+  const timeVer = "v23_" + new Date().toISOString().replace(/[-:T.Z]/g, "").slice(2, 14);
+  data.siteVersion = timeVer;
+  if (!data.appearanceConfig) data.appearanceConfig = {};
+  data.appearanceConfig.versionLabel = timeVer;
+
+  const detail = getDifference(originalData, data);
+  
   localStorage.setItem(DATA_KEY, JSON.stringify(data));
   localStorage.setItem(IMG_KEY, JSON.stringify(images));
-  logAdminChange("儲存網站設定","後台資料已儲存");
-  alert("已儲存，回首頁重新整理即可查看。");
+  
+  const url = data.formConfig && data.formConfig.googleScriptUrl;
+  if(url && !url.includes("請貼上")){
+    const saveBtn = document.getElementById("saveBtn");
+    const originalText = saveBtn ? saveBtn.textContent : "儲存修改";
+    if(saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "同步儲存中...";
+    }
+    
+    fetch(url, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        type: "saveConfig",
+        data: data,
+        images: images
+      })
+    })
+    .then(() => {
+      logAdminChange("儲存網站設定", detail + " (後台資料已儲存並同步至線上)");
+      originalData = clone(data);
+      if(saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+      alert("儲存成功！資料已同步寫入 Google 試算表，前台網站已完成同步。");
+    })
+    .catch(err => {
+      console.error("同步失敗", err);
+      logAdminChange("儲存網站設定", detail + " (後台資料已儲存，但線上同步失敗)");
+      if(saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+      alert("本地儲存成功，但線上同步失敗（請檢查網路或 Google Apps Script 設定）。");
+    });
+  } else {
+    logAdminChange("儲存網站設定", detail + " (後台資料已儲存於本機)");
+    originalData = clone(data);
+    alert("本地儲存成功！(尚未設定 Google Apps Script URL，無法進行線上多端同步。)");
+  }
 }
+
+async function syncFromCloud(){
+  const url = data.formConfig && data.formConfig.googleScriptUrl;
+  if(url && !url.includes("請貼上")){
+    try {
+      const res = await fetch(url);
+      const cloud = await res.json();
+      if(cloud){
+        let updated = false;
+        if(cloud.data){
+          data = merge(clone(window.DEFAULT_DATA), cloud.data);
+          localStorage.setItem(DATA_KEY, JSON.stringify(data));
+          updated = true;
+        }
+        if(cloud.images){
+          images = cloud.images;
+          localStorage.setItem(IMG_KEY, JSON.stringify(images));
+          updated = true;
+        }
+        if(updated){
+          console.log("已同步雲端設定資料至本地");
+          originalData = clone(data);
+        }
+      }
+    } catch(e) {
+      console.warn("無法取得雲端設定資料，使用本地快取", e);
+    }
+  }
+}
+
 function showAdmin(){
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("adminApp").classList.remove("locked");
+  syncFromCloud().then(() => {
+    render();
+  });
 }
 function showLogin(){
   document.getElementById("loginScreen").style.display = "flex";
@@ -109,24 +361,36 @@ function quickBindLoginFallback(){
   const loginPass = document.getElementById("loginPass");
   const loginMsg = document.getElementById("loginMsg");
   const eye = document.getElementById("toggleLoginPass");
-  if(eye && loginPass){
+  
+  if(eye && loginPass && !eye.dataset.bound){
+    eye.dataset.bound = "1";
     eye.onclick = function(){
       loginPass.type = loginPass.type === "password" ? "text" : "password";
       eye.textContent = loginPass.type === "password" ? "👁" : "🙈";
     };
   }
-  if(loginBtn && loginUser && loginPass){
+  
+  if(loginPass && !loginPass.dataset.bound){
+    loginPass.dataset.bound = "1";
+    loginPass.addEventListener("keydown", e => {
+      if(e.key === "Enter" && loginBtn) loginBtn.click();
+    });
+  }
+  
+  if(loginBtn && loginUser && loginPass && !loginBtn.dataset.bound){
+    loginBtn.dataset.bound = "1";
     loginBtn.onclick = function(){
       try{
         data = loadData();
         ensureUsers();
         const u = loginUser.value.trim();
         const p = loginPass.value;
-        const found = data.adminUsers.find(x=>x.enabled!==false && x.username===u && x.password===p);
+        const found = validateUser(u, p);
         if(found){
           currentUser = found;
           sessionStorage.setItem("cc_admin_logged_in","1");
           sessionStorage.setItem("cc_admin_user",found.username);
+          sessionStorage.setItem("cc_admin_user_display",found.displayName||found.username);
           showAdmin();
           refreshPermissionMenu();
           currentTab = firstAllowedTab();
@@ -134,7 +398,7 @@ function quickBindLoginFallback(){
           logAdminChange("登入後台","使用者登入後台");
           render();
         }else{
-          loginMsg.textContent = "帳號或密碼錯誤，預設：admin / 123456";
+          loginMsg.textContent = "帳號或密碼錯誤";
           loginPass.value = "";
         }
       }catch(err){
@@ -165,50 +429,6 @@ function initLogin(){
     showLogin();
   }
 
-  const loginBtn = document.getElementById("loginBtn");
-  const loginUser = document.getElementById("loginUser");
-  const loginPass = document.getElementById("loginPass");
-  const loginMsg = document.getElementById("loginMsg");
-  const toggleLoginPass = document.getElementById("toggleLoginPass");
-
-  if(toggleLoginPass){
-    toggleLoginPass.onclick = () => {
-      loginPass.type = loginPass.type === "password" ? "text" : "password";
-      toggleLoginPass.textContent = loginPass.type === "password" ? "👁" : "🙈";
-    };
-  }
-
-  if(loginPass){
-    loginPass.addEventListener("keydown", e=>{
-      if(e.key==="Enter") loginBtn.click();
-    });
-  }
-
-  if(loginBtn){
-    loginBtn.onclick = () => {
-      data = loadData();
-      ensureUsers();
-      const u = loginUser.value.trim();
-      const p = loginPass.value;
-      const found = data.adminUsers.find(x=>x.enabled!==false && x.username===u && x.password===p);
-
-      if(found){
-        currentUser = found;
-        sessionStorage.setItem("cc_admin_logged_in","1");
-        sessionStorage.setItem("cc_admin_user",found.username);
-        showAdmin();
-        refreshPermissionMenu();
-        currentTab = firstAllowedTab();
-        setActiveTabButton();
-        logAdminChange("登入後台","使用者登入後台");
-        render();
-      }else{
-        loginMsg.textContent = "帳號或密碼錯誤";
-        loginPass.value = "";
-      }
-    };
-  }
-
   const logoutBtn = document.getElementById("logoutBtn");
   if(logoutBtn){
     logoutBtn.onclick = () => {
@@ -219,7 +439,137 @@ function initLogin(){
       showLogin();
     };
   }
+  initForgetPassword();
 }
+
+function initForgetPassword(){
+  const forgetLink=document.getElementById("forgetPassLink");
+  const backLink=document.getElementById("backToLoginLink");
+  const loginForm=document.getElementById("loginFormArea");
+  const forgetForm=document.getElementById("forgetPassArea");
+  
+  const step1=document.getElementById("forgetStep1");
+  const step2=document.getElementById("forgetStep2");
+  const step3=document.getElementById("forgetStep3");
+  
+  const forgetUser=document.getElementById("forgetUser");
+  const ans1=document.getElementById("ans1");
+  const ans2=document.getElementById("ans2");
+  const engineeringPass=document.getElementById("engineeringPass");
+  const toggleEngPass=document.getElementById("toggleEngPass");
+  
+  const next1=document.getElementById("forgetNext1Btn");
+  const next2=document.getElementById("forgetNext2Btn");
+  const submitBtn=document.getElementById("forgetSubmitBtn");
+  
+  const forgetMsg=document.getElementById("forgetMsg");
+  const lblQ1=document.getElementById("lblQ1");
+  const lblQ2=document.getElementById("lblQ2");
+  
+  let targetUserObj = null;
+  
+  if(toggleEngPass && engineeringPass){
+    toggleEngPass.onclick = () => {
+      engineeringPass.type = engineeringPass.type === "password" ? "text" : "password";
+      toggleEngPass.textContent = engineeringPass.type === "password" ? "👁" : "🙈";
+    };
+  }
+  
+  if(forgetLink && backLink && loginForm && forgetForm){
+    forgetLink.onclick = (e) => {
+      e.preventDefault();
+      loginForm.style.display = "none";
+      forgetForm.style.display = "block";
+      step1.style.display = "block";
+      step2.style.display = "none";
+      step3.style.display = "none";
+      forgetUser.value = "";
+      forgetMsg.textContent = "";
+      targetUserObj = null;
+    };
+    backLink.onclick = (e) => {
+      e.preventDefault();
+      loginForm.style.display = "block";
+      forgetForm.style.display = "none";
+      forgetMsg.textContent = "";
+    };
+  }
+  
+  if(next1){
+    next1.onclick = () => {
+      const username = forgetUser.value.trim();
+      if(!username){
+        forgetMsg.textContent = "請輸入帳號";
+        return;
+      }
+      data = loadData();
+      ensureUsers();
+      const found = data.adminUsers.find(x => x.username === username && x.enabled !== false);
+      if(!found){
+        forgetMsg.textContent = "驗證失敗：帳號不存在或已被停用";
+        return;
+      }
+      targetUserObj = found;
+      forgetMsg.textContent = "";
+      step1.style.display = "none";
+      step2.style.display = "block";
+      
+      lblQ1.textContent = "問題 1：" + (found.question1 || "您的出生地是？");
+      lblQ2.textContent = "問題 2：" + (found.question2 || "您最喜歡的食物是？");
+      ans1.value = "";
+      ans2.value = "";
+    };
+  }
+  
+  if(next2){
+    next2.onclick = () => {
+      if(!targetUserObj) return;
+      const userAns1 = ans1.value.trim();
+      const userAns2 = ans2.value.trim();
+      
+      const realAns1 = (targetUserObj.answer1 || "台北").trim();
+      const realAns2 = (targetUserObj.answer2 || "火鍋").trim();
+      
+      if(userAns1 !== realAns1 || userAns2 !== realAns2){
+        forgetMsg.textContent = "安全問題回答錯誤，請重新回答。";
+        return;
+      }
+      
+      forgetMsg.textContent = "";
+      step2.style.display = "none";
+      step3.style.display = "block";
+      engineeringPass.value = "";
+    };
+  }
+  
+  if(submitBtn){
+    submitBtn.onclick = () => {
+      if(!targetUserObj) return;
+      const engPass = engineeringPass.value;
+      const masterUser = data.adminUsers.find(x => x.isMaster === true);
+      const masterPass = masterUser ? masterUser.password : "123456";
+      
+      if(engPass !== masterPass){
+        forgetMsg.textContent = "工程密碼驗證失敗！無法進入後台。";
+        return;
+      }
+      
+      currentUser = targetUserObj;
+      sessionStorage.setItem("cc_admin_logged_in", "1");
+      sessionStorage.setItem("cc_admin_user", targetUserObj.username);
+      sessionStorage.setItem("cc_admin_user_display", targetUserObj.displayName || targetUserObj.username);
+      
+      showAdmin();
+      refreshPermissionMenu();
+      currentTab = firstAllowedTab();
+      setActiveTabButton();
+      logAdminChange("安全驗證登入", `帳號 ${targetUserObj.username} 透過安全問題與工程密碼成功自動登入`);
+      render();
+      alert("安全驗證成功！已自動帶入帳號並登入後台。");
+    };
+  }
+}
+
 function setActiveTabButton(){
   document.querySelectorAll("aside button").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.tab===currentTab);
@@ -238,40 +588,197 @@ function input(path,label,type="text"){
   if(type==="textarea") return `<label>${label}</label><textarea data-path="${path}">${val}</textarea>`;
   return `<label>${label}</label><input data-path="${path}" value="${String(val).replace(/"/g,"&quot;")}">`;
 }
+function markAdminDirty(){
+  window.__ccDirty010 = true;
+  const save = document.getElementById("saveBtn");
+  if(save){
+    save.classList.add("dirty");
+    save.textContent = "儲存修改*";
+  }
+}
+window.markAdminDirty = markAdminDirty;
+
+function renderSocialSettingItem(key, label, path, defaultUrl) {
+  if (!data.socialDeviceVisibility) {
+    data.socialDeviceVisibility = {};
+  }
+  if (!data.socialDeviceVisibility[key]) {
+    let oldVal = true;
+    if (data.socialVisibility && data.socialVisibility[key] === false) oldVal = false;
+    if (data.socialIconVisibility && data.socialIconVisibility[key] === false) oldVal = false;
+    data.socialDeviceVisibility[key] = oldVal ? "both" : "hidden";
+  }
+  
+  const val = path ? (get(path) ?? "") : "";
+  const vis = data.socialDeviceVisibility[key];
+  
+  return `
+    <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 12px; background: #1e293b;">
+      <label style="font-weight: 800; color: #60a5fa; display: block; margin-bottom: 8px;">${label}</label>
+      ${path ? `<label style="font-size:13px; color:#94a3b8; display:block; margin-bottom:4px;">連結網址</label>
+      <input data-path="${path}" value="${String(val).replace(/"/g,"&quot;")}" style="width:100%; padding:8px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:6px; margin-bottom:8px; display:block;">` : ''}
+      <label style="font-size:13px; color:#94a3b8; display:block; margin-bottom:4px;">顯示設定（桌機/手機）</label>
+      <select data-social-vis="${key}" style="width:100%; padding:8px; background:#0f172a; color:#fff; border:1px solid #334155; border-radius:6px; font-weight:800; display:block;">
+        <option value="both" ${vis === "both" ? "selected" : ""}>🖥️ 桌機 + 📱 手機 顯示</option>
+        <option value="desktop" ${vis === "desktop" ? "selected" : ""}>🖥️ 只在桌機顯示</option>
+        <option value="mobile" ${vis === "mobile" ? "selected" : ""}>📱 只在手機顯示</option>
+        <option value="hidden" ${vis === "hidden" ? "selected" : ""}>❌ 隱藏 / 不顯示</option>
+      </select>
+    </div>
+  `;
+}
+
 function bindInputs(){
   document.querySelectorAll("[data-path]").forEach(el=>{
-    el.oninput = () => set(el.dataset.path, el.value);
+    el.oninput = () => {
+      set(el.dataset.path, el.value);
+      markAdminDirty();
+    };
+  });
+  document.querySelectorAll("[data-social-vis]").forEach(el=>{
+    el.onchange = () => {
+      if (!data.socialDeviceVisibility) data.socialDeviceVisibility = {};
+      data.socialDeviceVisibility[el.dataset.socialVis] = el.value;
+      markAdminDirty();
+    };
   });
 }
+window.toggleListExpand = function(arrName, i) {
+  const key = arrName + "_" + i;
+  window.expandedListItems = window.expandedListItems || {};
+  window.expandedListItems[key] = !window.expandedListItems[key];
+  render();
+};
+
+window.toggleDetailCard = function(k) {
+  window.expandedDetailCards = window.expandedDetailCards || {};
+  window.expandedDetailCards[k] = !window.expandedDetailCards[k];
+  render();
+};
+
+window.moveDetailItem = function(k, idx, dir) {
+  const arr = data.details[k].items;
+  const target = idx + dir;
+  if (target < 0 || target >= arr.length) return;
+  [arr[idx], arr[target]] = [arr[target], arr[idx]];
+  render();
+};
+
+window.deleteDetailItem = function(k, idx) {
+  if (confirm("確定要刪除此特色項目嗎？")) {
+    data.details[k].items.splice(idx, 1);
+    render();
+  }
+};
+
+window.addDetailItem = function(k) {
+  if (!data.details[k].items) data.details[k].items = [];
+  data.details[k].items.push("新特色說明");
+  render();
+};
+
+window.moveQuickTool = function(idx, dir) {
+  const arr = data.quickTools;
+  const target = idx + dir;
+  if (target < 0 || target >= arr.length) return;
+  [arr[idx], arr[target]] = [arr[target], arr[idx]];
+  window.__ccDirty010 = true;
+  render();
+};
+
+window.deleteQuickTool = function(idx) {
+  if (confirm("確定要刪除此快捷按鈕嗎？")) {
+    data.quickTools.splice(idx, 1);
+    window.__ccDirty010 = true;
+    render();
+  }
+};
+
 function move(arr,i,dir){
   const j = i + dir;
   if(j<0 || j>=arr.length) return;
   [arr[i],arr[j]] = [arr[j],arr[i]];
   render();
 }
+
 function renderList(arrName, fields, template){
   const arr = data[arrName] || [];
-  return arr.map((it,i)=>`
-    <div class="item">
-      <div class="item-title">
-        <h3>${i+1}. ${it.title || it.companyName || it.q || "項目"} <small>${it.visible===false?"（隱藏）":""}</small></h3>
-        <button class="danger" data-del="${arrName}" data-i="${i}">刪除</button>
+  window.expandedListItems = window.expandedListItems || {};
+  const arrayLabels = {services:"服務項目", cases:"成功案例", partners:"關係企業", news:"最新消息", faqs:"常見問題"};
+  
+  return arr.map((it, i) => {
+    const isExpanded = !!window.expandedListItems[arrName + "_" + i];
+    const itemTitle = it.title || it.companyName || it.q || "新項目";
+    
+    return `
+      <div class="list-accordion-item ${isExpanded ? 'expanded' : 'collapsed'}" style="border: 1px solid #334155; border-radius: 8px; margin-bottom: 12px; background: #1e293b; overflow: hidden;">
+        <div class="list-accordion-header" style="padding: 12px 16px; background: #0f172a; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" onclick="toggleListExpand('${arrName}', ${i})">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px; color: #64748b;">#${i+1}</span>
+            <strong style="color: #f8fafc;">${itemTitle}</strong>
+            <span style="font-size: 11px; background: ${it.visible!==false ? '#16a34a' : '#ef4444'}; color: #fff; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">
+              ${it.visible!==false ? '顯示' : '隱藏'}
+            </span>
+            ${arrName==='news' && it.pinned ? '<span style="font-size:11px; background:#3b82f6; color:#fff; padding:2px 6px; border-radius:4px;">置頂</span>' : ''}
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="move-btn-mini" data-move-mini="${arrName}" data-i="${i}" data-dir="-1" style="background:#334155; border:0; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="event.stopPropagation(); move(data['${arrName}'], ${i}, -1)">▲</button>
+            <button class="move-btn-mini" data-move-mini="${arrName}" data-i="${i}" data-dir="1" style="background:#334155; border:0; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="event.stopPropagation(); move(data['${arrName}'], ${i}, 1)">▼</button>
+            <span class="accordion-arrow" style="color: #94a3b8; transition: transform 0.2s; display: inline-block; transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0)'};">▼</span>
+          </div>
+        </div>
+        
+        <div class="list-accordion-content" style="padding: 16px; border-top: 1px solid #334155; display: ${isExpanded ? 'block' : 'none'};">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <button class="danger" data-del="${arrName}" data-i="${i}" style="padding: 5px 10px; font-size: 13px;">刪除此項目</button>
+          </div>
+          <label class="check-row" style="margin-bottom: 12px; display: block; cursor: pointer;">
+            <input type="checkbox" data-arr="${arrName}" data-i="${i}" data-f="visible" ${it.visible!==false ? "checked" : ""}> 顯示此項目
+          </label>
+          ${arrName==="news" ? `
+            <label class="check-row" style="margin-bottom: 12px; display: block; cursor: pointer;">
+              <input type="checkbox" data-arr="${arrName}" data-i="${i}" data-f="pinned" ${it.pinned===true ? "checked" : ""}> 置頂顯示於最新消息最上方
+            </label>
+          ` : ""}
+          
+          ${fields.map(f => {
+            const isImageField = f.k === "image";
+            let listHint = "";
+            if (isImageField) {
+              if (arrName === "ihomeCases" || arrName === "cases") {
+                listHint = " <span style='font-size:11px; color:#64748b; font-weight:normal;'>(建議尺寸: 800 x 500 像素，黃金 8:5 比例)</span>";
+              } else if (arrName === "partners") {
+                listHint = " <span style='font-size:11px; color:#64748b; font-weight:normal;'>(建議尺寸: 400 x 250 像素，建議白底或透明 PNG)</span>";
+              } else if (arrName === "news") {
+                listHint = " <span style='font-size:11px; color:#64748b; font-weight:normal;'>(建議尺寸: 800 x 500 像素)</span>";
+              }
+            }
+            return `
+              <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 4px; font-weight: bold; color: #94a3b8;">${f.l}${listHint}</label>
+                ${isImageField ? `
+                  <div style="display: flex; gap: 12px; align-items: center; margin-top: 4px;">
+                    <div style="flex: 1;">
+                      <input data-arr="${arrName}" data-i="${i}" data-f="${f.k}" value="${String(it[f.k]||"").replace(/"/g,"&quot;")}" style="width: 100%;">
+                    </div>
+                    <div style="flex-shrink: 0; width: 80px; height: 50px; border: 1px solid #334155; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #0f172a;">
+                      <img id="img_preview_${arrName}_${i}" src="${images[arrName === 'cases' ? 'case' + i : (arrName === 'partners' ? 'partner' + i : arrName + '_' + i + '_' + f.k)] || it[f.k] || 'assets/images/case-1.svg'}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                    </div>
+                  </div>
+                  <input type="file" accept="image/*" data-img-upload-arr="${arrName}" data-img-upload-idx="${i}" data-img-upload-field="${f.k}" style="margin-top: 6px; font-size: 12px;">
+                ` : (f.t==="textarea" 
+                  ? `<textarea data-arr="${arrName}" data-i="${i}" data-f="${f.k}" style="width: 100%; height: 80px;">${it[f.k]||""}</textarea>`
+                  : `<input data-arr="${arrName}" data-i="${i}" data-f="${f.k}" value="${String(it[f.k]||"").replace(/"/g,"&quot;")}" style="width: 100%;">`
+                )}
+              </div>
+            `;
+          }).join("")}
+        </div>
       </div>
-      <label class="check-row"><input type="checkbox" data-arr="${arrName}" data-i="${i}" data-f="visible" ${it.visible!==false?"checked":""}> 顯示此項目</label>
-      ${arrName==="news" ? `<label class="check-row"><input type="checkbox" data-arr="${arrName}" data-i="${i}" data-f="pinned" ${it.pinned===true?"checked":""}> 置頂顯示於最新消息最上方</label>` : ""}
-      ${fields.map(f=>`
-        <label>${f.l}</label>
-        ${f.t==="textarea"
-          ? `<textarea data-arr="${arrName}" data-i="${i}" data-f="${f.k}">${it[f.k]||""}</textarea>`
-          : `<input data-arr="${arrName}" data-i="${i}" data-f="${f.k}" value="${String(it[f.k]||"").replace(/"/g,"&quot;")}">`}
-      `).join("")}
-      <div class="row-actions">
-        <button class="move-btn" data-move="${arrName}" data-i="${i}" data-dir="-1">上移</button>
-        <button class="move-btn" data-move="${arrName}" data-i="${i}" data-dir="1">下移</button>
-      </div>
-    </div>
-  `).join("") + `<button class="add-btn" data-add="${arrName}">新增</button>`;
+    `;
+  }).join("") + `<button class="add-btn" data-add="${arrName}">新增項目</button>`;
 }
+
 function bindList(arrName, template){
   document.querySelectorAll(`[data-arr="${arrName}"]`).forEach(el=>{
     el.oninput = el.onchange = () => {
@@ -280,13 +787,46 @@ function bindList(arrName, template){
   });
   document.querySelectorAll(`[data-del="${arrName}"]`).forEach(btn=>{
     btn.onclick = () => {
-      data[arrName].splice(+btn.dataset.i,1);
-      render();
+      if (confirm("確定要刪除此項目嗎？")) {
+        data[arrName].splice(+btn.dataset.i,1);
+        render();
+      }
     };
   });
   document.querySelectorAll(`[data-move="${arrName}"]`).forEach(btn=>{
     btn.onclick = () => move(data[arrName], +btn.dataset.i, +btn.dataset.dir);
   });
+  
+  // Bind list item image uploads with compression
+  document.querySelectorAll(`[data-img-upload-arr="${arrName}"]`).forEach(inp => {
+    inp.onchange = e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const idx = +inp.dataset.imgUploadIdx;
+      const field = inp.dataset.imgUploadField;
+      
+      compressImage(file, 800, 800, 0.82, (compressedBase64) => {
+        const imgKey = arrName === "cases" ? "case" + idx : (arrName === "partners" ? "partner" + idx : arrName + "_" + idx + "_" + field);
+        images[imgKey] = compressedBase64;
+        
+        // Update input
+        const pathInput = document.querySelector(`input[data-arr="${arrName}"][data-i="${idx}"][data-f="${field}"]`);
+        if (pathInput) {
+          pathInput.value = imgKey;
+        }
+        data[arrName][idx][field] = imgKey;
+        
+        const imgPreview = document.getElementById(`img_preview_${arrName}_${idx}`);
+        if (imgPreview) {
+          imgPreview.src = compressedBase64;
+        }
+        
+        save();
+        render();
+      });
+    };
+  });
+
   const add = document.querySelector(`[data-add="${arrName}"]`);
   if(add){
     add.onclick = () => {
@@ -295,6 +835,7 @@ function bindList(arrName, template){
     };
   }
 }
+
 function displaySettings(objName,title){
   const obj = data[objName] || {};
   return `
@@ -312,6 +853,7 @@ function displaySettings(objName,title){
       </select>
     </div>`;
 }
+
 function bindDisplay(){
   document.querySelectorAll("[data-display]").forEach(el=>{
     el.onchange = () => {
@@ -321,27 +863,47 @@ function bindDisplay(){
     };
   });
 }
+
 function imgUpload(key,label,src){
   const s = images[key] || src || "";
-  return `<div class="item"><h3>${label}</h3>${s?`<img class="preview-img" src="${s}">`:""}<input type="file" accept="image/*" data-imgkey="${key}"></div>`;
+  let hint = "";
+  if (key === "logo" || key === "ihome_banner_logoImage") {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 400 x 100 或 300 x 80 像素，寬度 400px 內，透明背景 PNG)</span>";
+  } else if (key === "lineQr" || key === "ihome_contact_lineQr") {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 150 x 150 至 300 x 300 像素，正方形 1:1)</span>";
+  } else if (key === "heroBg" || key === "ihome_banner_bgImage") {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 1920 x 1080 或 1920 x 800 像素，寬螢幕比例)</span>";
+  } else if (key === "ihome_philosophy_bgImage") {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 900 x 600 或 800 x 800 像素，橫版或正方形實景圖)</span>";
+  } else if (key.startsWith("case")) {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 800 x 500 像素，黃金 8:5 比例)</span>";
+  } else if (key.startsWith("partner")) {
+    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 400 x 250 像素，建議白底或透明 PNG)</span>";
+  }
+  return `<div class="item"><h3>${label}${hint}</h3>${s?`<img class="preview-img" src="${s}" style="max-height:160px; object-fit:contain; display:block; margin-bottom:8px;">`:""}<input type="file" accept="image/*" data-imgkey="${key}"></div>`;
 }
+
 function bindImg(){
   document.querySelectorAll("[data-imgkey]").forEach(inp=>{
     inp.onchange = e => {
       const file = e.target.files[0];
       if(!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        images[inp.dataset.imgkey] = reader.result;
+      
+      const isLogo = inp.dataset.imgkey === "logo" || inp.dataset.imgkey === "lineQr" || inp.dataset.imgkey === "ihome_banner_logoImage" || inp.dataset.imgkey === "ihome_contact_lineQr";
+      const maxWidth = isLogo ? 400 : 1024;
+      const maxHeight = isLogo ? 400 : 1024;
+      const quality = 0.82;
+      
+      compressImage(file, maxWidth, maxHeight, quality, (compressedBase64) => {
+        images[inp.dataset.imgkey] = compressedBase64;
         if(inp.dataset.imgkey==="logo"){
-          images.siteLogo = reader.result;
-          images.headerLogo = reader.result;
+          images.siteLogo = compressedBase64;
+          images.headerLogo = compressedBase64;
         }
         syncAdminLogoImages();
-    ccV16AdminEnhance();
+        ccV16AdminEnhance();
         render();
-      };
-      reader.readAsDataURL(file);
+      });
     };
   });
 }
@@ -363,10 +925,14 @@ function render(){
           <label>顯示名稱</label><input data-cf="${k}.label" value="${f[k].label||""}">
           <label>內容</label><textarea data-cf="${k}.value">${f[k].value||""}</textarea>
         </div>`).join("")}
-      ${input("contact.lineUrl","LINE連結")}
-      ${input("contact.facebookUrl","FB")}
-      ${input("contact.instagramUrl","IG")}
-      ${input("contact.youtubeUrl","YouTube")}
+      
+      <h3>社群與聯絡工具連結與顯示設定</h3>
+      <p class="small" style="color: #94a3b8; margin-bottom: 12px;">可在此設定各社群連結，並選擇顯示於「桌機」、「手機」、「兩者」或「隱藏」。<br>※ 若網址無輸入或為預設值，前台會自動隱藏圖示。</p>
+      ${renderSocialSettingItem("line", "LINE 連結", "contact.lineUrl", "")}
+      ${renderSocialSettingItem("facebook", "Facebook / 粉絲專頁", "contact.facebookUrl", "https://facebook.com/")}
+      ${renderSocialSettingItem("instagram", "Instagram (IG)", "contact.instagramUrl", "https://instagram.com/")}
+      ${renderSocialSettingItem("youtube", "YouTube 頻道", "contact.youtubeUrl", "https://youtube.com/")}
+      ${renderSocialSettingItem("email", "Email / 聯絡表單圖示", "", "")}
     </div>`;
     bindInputs();
     document.querySelectorAll("[data-cf]").forEach(el=>{
@@ -374,6 +940,7 @@ function render(){
         const [k,fld] = el.dataset.cf.split(".");
         data.contactFields[k][fld] = el.type==="checkbox" ? el.checked : el.value;
         if(fld==="value" && data.contact[k]!==undefined) data.contact[k] = el.value;
+        markAdminDirty();
       };
     });
   }
@@ -431,6 +998,7 @@ function render(){
       currentUser.username = adminUserInput.value.trim() || currentUser.username;
       currentUser.password = newPass.value;
       sessionStorage.setItem("cc_admin_user", currentUser.username);
+      sessionStorage.setItem("cc_admin_user_display", currentUser.displayName || currentUser.username);
       logAdminChange("變更後台密碼","修改自己的登入帳號或密碼");
       save();
       passwordMsg.textContent = "已變更";
@@ -440,66 +1008,279 @@ function render(){
 
   if(currentTab==="users"){
     ensureUsers();
-    const userRows = data.adminUsers.map((u,i)=>({u,i})).filter(x=>!x.u.isMaster || hasPerm("masterAccount"));
     const logs = JSON.parse(localStorage.getItem("cc_admin_audit_logs")||"[]").slice(0,8);
-    c.innerHTML = `<div class="group"><h2>使用者權限管理</h2>
-      ${!hasPerm("masterAccount")?`<div class="master-hidden-note">工程總帳號已隱藏。只有具備「工程總帳號修改」權限的使用者可以查看與修改。</div>`:""}
-      ${userRows.map(({u,i})=>`
-        <div class="item">
-          <div class="item-title">
-            <h3>${u.displayName||u.username}<span class="user-badge">${u.enabled!==false?"啟用":"停用"}</span></h3>
-            ${u.isMaster?`<span class="small">工程總帳號</span>`:`<button class="danger" data-user-del="${i}">刪除</button>`}
+    const userRows = data.adminUsers.map((u,i)=>({u,i})).filter(x=>!x.u.isMaster || hasPerm("masterAccount"));
+    
+    if(userEditMode === "list"){
+      c.innerHTML = `<div class="group">
+        <h2>使用者權限管理</h2>
+        ${!hasPerm("masterAccount")?`<div class="master-hidden-note">工程總帳號已隱藏。只有具備「工程總帳號修改」權限的使用者可以查看與修改。</div>`:""}
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+          <button class="add-btn" id="goAddUserBtn">+ 新增使用者</button>
+          <div style="display:flex; gap:8px;">
+            <button class="move-btn" id="batchEnableBtn" style="background:#16a34a;">批次啟用</button>
+            <button class="move-btn" id="batchDisableBtn" style="background:#e11d48;">批次停用</button>
+            <button class="move-btn" id="batchDeleteBtn" style="background:#dc2626;">批次刪除</button>
           </div>
-          <label class="check-row"><input type="checkbox" data-user="${i}" data-field="enabled" ${u.enabled!==false?"checked":""}> 啟用此帳號</label>
-          <div class="wide-grid">
-            <div><label>帳號</label><input data-user="${i}" data-field="username" value="${u.username||""}" ${u.isMaster&&!hasPerm("masterAccount")?"disabled":""}></div>
-            <div><label>密碼</label><input data-user="${i}" data-field="password" value="${u.password||""}" ${u.isMaster&&!hasPerm("masterAccount")?"disabled":""}></div>
-            <div><label>顯示名稱</label><input data-user="${i}" data-field="displayName" value="${u.displayName||""}"></div>
-          </div>
-          <label>Email</label><input data-user="${i}" data-field="email" value="${u.email||""}">
-          <h4>權限勾選</h4>
-          <div class="perm-grid">
-            ${PERMISSION_KEYS.filter(p=>p!=="masterAccount" || hasPerm("masterAccount")).map(k=>`
-              <label class="check-row"><input type="checkbox" data-user-perm="${i}" data-perm="${k}" ${u.permissions&&u.permissions[k]?"checked":""}> ${TAB_LABELS[k]}</label>
-            `).join("")}
-          </div>
-        </div>`).join("")}
-      <button class="add-btn" id="addUserBtn">新增使用者</button>
-    </div>
-    <div class="group"><h2>最近使用者變更紀錄</h2>
-      ${logs.length?logs.map(l=>`<div class="item"><b>${l.createdAt}</b>｜${l.actor||""}｜${l.action}<br><span class="small">${l.detail||""}</span></div>`).join(""):"<p>尚無紀錄</p>"}
-    </div>`;
-    document.querySelectorAll("[data-user]").forEach(el=>{
-      el.oninput = el.onchange = () => {
-        const i=+el.dataset.user, f=el.dataset.field;
-        data.adminUsers[i][f] = el.type==="checkbox" ? el.checked : el.value;
-      };
-    });
-    document.querySelectorAll("[data-user-perm]").forEach(el=>{
-      el.onchange = () => {
-        const i=+el.dataset.user, p=el.dataset.perm;
-        if(!data.adminUsers[i].permissions) data.adminUsers[i].permissions={};
-        data.adminUsers[i].permissions[p]=el.checked;
-      };
-    });
-    document.querySelectorAll("[data-user-del]").forEach(btn=>{
-      btn.onclick = () => {
-        const i=+btn.dataset.userDel;
-        const name=data.adminUsers[i].username;
-        data.adminUsers.splice(i,1);
-        logAdminChange("刪除使用者","刪除使用者："+name);
+        </div>
+        
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; text-align:left; background:#0f172a; border-radius:10px; overflow:hidden;">
+            <thead>
+              <tr style="background:#1e293b; color:#cbd5e1; border-bottom:1px solid #334155;">
+                <th style="padding:14px; width:48px; text-align:center;"><input type="checkbox" id="selectAllUsersCheckbox"></th>
+                <th style="padding:14px;">姓名 / 帳號</th>
+                <th style="padding:14px;">Email</th>
+                <th style="padding:14px; width:100px;">狀態</th>
+                <th style="padding:14px; width:100px;">安全問題</th>
+                <th style="padding:14px; width:220px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${userRows.map(({u,i})=> {
+                const isEnabled = u.enabled !== false;
+                const hasQuestions = u.question1 && u.answer1 && u.question2 && u.answer2;
+                return `
+                  <tr style="border-bottom:1px solid #334155; transition:background 0.2s; ${!isEnabled?'opacity:0.45; background:rgba(0,0,0,0.15);':''}">
+                    <td style="padding:14px; text-align:center;"><input type="checkbox" class="user-select-checkbox" data-idx="${i}" ${u.isMaster?'disabled':''}></td>
+                    <td style="padding:14px; font-weight:800;">
+                      ${u.displayName || u.username} <span style="font-size:12px; color:#64748b; font-weight:normal;">(${u.username})</span>
+                      ${u.isMaster?'<span style="font-size:11px; background:#475569; color:#fff; padding:2px 6px; border-radius:4px; margin-left:6px;">總帳號</span>':''}
+                    </td>
+                    <td style="padding:14px; color:#94a3b8; font-size:14px;">${u.email || '未填寫'}</td>
+                    <td style="padding:14px;">
+                      <span style="color:${isEnabled?'#22c55e':'#ef4444'}; font-weight:800; font-size:14px;">${isEnabled?'● 啟用':'● 停用'}</span>
+                    </td>
+                    <td style="padding:14px; font-size:14px;">
+                      <span style="color:${hasQuestions?'#22c55e':'#eab308'}; font-weight:800;">${hasQuestions?'已設定':'未設定'}</span>
+                    </td>
+                    <td style="padding:14px;">
+                      <div style="display:flex; gap:6px;">
+                        <button class="move-btn" style="background:#2563eb; padding:5px 10px; font-size:13px;" data-user-edit="${i}">編輯</button>
+                        ${u.isMaster ? '' : `
+                          <button class="move-btn" style="background:#475569; padding:5px 10px; font-size:13px;" data-user-toggle-status="${i}">
+                            ${isEnabled?'停用':'啟用'}
+                          </button>
+                          <button class="danger" style="padding:5px 10px; font-size:13px;" data-user-delete-btn="${i}">刪除</button>
+                        `}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="group">
+        <h2>最近使用者變更紀錄</h2>
+        ${logs.length?logs.map(l=>`<div class="item"><b>${l.createdAt}</b>｜${l.actor||""}｜${l.action}<br><span class="small">${l.detail||""}</span></div>`).join(""):"<p>尚無紀錄</p>"}
+      </div>`;
+      
+      const selectAll = document.getElementById("selectAllUsersCheckbox");
+      if(selectAll){
+        selectAll.onclick = () => {
+          document.querySelectorAll(".user-select-checkbox:not(:disabled)").forEach(cb => {
+            cb.checked = selectAll.checked;
+          });
+        };
+      }
+      
+      document.getElementById("goAddUserBtn").onclick = () => {
+        userEditMode = "new";
+        editingUserIndex = -1;
         render();
       };
-    });
-    addUserBtn.onclick = () => {
-      data.adminUsers.push({
-        enabled:true, isMaster:false, username:"user"+(data.adminUsers.length+1),
-        password:"123456", displayName:"新使用者", email:"",
-        permissions:{basic:true,header:false,footer:false,security:false,users:false,editEntry:false,hero:true,services:true,cases:true,partners:true,news:true,faq:true,form:false,images:true,backup:false,masterAccount:false}
+      
+      document.getElementById("batchEnableBtn").onclick = () => {
+        const selected = [...document.querySelectorAll(".user-select-checkbox:checked")].map(cb => +cb.dataset.idx);
+        if(selected.length===0){ alert("請先勾選使用者！"); return; }
+        selected.forEach(idx => data.adminUsers[idx].enabled = true);
+        logAdminChange("批次變更","批次啟用 "+selected.length+" 位使用者");
+        render();
+      };
+      
+      document.getElementById("batchDisableBtn").onclick = () => {
+        const selected = [...document.querySelectorAll(".user-select-checkbox:checked")].map(cb => +cb.dataset.idx);
+        if(selected.length===0){ alert("請先勾選使用者！"); return; }
+        selected.forEach(idx => data.adminUsers[idx].enabled = false);
+        logAdminChange("批次變更","批次停用 "+selected.length+" 位使用者");
+        render();
+      };
+      
+      document.getElementById("batchDeleteBtn").onclick = () => {
+        const selected = [...document.querySelectorAll(".user-select-checkbox:checked")].map(cb => +cb.dataset.idx).sort((a,b)=>b-a);
+        if(selected.length===0){ alert("請先勾選使用者！"); return; }
+        if(confirm("確定要刪除這 "+selected.length+" 位使用者嗎？")){
+          selected.forEach(idx => {
+            data.adminUsers.splice(idx, 1);
+          });
+          logAdminChange("批次變更","批次刪除 "+selected.length+" 位使用者");
+          render();
+        }
+      };
+      
+      document.querySelectorAll("[data-user-edit]").forEach(btn => {
+        btn.onclick = () => {
+          userEditMode = "edit";
+          editingUserIndex = +btn.dataset.userEdit;
+          render();
+        };
       });
-      logAdminChange("新增使用者","新增一位後台使用者");
-      render();
-    };
+      
+      document.querySelectorAll("[data-user-toggle-status]").forEach(btn => {
+        btn.onclick = () => {
+          const idx = +btn.dataset.userToggleStatus;
+          const u = data.adminUsers[idx];
+          u.enabled = u.enabled === false;
+          logAdminChange("變更使用者狀態", `變更帳號 ${u.username} 的狀態為 ${u.enabled?'啟用':'停用'}`);
+          render();
+        };
+      });
+      
+      document.querySelectorAll("[data-user-delete-btn]").forEach(btn => {
+        btn.onclick = () => {
+          const idx = +btn.dataset.userDeleteBtn;
+          const name = data.adminUsers[idx].username;
+          if(confirm(`確定要刪除帳號 ${name} 嗎？`)){
+            data.adminUsers.splice(idx, 1);
+            logAdminChange("刪除使用者", `刪除使用者：${name}`);
+            render();
+          }
+        };
+      });
+      
+    } else {
+      const isNew = userEditMode === "new";
+      let u = null;
+      if(isNew){
+        u = {
+          enabled: true, isMaster: false, username: "", password: "", displayName: "", email: "",
+          question1: "您的出生地是？", answer1: "台北",
+          question2: "您最喜歡的食物是？", answer2: "火鍋",
+          permissions: {basic:true,header:false,footer:false,security:false,users:false,editEntry:false,appearance:false,hero:true,services:true,cases:true,partners:true,news:true,faq:true,form:false,images:true,backup:false}
+        };
+      } else {
+        u = data.adminUsers[editingUserIndex];
+      }
+      
+      c.innerHTML = `<div class="group">
+        <h2>${isNew ? '✨ 新增使用者' : '✏️ 編輯使用者資料'}</h2>
+        
+        <div class="wide-grid" style="margin-bottom:12px;">
+          <div>
+            <label>帳號 (登入名稱)</label>
+            <input id="formUser" value="${u.username}" ${(!isNew && u.isMaster) ? 'disabled':''}>
+          </div>
+          <div>
+            <label>登入密碼</label>
+            <div class="password-wrap">
+              <input id="formPass" type="password" value="${u.password}" ${(!isNew && u.isMaster && !hasPerm("masterAccount")) ? 'disabled':''}>
+              <button type="button" id="toggleFormPass" class="eye-btn">👁</button>
+            </div>
+          </div>
+          <div>
+            <label>顯示名稱 / 員工姓名</label>
+            <input id="formDisplayName" value="${u.displayName}">
+          </div>
+        </div>
+        
+        <div class="grid" style="margin-bottom:12px;">
+          <div>
+            <label>電子郵件 Email</label>
+            <input id="formEmail" type="email" value="${u.email}">
+          </div>
+          <div>
+            <label class="check-row" style="margin-top:36px; cursor:pointer;">
+              <input type="checkbox" id="formEnabled" ${u.enabled!==false ? 'checked':''} ${u.isMaster ? 'disabled':''}> 啟用此帳號
+            </label>
+          </div>
+        </div>
+        
+        <div style="border:1px solid #334155; border-radius:10px; padding:16px; margin:20px 0; background:rgba(30,41,59,0.35);">
+          <h3 style="margin-top:0; color:#3b82f6;">🛡️ 安全問題驗證設定 (用於忘記密碼)</h3>
+          <p class="small" style="color:#94a3b8; margin-bottom:14px;">請輸入兩個安全防護問題與正確答案，以供忘記密碼時回答比對。</p>
+          <div class="grid">
+            <div>
+              <label>安全問題 1 題目</label>
+              <input id="formQ1" value="${u.question1 || '您的出生地是？'}">
+              <label style="margin-top:8px;">回答 1</label>
+              <input id="formA1" value="${u.answer1 || '台北'}">
+            </div>
+            <div>
+              <label>安全問題 2 題目</label>
+              <input id="formQ2" value="${u.question2 || '您最喜歡的食物是？'}">
+              <label style="margin-top:8px;">回答 2</label>
+              <input id="formA2" value="${u.answer2 || '火鍋'}">
+            </div>
+          </div>
+        </div>
+        
+        <div style="border:1px solid #334155; border-radius:10px; padding:16px; margin:20px 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="margin:0;">👥 權限勾選設定</h3>
+            <button type="button" class="move-btn" style="background:#2563eb; padding:6px 12px; font-size:13px;" id="formSelectAllBtn">全選 / 全不選</button>
+          </div>
+          <div class="perm-grid">
+            ${PERMISSION_KEYS.filter(p=>p!=="masterAccount" || hasPerm("masterAccount")).map(k=>`
+              <label class="check-row" style="cursor:pointer;">
+                <input type="checkbox" class="form-perm-checkbox" data-perm="${k}" ${u.permissions?.[k] ? 'checked':''}> ${TAB_LABELS[k]}
+              </label>
+            `).join("")}
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button class="add-btn" id="formSaveBtn" style="flex:1; padding:12px;">儲存資料</button>
+          <button class="danger" id="formCancelBtn" style="background:#475569; flex:1; padding:12px;">取消並返回</button>
+        </div>
+      </div>`;
+      
+      const formPass = document.getElementById("formPass");
+      const toggleFormPass = document.getElementById("toggleFormPass");
+      if(toggleFormPass && formPass){
+        toggleFormPass.onclick = () => {
+          formPass.type = formPass.type === "password" ? "text" : "password";
+          toggleFormPass.textContent = formPass.type === "password" ? "👁" : "🙈";
+        };
+      }
+      
+      const formSelectAll = document.getElementById("formSelectAllBtn");
+      if(formSelectAll){
+        formSelectAll.onclick = () => {
+          const cbs = document.querySelectorAll(".form-perm-checkbox");
+          const allChecked = [...cbs].every(cb => cb.checked);
+          cbs.forEach(cb => cb.checked = !allChecked);
+        };
+      }
+      
+      document.getElementById("formCancelBtn").onclick = () => {
+        userEditMode = "list";
+        render();
+      };
+      
+      document.getElementById("formSaveBtn").onclick = () => {
+        const u = isNew ? {enabled:true,isMaster:false,permissions:{}} : data.adminUsers[editingUserIndex];
+        u.username = document.getElementById("formUser").value;
+        u.password = document.getElementById("formPass").value;
+        u.displayName = document.getElementById("formDisplayName").value;
+        u.email = document.getElementById("formEmail").value;
+        u.enabled = document.getElementById("formEnabled").checked;
+        u.question1 = document.getElementById("formQ1").value;
+        u.answer1 = document.getElementById("formA1").value;
+        u.question2 = document.getElementById("formQ2").value;
+        u.answer2 = document.getElementById("formA2").value;
+        const perms = {};
+        document.querySelectorAll(".form-perm-checkbox").forEach(cb => perms[cb.dataset.perm] = cb.checked);
+        u.permissions = perms;
+        if(isNew) data.adminUsers.push(u);
+        logAdminChange(isNew?"新增使用者":"編輯使用者", `帳號: ${u.username}`);
+        userEditMode = "list";
+        render();
+      };
+    }
   }
 
   if(currentTab==="editEntry"){
@@ -516,15 +1297,31 @@ function render(){
     editPosition.onchange = e => data.editEntry.position=e.target.value;
   }
 
-
   if(currentTab==="appearance"){
     if(!data.appearanceConfig)data.appearanceConfig={desktopLogoHeight:56,mobileLogoHeight:64,adminLoginLogoHeight:58,footerLineQrShow:true,footerLineQrLabel:"官方 LINE",footerLineQrImage:"assets/images/line-qr.png",footerLineQrSize:150};
     c.innerHTML=`<div class="group"><h2>手機 / 圖片顯示設定</h2>
     <p>可調整手機與桌機 Logo 大小，以及頁尾 LINE QR 圖片顯示。</p>
-    <div class="item"><h3>Logo 顯示大小</h3>${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}</div>
-    <div class="item"><h3>頁尾 LINE QR</h3><label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}${input("appearanceConfig.lineJoinUrl","點 QR / LINE ID 前往的 LINE 加入網址")}${input("appearanceConfig.versionLabel","版本號顯示文字")}<p class="small">圖片可放在 assets/images/line-qr.png；若不要顯示請取消勾選。</p></div>
+    <div class="item">
+      <h3>Logo 顯示大小與上傳</h3>
+      ${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}
+      ${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}
+      ${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}
+      ${imgUpload("logo","網站 Logo 圖片（首頁、頁尾、後台同步）","assets/images/logo.png")}
+    </div>
+    <div class="item">
+      <h3>頁尾 LINE QR 與上傳</h3>
+      <label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>
+      ${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}
+      ${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}
+      ${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}
+      ${input("appearanceConfig.lineJoinUrl","點 QR / LINE ID 前往的 LINE 加入網址")}
+      ${input("appearanceConfig.versionLabel","版本號顯示文字")}
+      ${imgUpload("lineQr","LINE QR 圖片","assets/images/line-qr.png")}
+      <p class="small">圖片上傳後將直接取代預設圖片；若不要顯示請取消勾選。</p>
+    </div>
     </div>`;
     bindInputs();
+    bindImg();
     footerLineQrShow.onchange=e=>data.appearanceConfig.footerLineQrShow=e.target.checked;
   }
 
@@ -534,9 +1331,88 @@ function render(){
       ${input("hero.title","主標題","textarea")}
       ${input("hero.subtitle","副標題","textarea")}
       <label>重點文字，用逗號分隔</label><input id="hp" value="${data.hero.points.join(",")}">
+      ${imgUpload("heroBg","首頁主圖","assets/images/hero-bg.jpg")}
     </div>`;
     bindInputs();
+    bindImg();
     hp.oninput = e => data.hero.points=e.target.value.split(",").map(x=>x.trim()).filter(Boolean);
+  }
+
+  if(currentTab==="details"){
+    const details = data.details || {};
+    const keys = ["posDetail", "hardwareDetail", "invoiceDetail", "paymentDetail", "customDetail"];
+    window.expandedDetailCards = window.expandedDetailCards || {};
+    
+    c.innerHTML = `
+      <div class="group">
+        <h2>服務細節模組編輯</h2>
+        <p>編輯前台點擊「了解更多」時所對應的 5 個核心服務細節內容。</p>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          ${keys.map(k => {
+            const m = details[k] || { title: k, headline: "", text: "", items: [] };
+            const isExpanded = !!window.expandedDetailCards[k];
+            return `
+              <div class="detail-accordion-card" style="border:1px solid #334155; border-radius:10px; background:#1e293b; overflow:hidden;">
+                <div class="detail-accordion-header" style="padding:14px 18px; background:#0f172a; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none;" onclick="toggleDetailCard('${k}')">
+                  <strong style="font-size:16px; color:#3b82f6;">${m.title || k} (${k})</strong>
+                  <span class="detail-accordion-arrow" style="color:#94a3b8; transition:transform 0.2s; transform:${isExpanded ? 'rotate(180deg)' : 'rotate(0)'};">▼</span>
+                </div>
+                
+                <div class="detail-accordion-content" style="padding:18px; border-top:1px solid #334155; display:${isExpanded ? 'block' : 'none'};">
+                  <div style="margin-bottom:12px;">
+                    <label>模組名稱 (前台小標籤)</label>
+                    <input data-detail-key="${k}" data-detail-field="title" value="${String(m.title||"").replace(/"/g,"&quot;")}" style="width:100%;">
+                  </div>
+                  <div style="margin-bottom:12px;">
+                    <label>主標題</label>
+                    <input data-detail-key="${k}" data-detail-field="headline" value="${String(m.headline||"").replace(/"/g,"&quot;")}" style="width:100%;">
+                  </div>
+                  <div style="margin-bottom:12px;">
+                    <label>內文說明</label>
+                    <textarea data-detail-key="${k}" data-detail-field="text" style="width:100%; height:80px;">${m.text||""}</textarea>
+                  </div>
+                  
+                  <div style="margin-top:16px; border-top:1px dashed #334155; padding-top:14px;">
+                    <h4 style="margin:0 0 10px 0; color:#cbd5e1;">特色項目清單 (點擊外部打勾圖示列出的項目)</h4>
+                    <div id="detail_items_list_${k}" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                      ${(m.items || []).map((item, idx) => `
+                        <div style="display:flex; gap:8px; align-items:center;">
+                          <span style="font-size:13px; color:#64748b; width:24px;">#${idx+1}</span>
+                          <input data-detail-item-key="${k}" data-detail-item-idx="${idx}" value="${String(item||"").replace(/"/g,"&quot;")}" style="flex:1;">
+                          <button type="button" class="move-btn-mini" onclick="moveDetailItem('${k}', ${idx}, -1)" style="padding:4px 8px; font-size:11px;">▲</button>
+                          <button type="button" class="move-btn-mini" onclick="moveDetailItem('${k}', ${idx}, 1)" style="padding:4px 8px; font-size:11px;">▼</button>
+                          <button type="button" class="danger" onclick="deleteDetailItem('${k}', ${idx})" style="padding:4px 8px; font-size:11px;">刪除</button>
+                        </div>
+                      `).join("")}
+                    </div>
+                    <button type="button" class="add-btn" onclick="addDetailItem('${k}')" style="margin-top:8px;">+ 新增特色項目</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+    
+    // Bind detail fields
+    document.querySelectorAll("[data-detail-key]").forEach(el => {
+      el.oninput = () => {
+        const k = el.dataset.detailKey;
+        const field = el.dataset.detailField;
+        if(!data.details) data.details = {};
+        if(!data.details[k]) data.details[k] = { title: k, headline: "", text: "", items: [] };
+        data.details[k][field] = el.value;
+      };
+    });
+    
+    document.querySelectorAll("[data-detail-item-key]").forEach(el => {
+      el.oninput = () => {
+        const k = el.dataset.detailItemKey;
+        const idx = +el.dataset.detailItemIdx;
+        data.details[k].items[idx] = el.value;
+      };
+    });
   }
 
   if(currentTab==="services"){
@@ -578,6 +1454,133 @@ function render(){
     </div>`;
     bindInputs(); bindDisplay();
     bindList("partners",{visible:false,image:"assets/images/case-1.svg",companyName:"新關係企業",phone:"",lineUrl:"",facebookUrl:"",websiteUrl:"",description:""});
+  }
+
+  if(currentTab==="ihome"){
+    c.innerHTML = `
+      <div class="group">
+        <h2>🚪 愛家居系統櫥櫃 頁面編輯</h2>
+        <p>在此編輯愛家居系統櫥櫃（ihome.html）一頁式介紹的內容。</p>
+        
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0;">1. 首頁 Banner</h3>
+          ${input("ihomeConfig.banner.logoText", "品牌名稱 (文字 LOGO)")}
+          ${input("ihomeConfig.banner.logoSub", "品牌副標/英文 (文字 LOGO 下方)")}
+          ${input("ihomeConfig.banner.slogan", "主要標語 Slogan")}
+          ${input("ihomeConfig.banner.subtitle", "副標題")}
+          ${imgUpload("ihome_banner_logoImage", "自訂 LOGO 圖片 (選填，若無上傳則以文字顯示)", "")}
+          ${imgUpload("ihome_banner_bgImage", "Banner 背景大圖", "assets/images/ihome/S__16375813_0.jpg")}
+        </div>
+
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span>2. 設計初衷 (關於我們)</span>
+            <label class="check-row" style="font-size: 14px; font-weight: normal; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="ihomeAboutVisible" ${data.ihomeConfig.about.visible !== false ? "checked" : ""}> 啟用此區塊
+            </label>
+          </h3>
+          ${input("ihomeConfig.about.title", "區塊標題")}
+          ${input("ihomeConfig.about.subtitle", "區塊副標")}
+          ${input("ihomeConfig.about.content", "品牌介紹內文", "textarea")}
+          <div style="margin-top: 10px;">
+            <label style="font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px;">核心特色項目 (最多 4 個)</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>${input("ihomeConfig.about.features.0", "特色 1")}</div>
+              <div>${input("ihomeConfig.about.features.1", "特色 2")}</div>
+              <div>${input("ihomeConfig.about.features.2", "特色 3")}</div>
+              <div>${input("ihomeConfig.about.features.3", "特色 4")}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span>3. 專業服務項目</span>
+            <label class="check-row" style="font-size: 14px; font-weight: normal; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="ihomeServicesVisible" ${data.ihomeConfig.services.visible !== false ? "checked" : ""}> 啟用此區塊
+            </label>
+          </h3>
+          ${input("ihomeConfig.services.title", "區塊標題")}
+          ${input("ihomeConfig.services.subtitle", "區塊副標")}
+          
+          <h4 style="color: #e2e8f0; border-bottom: 1px dashed #334155; padding-bottom: 6px; margin-bottom: 12px; margin-top: 16px;">6 大服務卡片內容</h4>
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            ${(data.ihomeConfig.services.items || []).map((srv, idx) => `
+              <div style="border: 1px solid #1e293b; border-radius: 6px; padding: 12px; background: #1e293b;">
+                <div style="font-weight: bold; color: #3b82f6; margin-bottom: 8px;">服務卡片 #${idx + 1}</div>
+                <div style="margin-bottom: 8px;">
+                  <label>服務展示圖片路徑 <span style="font-size:12px; color:#94a3b8; font-weight:normal;">(建議尺寸: 800 x 500 像素，黃金 8:5 比例)</span></label>
+                  <input data-path="ihomeConfig.services.items.${idx}.image" value="${srv.image || ""}" style="width:100%;">
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <label>卡片標題</label>
+                  <input data-path="ihomeConfig.services.items.${idx}.title" value="${srv.title || ""}" style="width:100%;">
+                </div>
+                <div>
+                  <label>介紹說明</label>
+                  <textarea data-path="ihomeConfig.services.items.${idx}.desc" style="width:100%; height:60px;">${srv.desc || ""}</textarea>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span>4. 空間收納理念</span>
+            <label class="check-row" style="font-size: 14px; font-weight: normal; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="ihomePhilosophyVisible" ${data.ihomeConfig.philosophy.visible !== false ? "checked" : ""}> 啟用此區塊
+            </label>
+          </h3>
+          ${input("ihomeConfig.philosophy.title", "區塊標題")}
+          ${input("ihomeConfig.philosophy.subtitle", "區塊副標")}
+          ${input("ihomeConfig.philosophy.content", "理念內文", "textarea")}
+          ${imgUpload("ihome_philosophy_bgImage", "理念區塊背景圖", "assets/images/ihome/S__16375823_0.jpg")}
+        </div>
+
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span>5. 精選案例展示</span>
+            <label class="check-row" style="font-size: 14px; font-weight: normal; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="ihomeCasesVisible" ${data.ihomeConfig.cases.visible !== false ? "checked" : ""}> 啟用此區塊
+            </label>
+          </h3>
+          ${input("ihomeConfig.cases.title", "區塊標題")}
+          ${input("ihomeConfig.cases.subtitle", "區塊副標")}
+          
+          <h4 style="color: #e2e8f0; margin-bottom: 8px; margin-top: 16px;">案例清單列表</h4>
+          ${renderList("ihomeCases", [
+            {k:"title",l:"案例標題"}, {k:"image",l:"案例圖片"}
+          ], {visible:true, title:"新案例", image:"assets/images/case-1.svg"})}
+        </div>
+
+        <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+          <h3 style="color: #3b82f6; margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span>6. 預約聯絡與地圖</span>
+            <label class="check-row" style="font-size: 14px; font-weight: normal; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="ihomeContactVisible" ${data.ihomeConfig.contact.visible !== false ? "checked" : ""}> 啟用此區塊
+            </label>
+          </h3>
+          ${input("ihomeConfig.contact.title", "區塊標題")}
+          ${input("ihomeConfig.contact.subtitle", "區塊副標")}
+          ${input("ihomeConfig.contact.phone", "服務電話")}
+          ${input("ihomeConfig.contact.email", "聯絡 Email")}
+          ${input("ihomeConfig.contact.address", "公司地址")}
+          ${input("ihomeConfig.contact.hours", "服務時間")}
+          ${input("ihomeConfig.contact.lineUrl", "LINE 點擊連結 (若留空會自動對應基本資料的 LINE)")}
+          ${imgUpload("ihome_contact_lineQr", "官方 LINE QR Code 圖片", "assets/images/line-qr.png")}
+          ${input("ihomeConfig.contact.googleMapIframe", "Google Maps 嵌入網址 (請填入 src 中的 https 網址)")}
+        </div>
+      </div>
+    `;
+    bindInputs();
+    bindImg();
+    bindList("ihomeCases", {visible:true, title:"新案例", image:"assets/images/case-1.svg"});
+    document.getElementById("ihomeAboutVisible").onchange = e => { data.ihomeConfig.about.visible = e.target.checked; markAdminDirty(); };
+    document.getElementById("ihomeServicesVisible").onchange = e => { data.ihomeConfig.services.visible = e.target.checked; markAdminDirty(); };
+    document.getElementById("ihomePhilosophyVisible").onchange = e => { data.ihomeConfig.philosophy.visible = e.target.checked; markAdminDirty(); };
+    document.getElementById("ihomeCasesVisible").onchange = e => { data.ihomeConfig.cases.visible = e.target.checked; markAdminDirty(); };
+    document.getElementById("ihomeContactVisible").onchange = e => { data.ihomeConfig.contact.visible = e.target.checked; markAdminDirty(); };
   }
 
   if(currentTab==="news"){
@@ -673,8 +1676,11 @@ function openPreview(){
   sessionStorage.setItem("cc_preview_mode","1");
   sessionStorage.setItem("cc_preview_site_data",JSON.stringify(data));
   sessionStorage.setItem("cc_preview_site_images",JSON.stringify(images));
-  previewFrame.src = "index.html?preview=1&t=" + Date.now();
+  const targetPage = currentTab === "ihome" ? "ihome.html" : "index.html";
+  previewFrame.src = targetPage + "?preview=1&t=" + Date.now();
   previewModal.classList.add("show");
+  const desktopBtn=document.getElementById("previewDesktopBtn");
+  if(desktopBtn) desktopBtn.click();
 }
 function closePreview(){
   sessionStorage.removeItem("cc_preview_mode");
@@ -783,6 +1789,42 @@ function bootAdmin(){
     if(saveEl)saveEl.onclick = save;
     if(previewEl)previewEl.onclick = openPreview;
     if(closePreviewEl)closePreviewEl.onclick = closePreview;
+    
+    const desktopBtn=document.getElementById("previewDesktopBtn");
+    const tabletBtn=document.getElementById("previewTabletBtn");
+    const mobileBtn=document.getElementById("previewMobileBtn");
+    const frame=document.getElementById("previewFrame");
+    
+    function setPreviewDevice(device){
+      [desktopBtn, tabletBtn, mobileBtn].forEach(btn=>{
+        if(btn){
+          btn.style.background = btn===device ? "#334155" : "#1e293b";
+          btn.style.color = btn===device ? "#fff" : "#94a3b8";
+        }
+      });
+      if(!frame)return;
+      if(device===desktopBtn){
+        frame.style.width="100%";
+        frame.style.height="100%";
+        frame.style.border="none";
+        frame.style.borderRadius="0";
+      }else if(device===tabletBtn){
+        frame.style.width="768px";
+        frame.style.height="calc(100% - 32px)";
+        frame.style.border="12px solid #334155";
+        frame.style.borderRadius="16px";
+      }else if(device===mobileBtn){
+        frame.style.width="375px";
+        frame.style.height="calc(100% - 32px)";
+        frame.style.border="12px solid #334155";
+        frame.style.borderRadius="24px";
+      }
+    }
+    
+    if(desktopBtn) desktopBtn.onclick = () => setPreviewDevice(desktopBtn);
+    if(tabletBtn) tabletBtn.onclick = () => setPreviewDevice(tabletBtn);
+    if(mobileBtn) mobileBtn.onclick = () => setPreviewDevice(mobileBtn);
+
     document.querySelectorAll("aside button").forEach(btn=>{
       btn.onclick = () => {
         if(!hasPerm(btn.dataset.tab)){
@@ -790,6 +1832,10 @@ function bootAdmin(){
           return;
         }
         currentTab = btn.dataset.tab;
+        if(currentTab === "users"){
+          userEditMode = "list";
+          editingUserIndex = -1;
+        }
         setActiveTabButton();
         render();
       };
@@ -807,26 +1853,7 @@ if(document.readyState==="loading"){
 
 
 /* 009 footer social visibility admin injection */
-function injectFooterSocialVisibility009(){
-  if(typeof currentTab!=="undefined" && currentTab!=="footer") return;
-  const c=document.getElementById("adminContent");
-  if(!c || document.getElementById("footerSocialVisibility009")) return;
-  if(!data.socialVisibility) data.socialVisibility={facebook:true,instagram:true,youtube:true,email:true,line:true};
-  const box=document.createElement("div");
-  box.className="item";
-  box.id="footerSocialVisibility009";
-  box.innerHTML=`<h3>公司資訊底部社群 / 快捷顯示</h3>
-  <p class="small">勾選後手機、平板、電腦同步顯示；取消勾選則隱藏。</p>
-  <label class="check-row"><input type="checkbox" data-social-visible="facebook" ${data.socialVisibility.facebook!==false?"checked":""}> 顯示 Facebook / 粉絲專頁</label>
-  <label class="check-row"><input type="checkbox" data-social-visible="instagram" ${data.socialVisibility.instagram!==false?"checked":""}> 顯示 Instagram</label>
-  <label class="check-row"><input type="checkbox" data-social-visible="youtube" ${data.socialVisibility.youtube!==false?"checked":""}> 顯示 YouTube</label>
-  <label class="check-row"><input type="checkbox" data-social-visible="email" ${data.socialVisibility.email!==false?"checked":""}> 顯示 Email / 表單 ICON</label>
-  <label class="check-row"><input type="checkbox" data-social-visible="line" ${data.socialVisibility.line!==false?"checked":""}> 顯示 LINE 快捷</label>`;
-  (c.querySelector(".group")||c).appendChild(box);
-  box.querySelectorAll("[data-social-visible]").forEach(el=>{
-    el.onchange=()=>{data.socialVisibility[el.dataset.socialVisible]=el.checked;};
-  });
-}
+function injectFooterSocialVisibility009(){}
 (function(){
   const oldRender=window.render||render;
   window.render=render=function(){
@@ -836,56 +1863,7 @@ function injectFooterSocialVisibility009(){
 })();
 
 /* v19 social icon visibility */
-function injectSocialIconVisibilityV19(){
-  const c=document.getElementById("adminContent");
-  if(!c)return;
-  if(document.getElementById("socialIconVisibilityV19"))return;
-
-  if(!data.socialIconVisibility){
-    data.socialIconVisibility={
-      facebook:true,
-      instagram:true,
-      youtube:true,
-      email:true
-    };
-  }
-
-  const box=document.createElement("div");
-  box.className="item";
-  box.id="socialIconVisibilityV19";
-  box.innerHTML=`
-  <h3>底部 ICON 顯示控制</h3>
-  <p class="small">專業 POS 下方 ICON 可控制顯示/隱藏（手機/平板/桌機同步）</p>
-
-  <label class="check-row">
-    <input type="checkbox" data-icon-visible="facebook" ${data.socialIconVisibility.facebook!==false?'checked':''}>
-    Facebook ICON 顯示
-  </label>
-
-  <label class="check-row">
-    <input type="checkbox" data-icon-visible="instagram" ${data.socialIconVisibility.instagram!==false?'checked':''}>
-    IG ICON 顯示
-  </label>
-
-  <label class="check-row">
-    <input type="checkbox" data-icon-visible="youtube" ${data.socialIconVisibility.youtube!==false?'checked':''}>
-    YouTube ICON 顯示
-  </label>
-
-  <label class="check-row">
-    <input type="checkbox" data-icon-visible="email" ${data.socialIconVisibility.email!==false?'checked':''}>
-    Email / 表單 ICON 顯示
-  </label>
-  `;
-
-  c.appendChild(box);
-
-  box.querySelectorAll("[data-icon-visible]").forEach(el=>{
-    el.onchange=()=>{
-      data.socialIconVisibility[el.dataset.iconVisible]=el.checked;
-    };
-  });
-}
+function injectSocialIconVisibilityV19(){}
 
 setTimeout(()=>{
   try{
@@ -915,31 +1893,104 @@ setTimeout(()=>{
       const c=document.getElementById("adminContent");
       if(!c || document.getElementById("quickToolSetting010")) return;
 
-      const d=d010();
+      const d=data;
       if(!d.quickToolVisibility){
-        d.quickToolVisibility={show:true,line:true,phone:true,form:true,top:true};
+        d.quickToolVisibility={show:true};
+      }
+      if(!d.quickTools){
+        d.quickTools = [
+          { type: "line", label: "LINE", url: "", visible: true },
+          { type: "phone", label: "電話", url: "", visible: true },
+          { type: "form", label: "表單", url: "", visible: true },
+          { type: "top", label: "TOP", url: "", visible: true }
+        ];
       }
 
       const box=document.createElement("div");
       box.className="item";
       box.id="quickToolSetting010";
-      box.innerHTML=`<h3>快捷工具設定</h3>
-      <p class="small">控制右側/手機下方快捷工具是否顯示，手機、平板、桌機同步。</p>
-      <label class="check-row"><input type="checkbox" data-qt="show" ${d.quickToolVisibility.show!==false?"checked":""}> 顯示快捷工具</label>
-      <label class="check-row"><input type="checkbox" data-qt="line" ${d.quickToolVisibility.line!==false?"checked":""}> 顯示 LINE</label>
-      <label class="check-row"><input type="checkbox" data-qt="phone" ${d.quickToolVisibility.phone!==false?"checked":""}> 顯示 電話</label>
-      <label class="check-row"><input type="checkbox" data-qt="form" ${d.quickToolVisibility.form!==false?"checked":""}> 顯示 表單</label>
-      <label class="check-row"><input type="checkbox" data-qt="top" ${d.quickToolVisibility.top!==false?"checked":""}> 顯示 TOP</label>`;
+      
+      let html = `
+        <h3>快捷工具設定</h3>
+        <p class="small">控制右側/手機下方快捷工具是否顯示與自訂項目（手機、平板、桌機同步）。</p>
+        <label class="check-row" style="margin-bottom:12px; display:block;"><input type="checkbox" id="qt_show_master" ${d.quickToolVisibility.show!==false?"checked":""}> 顯示快捷工具條</label>
+        
+        <div style="border:1px solid #334155; border-radius:8px; padding:12px; background:rgba(0,0,0,0.15);">
+          <h4 style="margin:0 0 10px 0;">快捷按鈕項目管理</h4>
+          <div id="quick_tools_list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+            ${d.quickTools.map((t, i) => `
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:#1e293b; padding:8px; border-radius:6px; border:1px solid #334155;">
+                <span style="font-size:12px; color:#64748b;">#${i+1}</span>
+                <label style="margin:0; font-size:13px;">名稱: <input class="qt-input" data-qt-idx="${i}" data-qt-field="label" value="${String(t.label||"").replace(/"/g,"&quot;")}" style="width:70px; display:inline-block; padding:4px; font-size:12px;"></label>
+                <label style="margin:0; font-size:13px;">類型: 
+                  <select class="qt-select" data-qt-idx="${i}" data-qt-field="type" style="display:inline-block; padding:4px; font-size:12px; width:90px; color:#1e293b;">
+                    <option value="line" ${t.type==='line'?'selected':''}>LINE</option>
+                    <option value="phone" ${t.type==='phone'?'selected':''}>電話</option>
+                    <option value="form" ${t.type==='form'?'selected':''}>表單</option>
+                    <option value="top" ${t.type==='top'?'selected':''}>TOP</option>
+                    <option value="custom" ${t.type==='custom'?'selected':''}>自訂連結</option>
+                  </select>
+                </label>
+                <label style="margin:0; font-size:13px;">連結/號碼: <input class="qt-input" data-qt-idx="${i}" data-qt-field="url" value="${t.type === 'line' ? '' : String(t.url||"").replace(/"/g,"&quot;")}" placeholder="${t.type==='line'?'自動對應基本資料':'預設'}" ${t.type==='line'?'disabled':''} style="width:110px; display:inline-block; padding:4px; font-size:12px;"></label>
+                <label style="margin:0; font-size:13px; display:flex; align-items:center; gap:4px;"><input type="checkbox" class="qt-checkbox" data-qt-idx="${i}" data-qt-field="visible" ${t.visible!==false?'checked':''}> 顯示</label>
+                
+                <div style="margin-left:auto; display:flex; gap:4px;">
+                  <button type="button" onclick="moveQuickTool(${i}, -1)" style="padding:2px 6px; font-size:10px;">▲</button>
+                  <button type="button" onclick="moveQuickTool(${i}, 1)" style="padding:2px 6px; font-size:10px;">▼</button>
+                  <button type="button" class="danger" onclick="deleteQuickTool(${i})" style="padding:2px 6px; font-size:10px;">刪除</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+          <button type="button" class="add-btn" id="addQuickToolBtn" style="font-size:12px; padding:6px 12px;">+ 新增快捷按鈕</button>
+        </div>
+      `;
 
+      box.innerHTML = html;
       (c.querySelector(".group") || c).appendChild(box);
 
-      box.querySelectorAll("[data-qt]").forEach(el=>{
-        el.onchange=()=>{
-          d.quickToolVisibility[el.dataset.qt]=el.checked;
+      document.getElementById("qt_show_master").onchange = e => {
+        d.quickToolVisibility.show = e.target.checked;
+        markDirty010();
+      };
+      
+      box.querySelectorAll(".qt-input").forEach(inp => {
+        inp.oninput = () => {
+          const idx = +inp.dataset.qtIdx;
+          const field = inp.dataset.qtField;
+          d.quickTools[idx][field] = inp.value;
           markDirty010();
         };
       });
-    }catch(e){}
+      
+      box.querySelectorAll(".qt-select").forEach(sel => {
+        sel.onchange = () => {
+          const idx = +sel.dataset.qtIdx;
+          const field = sel.dataset.qtField;
+          d.quickTools[idx][field] = sel.value;
+          markDirty010();
+          render();
+        };
+      });
+      
+      box.querySelectorAll(".qt-checkbox").forEach(cb => {
+        cb.onchange = () => {
+          const idx = +cb.dataset.qtIdx;
+          const field = cb.dataset.qtField;
+          d.quickTools[idx][field] = cb.checked;
+          markDirty010();
+        };
+      });
+      
+      document.getElementById("addQuickToolBtn").onclick = () => {
+        d.quickTools.push({ type: "custom", label: "新按鈕", url: "#", visible: true });
+        markDirty010();
+        render();
+      };
+
+    }catch(e){
+      console.warn("快捷設定注入失敗", e);
+    }
   }
 
   function ensureAdminFloatingTools010(){
@@ -947,7 +1998,7 @@ setTimeout(()=>{
     const wrap=document.createElement("div");
     wrap.id="adminFloatingTools010";
     wrap.className="admin-floating-tools";
-    const user=sessionStorage.getItem("cc_admin_user") || "admin";
+    const user=sessionStorage.getItem("cc_admin_user_display") || sessionStorage.getItem("cc_admin_user") || "管理員";
     wrap.innerHTML=`<div class="admin-user-name" title="點選登出">${user}</div>
       <button type="button" data-admin-menu>目錄</button>
       <button type="button" data-admin-preview>預覽</button>
