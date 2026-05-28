@@ -711,3 +711,14 @@ body.modal-open{
     font-size:12px!important;
   }
 }
+
+
+/* 011 v21：後台頁隱藏主網站快捷，避免重疊 */
+body.admin-page .cc-quick-tools,
+body.admin-page #ccQuickTools,
+body.admin-page #ccMobileFloat,
+body.admin-page .cc-mobile-float,
+body.admin-page .float-buttons,
+body.admin-page .floatbar{
+  display:none!important;
+}

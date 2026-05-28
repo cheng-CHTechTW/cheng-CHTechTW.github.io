@@ -504,3 +504,109 @@
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* 011 v21：後台快捷與目錄版面修正 */
+/* 未登入時不顯示任何後台浮動快捷 */
+body:not(.admin-logged-in) .admin-floating-tools,
+body:not(.admin-logged-in) #adminFloatingTools010,
+body:not(.admin-logged-in) #adminFloatingTools011{
+  display:none!important;
+}
+
+/* 登入後才顯示後台快捷 */
+body.admin-logged-in .admin-floating-tools{
+  display:flex!important;
+}
+
+/* 後台快捷移到左側，避免與主網站快捷重疊 */
+.admin-floating-tools,
+#adminFloatingTools010,
+#adminFloatingTools011{
+  left:14px!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  transform:translateY(-50%)!important;
+  width:92px!important;
+  z-index:2147483000!important;
+}
+
+/* 電腦版目錄欄固定右側，避免左側與內容擁擠 */
+@media(min-width:901px){
+  .admin-layout{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 240px!important;
+    gap:18px!important;
+    align-items:start!important;
+  }
+  .admin-layout aside{
+    grid-column:2!important;
+    position:sticky!important;
+    top:18px!important;
+    max-height:calc(100vh - 36px)!important;
+    overflow-y:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    order:2!important;
+  }
+  .admin-layout .panel,
+  .admin-layout section,
+  .admin-layout main,
+  #adminContent{
+    grid-column:1!important;
+    order:1!important;
+  }
+}
+
+/* 手機版避免重複顯示目錄列 */
+@media(max-width:900px){
+  .mobile-admin-menu-bar + .mobile-admin-menu-bar,
+  #mobileAdminMenuBar010 + #mobileAdminMenuBar010,
+  #mobileAdminMenuBar011 + #mobileAdminMenuBar011{
+    display:none!important;
+  }
+
+  .admin-floating-tools,
+  #adminFloatingTools010,
+  #adminFloatingTools011{
+    left:auto!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:92px!important;
+    transform:none!important;
+    width:72px!important;
+  }
+
+  .admin-header{
+    padding-bottom:88px!important;
+  }
+
+  .top-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+  }
+
+  .top-actions button,
+  .top-actions a{
+    min-height:48px!important;
+    font-size:16px!important;
+  }
+
+  .mobile-admin-menu-bar{
+    position:sticky!important;
+    top:0!important;
+    z-index:9999!important;
+  }
+}
+
+/* 主網站快捷在後台頁面強制隱藏，只保留後台快捷 */
+body.admin-page .cc-quick-tools,
+body.admin-page #ccQuickTools,
+body.admin-page #ccMobileFloat,
+body.admin-page .cc-mobile-float,
+body.admin-page .float-buttons,
+body.admin-page .floatbar{
+  display:none!important;
+}

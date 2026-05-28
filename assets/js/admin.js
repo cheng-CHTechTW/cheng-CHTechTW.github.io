@@ -1047,3 +1047,92 @@ setTimeout(()=>{
     try{render=window.render;}catch(e){}
   }
 })();
+
+
+/* 011 v21：登入後才顯示快捷、去除雙重目錄、點外部關閉 */
+(function(){
+  function markLoginState011(){
+    const app=document.getElementById("adminApp");
+    const login=document.getElementById("loginScreen");
+    const logged=app && !app.classList.contains("locked") && (!login || getComputedStyle(login).display==="none" || login.hidden);
+    document.body.classList.add("admin-page");
+    if(logged){
+      document.body.classList.add("admin-logged-in");
+    }else{
+      document.body.classList.remove("admin-logged-in");
+    }
+  }
+
+  function removeDuplicateMenuBars011(){
+    const bars=[...document.querySelectorAll(".mobile-admin-menu-bar")];
+    bars.forEach((b,i)=>{ if(i>0) b.remove(); });
+  }
+
+  function ensureAdminFloatingOnlyAfterLogin011(){
+    markLoginState011();
+    const logged=document.body.classList.contains("admin-logged-in");
+    document.querySelectorAll(".cc-quick-tools,#ccQuickTools,#ccMobileFloat,.cc-mobile-float,.float-buttons,.floatbar").forEach(el=>{
+      el.style.display="none";
+    });
+    document.querySelectorAll(".admin-floating-tools").forEach(el=>{
+      el.style.display=logged?"flex":"none";
+      el.style.left="14px";
+      el.style.right="auto";
+    });
+  }
+
+  function closeMenu011(){
+    const aside=document.querySelector(".admin-layout aside");
+    const btn=document.getElementById("mobileAdminMenuToggle010") || document.getElementById("mobileAdminMenuToggle011");
+    if(aside){
+      aside.classList.remove("open");
+    }
+    if(btn){
+      btn.textContent="選擇編輯項目 ☰";
+    }
+  }
+
+  function bindCloseMenu011(){
+    document.addEventListener("click",function(e){
+      const aside=document.querySelector(".admin-layout aside");
+      const btn=document.getElementById("mobileAdminMenuToggle010") || document.getElementById("mobileAdminMenuToggle011");
+      const float=document.querySelector(".admin-floating-tools");
+      if(!aside || !aside.classList.contains("open")) return;
+      if(aside.contains(e.target) || (btn&&btn.contains(e.target)) || (float&&float.contains(e.target))) return;
+      closeMenu011();
+    },true);
+
+    document.querySelectorAll(".admin-layout aside button,.admin-layout aside a").forEach(el=>{
+      if(el.dataset.closeBound011) return;
+      el.dataset.closeBound011="1";
+      el.addEventListener("click",function(){
+        closeMenu011();
+        setTimeout(()=>{
+          const target=document.querySelector("#adminContent,.panel,.admin-content");
+          if(target) target.scrollIntoView({behavior:"smooth",block:"start"});
+        },80);
+      },true);
+    });
+  }
+
+  function boot011(){
+    document.body.classList.add("admin-page");
+    removeDuplicateMenuBars011();
+    bindCloseMenu011();
+    ensureAdminFloatingOnlyAfterLogin011();
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",boot011);
+  }else{
+    boot011();
+  }
+
+  window.addEventListener("load",()=>{
+    boot011();
+    setTimeout(boot011,500);
+    setTimeout(boot011,1500);
+  });
+
+  setInterval(boot011,2000);
+})();
