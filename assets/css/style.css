@@ -263,32 +263,172 @@
   .news-extra-images{grid-template-columns:1fr;}
 }
 
-/* 001 v11 mobile/logo/QR/form fixes */
-:root{--site-logo-desktop-h:56px;--site-logo-mobile-h:64px;--footer-qr-size:150px}
-.logo img{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
-.footer-logo{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
-.qr-box{display:flex;flex-direction:column;align-items:center;gap:10px}
-.fake-qr{width:var(--footer-qr-size);height:var(--footer-qr-size);background:#fff;color:#111827;border-radius:14px;padding:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.fake-qr img{width:100%;height:100%;object-fit:contain;display:block}
-.qr-box p{text-align:center;margin:0}
-body.modal-open{overflow:hidden!important;touch-action:none}
-.modal{overflow:hidden;align-items:flex-start!important;justify-content:center;padding:18px 12px}
-.modal-box{width:min(720px,96vw);max-height:calc(100dvh - 42px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:auto 0}
-#leadForm{padding-bottom:28px}
-#leadForm input,#leadForm select,#leadForm textarea{font-size:16px;min-height:46px}
-#leadForm textarea{min-height:130px}
+/* 001 v12 mobile/logo/QR/form fixes + transparent logo */
+:root{
+  --site-logo-desktop-h:56px;
+  --site-logo-mobile-h:64px;
+  --footer-qr-size:150px;
+}
+
+/* ===== Logo 修正 ===== */
+.logo,
+.logo a,
+.logo img,
+.footer-logo,
+.admin-logo,
+.admin-logo img{
+  background:transparent !important;
+  box-shadow:none !important;
+  border:none !important;
+}
+
+.logo img{
+  height:var(--site-logo-desktop-h);
+  width:auto;
+  max-width:260px;
+  object-fit:contain;
+  display:block;
+}
+
+.footer-logo{
+  height:var(--site-logo-desktop-h);
+  width:auto;
+  max-width:260px;
+  object-fit:contain;
+  display:block;
+}
+
+/* ===== QR ===== */
+.qr-box{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+
+.fake-qr{
+  width:var(--footer-qr-size);
+  height:var(--footer-qr-size);
+  background:#fff;
+  color:#111827;
+  border-radius:14px;
+  padding:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.fake-qr img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+.qr-box p{
+  text-align:center;
+  margin:0;
+}
+
+/* ===== Modal ===== */
+body.modal-open{
+  overflow:hidden!important;
+  touch-action:none;
+}
+
+.modal{
+  overflow:hidden;
+  align-items:flex-start!important;
+  justify-content:center;
+  padding:18px 12px;
+}
+
+.modal-box{
+  width:min(720px,96vw);
+  max-height:calc(100dvh - 42px)!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  margin:auto 0;
+}
+
+#leadForm{
+  padding-bottom:28px;
+}
+
+#leadForm input,
+#leadForm select,
+#leadForm textarea{
+  font-size:16px;
+  min-height:46px;
+}
+
+#leadForm textarea{
+  min-height:130px;
+}
+
+/* ===== 手機版 ===== */
 @media(max-width:760px){
-  .header,.nav{min-height:74px}
-  .nav{padding:0 18px}
-  .logo img{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
-  .footer-logo{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
-  .mobile-toggle{font-size:34px!important;width:54px;height:54px}
-  .menu.show{max-height:calc(100dvh - 74px);overflow-y:auto;-webkit-overflow-scrolling:touch}
-  .footer-grid,.responsive-footer{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
-  .contact-lines{grid-template-columns:1fr!important}
-  .contact-lines div{grid-template-columns:96px 1fr!important;font-size:16px}
-  .modal{padding:12px 8px}
-  .modal-box{width:96vw!important;max-height:calc(100dvh - 24px)!important;border-radius:16px!important;padding:20px!important}
+
+  .header,
+  .nav{
+    min-height:74px;
+  }
+
+  .nav{
+    padding:0 18px;
+  }
+
+  .logo img{
+    height:var(--site-logo-mobile-h)!important;
+    max-width:210px!important;
+  }
+
+  .footer-logo{
+    height:var(--site-logo-mobile-h)!important;
+    max-width:210px!important;
+  }
+
+  .mobile-toggle{
+    font-size:34px!important;
+    width:54px;
+    height:54px;
+  }
+
+  .menu.show{
+    max-height:calc(100dvh - 74px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .footer-grid,
+  .responsive-footer{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:28px!important;
+  }
+
+  .contact-lines{
+    grid-template-columns:1fr!important;
+  }
+
+  .contact-lines div{
+    grid-template-columns:96px 1fr!important;
+    font-size:16px;
+  }
+
+  .modal{
+    padding:12px 8px;
+  }
+
+  .modal-box{
+    width:96vw!important;
+    max-height:calc(100dvh - 24px)!important;
+    border-radius:16px!important;
+    padding:20px!important;
+  }
+}
   /* 手機版靠左/靠右側邊欄抽屜式樣式 */
   .menu.menu-left {
     position: fixed !important;
