@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <title>正在重新導向...</title>
+  <link rel="shortcut icon" href="assets/images/logo.png" type="image/png">
+  <!-- Default OG preview metadata so that shared typo links display correct info -->
+  <meta property="og:title" content="誠創科技｜智慧 POS 與電子發票整合專家">
+  <meta property="og:description" content="提供最專業的智慧 POS 收銀系統、電子發票加值服務、多元支付整合及客製化開發一條龍解決方案，助您的店鋪營運更高效！">
+  <meta property="og:image" content="assets/images/hero-bg.jpg">
+  <meta property="og:type" content="website">
+  <script>
+    (function() {
+      var path = window.location.pathname.toLowerCase();
+      var target = "";
+      
+      if (path.includes("admin.hml") || path.includes("admin.") || path.endsWith("/admin")) {
+        target = "admin.html";
+      } else if (path.includes("ihome.hml") || path.endsWith("/ihome")) {
+        target = "ihome.html";
+      } else if (path.includes("index.hml") || path.endsWith("/index")) {
+        target = "index.html";
+      }
+      
+      if (target) {
+        var regex = /(?:admin\\.hml|admin\\.|admin|ihome\\.hml|ihome|index\\.hml|index)(?:\\/|$)/i;
+        var newPath = window.location.pathname.replace(regex, target);
+        window.location.replace(window.location.origin + newPath + window.location.search + window.location.hash);
+      } else {
+        // Find if we are in a subdirectory (GitHub pages repo) and redirect to its root
+        var match = window.location.pathname.match(/^(\/[^\/]+)/);
+        if (match && match[1] && match[1] !== "/index.html") {
+          window.location.replace(window.location.origin + match[1] + "/");
+        } else {
+          window.location.replace(window.location.origin + "/");
+        }
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p style="text-align: center; margin-top: 50px; font-family: sans-serif; color: #64748b; font-size: 15px;">
+    網頁正在重新導向中，請稍候...
+  </p>
+</body>
+</html>

@@ -1,6 +1,44 @@
 const DATA_KEY="cc_full_site_data";
 const IMG_KEY="cc_full_site_images";
 
+function getBasePath() {
+  const path = window.location.pathname;
+  const match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+  if (match) {
+    return window.location.origin + match[1] + "/";
+  }
+  const lastSlash = path.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    return window.location.origin + path.substring(0, lastSlash + 1);
+  }
+  return window.location.origin + "/";
+}
+function resolveAssetPath(path) {
+  if (!path) return "";
+  if (path.startsWith("data:") || path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  return getBasePath() + path;
+}
+
+// Dynamically set admin favicon
+(function() {
+  try {
+    const savedImgs = localStorage.getItem("cc_full_site_images");
+    const imgs = savedImgs ? JSON.parse(savedImgs) : {};
+    const fav = imgs.siteFavicon || "assets/images/logo.png";
+    let favLink = document.querySelector('link[rel*="icon"]');
+    if (!favLink) {
+      favLink = document.createElement("link");
+      favLink.rel = "shortcut icon";
+      document.head.appendChild(favLink);
+    }
+    favLink.href = resolveAssetPath(fav);
+  } catch(e) {
+    console.error("Error setting admin favicon:", e);
+  }
+})();
+
 const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
   users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
@@ -1586,7 +1624,11 @@ function render(){
       });
     }
     const frontText = document.getElementById("frontend-url-text");
-    if (frontText) frontText.textContent = location.origin + location.pathname.replace("admin.html", "index.html");
+    if (frontText) {
+      const lastIdx = location.pathname.lastIndexOf("/admin.html");
+      const base = location.origin + (lastIdx !== -1 ? location.pathname.substring(0, lastIdx + 1) : "/");
+      frontText.textContent = base;
+    }
   }, 50);
 }
 if(currentTab==="hero"){
@@ -1879,7 +1921,11 @@ if(currentTab==="hero"){
       });
     }
     const ihomeText = document.getElementById("ihome-url-text");
-    if (ihomeText) ihomeText.textContent = location.origin + location.pathname.replace("admin.html", "ihome.html");
+    if (ihomeText) {
+      const lastIdx = location.pathname.lastIndexOf("/admin.html");
+      const base = location.origin + (lastIdx !== -1 ? location.pathname.substring(0, lastIdx + 1) : "/");
+      ihomeText.textContent = base + "ihome";
+    }
   }, 50);
 }
 

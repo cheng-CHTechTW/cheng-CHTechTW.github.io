@@ -1,5 +1,5 @@
 window.DEFAULT_DATA = {
-  "siteVersion":"006_v33",
+  "siteVersion":"006_v34",
   "statsVisible": true,
   "shippingVisible": true,
   "siteTitle": "誠創科技｜智慧 POS 解決方案",
