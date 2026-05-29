@@ -47,6 +47,26 @@ function applyAppearanceConfig(d){
    }
    favLink.href = resolveAssetPath(fav);
 
+   // Apply custom OG Title
+   const ogTitleText = a.siteOgTitle || d.siteTitle || "誠創科技｜智慧 POS 與電子發票整合專家";
+   let ogTitle = document.querySelector('meta[property="og:title"]');
+   if (!ogTitle) {
+     ogTitle = document.createElement("meta");
+     ogTitle.setAttribute("property", "og:title");
+     document.head.appendChild(ogTitle);
+   }
+   ogTitle.content = ogTitleText;
+
+   // Apply custom OG Description
+   const ogDescText = a.siteOgDesc || "提供最專業的智慧 POS 收銀系統、電子發票加值服務、多元支付整合及客製化開發一條龍解決方案，助您的店鋪營運更高效！";
+   let ogDesc = document.querySelector('meta[property="og:description"]');
+   if (!ogDesc) {
+     ogDesc = document.createElement("meta");
+     ogDesc.setAttribute("property", "og:description");
+     document.head.appendChild(ogDesc);
+   }
+   ogDesc.content = ogDescText;
+
    const ogImg = im.siteOgImage || "assets/images/hero-bg.jpg";
    let ogMeta = document.querySelector('meta[property="og:image"]');
    if (!ogMeta) {
@@ -108,7 +128,7 @@ function syncAllLogoImages(){
   });
 }
 
-function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.siteTitle;renderNav(d);const align=d.appearanceConfig?.mobileMenuAlign||"right";menu.classList.remove("menu-left","menu-right");menu.classList.add("menu-"+align);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=resolveAssetPath(im[k])});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${resolveAssetPath(im.heroBg)})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");
+function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.appearanceConfig?.siteOgTitle||d.siteTitle;renderNav(d);const align=d.appearanceConfig?.mobileMenuAlign||"right";menu.classList.remove("menu-left","menu-right");menu.classList.add("menu-"+align);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=resolveAssetPath(im[k])});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${resolveAssetPath(im.heroBg)})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");
   // Handle stats grid visibility and rendering
   const statsSec = document.getElementById("stats");
   if (statsSec) {

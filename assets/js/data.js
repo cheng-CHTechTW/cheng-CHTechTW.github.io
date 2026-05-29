@@ -1,14 +1,55 @@
 window.DEFAULT_DATA = {
-  "siteVersion":"006_v34",
+  "siteVersion": "006_v34",
   "statsVisible": true,
   "shippingVisible": true,
   "siteTitle": "誠創科技｜智慧 POS 解決方案",
-  "adminUsers":[{"enabled":true,"isMaster":true,"username":"admin","password":"123456","displayName":"工程總帳號","email":"chengchuang1012@gmail.com","permissions":{"basic":true,"header":true,"footer":true,"security":true,"editEntry":true,"appearance":true,"hero":true,"services":true,"cases":true,"partners":true,"news":true,"faq":true,"form":true,"images":true,"backup":true,"masterAccount":true}}],
-"adminConfig": {
+  "adminUsers": [
+    {
+      "enabled": true,
+      "isMaster": true,
+      "username": "admin",
+      "password": "123456",
+      "displayName": "工程總帳號",
+      "email": "chengchuang1012@gmail.com",
+      "permissions": {
+        "basic": true,
+        "header": true,
+        "footer": true,
+        "security": true,
+        "editEntry": true,
+        "appearance": true,
+        "hero": true,
+        "services": true,
+        "cases": true,
+        "partners": true,
+        "news": true,
+        "faq": true,
+        "form": true,
+        "images": true,
+        "backup": true,
+        "masterAccount": true
+      }
+    }
+  ],
+  "adminConfig": {
     "username": "admin",
     "password": "123456"
   },
-  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v29","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://line.me/ti/p/@905dqqqw"},
+  "appearanceConfig": {
+    "siteFaviconShape": "square",
+    "versionLabel": "006_v29",
+    "showVersion": true,
+    "desktopLogoHeight": 56,
+    "mobileLogoHeight": 64,
+    "adminLoginLogoHeight": 58,
+    "footerLineQrShow": true,
+    "footerLineQrLabel": "官方 LINE",
+    "footerLineQrImage": "assets/images/CH_LINEQR.jpg",
+    "footerLineQrSize": 150,
+    "lineJoinUrl": "https://line.me/ti/p/@905dqqqw",
+    "siteOgTitle": "誠創科技｜智慧 POS 與電子發票整合專家",
+    "siteOgDesc": "提供最專業的智慧 POS 收銀系統、電子發票加值服務、多元支付整合及客製化開發一條龍解決方案，助您的店鋪營運更高效！"
+  },
   "editEntry": {
     "show": true,
     "icon": "✎",
@@ -93,10 +134,27 @@ window.DEFAULT_DATA = {
     "instagramUrl": "",
     "youtubeUrl": ""
   },
-  "quickToolVisibility":{"show":true,"line":true,"phone":true,"form":true,"top":true},
-"socialVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true,"line":true},
-"socialIconVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true},
-"formConfig": {
+  "quickToolVisibility": {
+    "show": true,
+    "line": true,
+    "phone": true,
+    "form": true,
+    "top": true
+  },
+  "socialVisibility": {
+    "facebook": true,
+    "instagram": true,
+    "youtube": true,
+    "email": true,
+    "line": true
+  },
+  "socialIconVisibility": {
+    "facebook": true,
+    "instagram": true,
+    "youtube": true,
+    "email": true
+  },
+  "formConfig": {
     "googleScriptUrl": "",
     "sheetUrl": "",
     "notifyEmail": "chengchuang1012@gmail.com"
@@ -243,10 +301,26 @@ window.DEFAULT_DATA = {
     }
   ],
   "stats": [
-    { "visible": true, "number": "500+", "label": "導入科技數量" },
-    { "visible": true, "number": "1000+", "label": "使用店家數量" },
-    { "visible": false, "number": "98%", "label": "客戶滿意度" },
-    { "visible": false, "number": "10+", "label": "年專業經驗" }
+    {
+      "visible": true,
+      "number": "500+",
+      "label": "導入科技數量"
+    },
+    {
+      "visible": true,
+      "number": "1000+",
+      "label": "使用店家數量"
+    },
+    {
+      "visible": false,
+      "number": "98%",
+      "label": "客戶滿意度"
+    },
+    {
+      "visible": false,
+      "number": "10+",
+      "label": "年專業經驗"
+    }
   ],
   "about": {
     "title": "關於誠創科技",
@@ -469,6 +543,8 @@ window.DEFAULT_DATA = {
   ],
   "ihomeConfig": {
     "faviconShape": "square",
+    "ogTitle": "愛家居系統櫥櫃｜現代智能櫥櫃與空間收納規劃專家",
+    "ogDesc": "關係企業「愛家居」為您量身打造低甲醛防潮智能櫥櫃與空間收納規劃，以極致工藝實踐美學與環保兼具的居家與營業空間。",
     "banner": {
       "logoText": "愛家居系統櫥櫃",
       "logoSub": "I-HOME CABINETS",
@@ -547,35 +623,135 @@ window.DEFAULT_DATA = {
       "address": "新北市新莊區中原路261號",
       "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
       "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
-      "lineQr": "assets/images/line-qr.png",
+      "lineQr": "assets/images/ihome/CHihome_LINEQR.png",
       "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
     }
   },
   "ihomeCases": [
-    { "visible": true, "title": "客廳懸空收納電視牆", "image": "assets/images/ihome/s__7684107_0.jpg" },
-    { "visible": true, "title": "現代簡約雙色衣櫃", "image": "assets/images/ihome/S__16375833_0.jpg" },
-    { "visible": true, "title": "高級灰木紋系統櫥櫃", "image": "assets/images/ihome/S__16375813_0.jpg" },
-    { "visible": true, "title": "臥室多功能掀床儲物櫃", "image": "assets/images/ihome/S__16375815_0.jpg" },
-    { "visible": true, "title": "開放式精品更衣室", "image": "assets/images/ihome/S__16375816_0.jpg" },
-    { "visible": true, "title": "多功能折疊書桌櫃", "image": "assets/images/ihome/S__16375817_0.jpg" },
-    { "visible": true, "title": "極簡白色廚房收納中島", "image": "assets/images/ihome/S__16375818_0.jpg" },
-    { "visible": true, "title": "玄關懸空鞋櫃與展示收納", "image": "assets/images/ihome/S__16375819_0.jpg" },
-    { "visible": true, "title": "書房隱藏式折疊床系統", "image": "assets/images/ihome/S__16375820_0.jpg" },
-    { "visible": true, "title": "北歐木質風臥室衣櫃", "image": "assets/images/ihome/S__16375821_0.jpg" },
-    { "visible": true, "title": "都會套房多功能收納櫃", "image": "assets/images/ihome/S__16375822_0.jpg" },
-    { "visible": true, "title": "輕奢風大理石紋高櫃", "image": "assets/images/ihome/S__16375823_0.jpg" },
-    { "visible": true, "title": "兒童房機能收納雙層床", "image": "assets/images/ihome/S__16375824_0.jpg" },
-    { "visible": true, "title": "轉角拉籃與廚具櫃細節", "image": "assets/images/ihome/S__16375826_0.jpg" },
-    { "visible": true, "title": "日式無印風溫潤木質矮櫃", "image": "assets/images/ihome/S__16375827_0.jpg" },
-    { "visible": true, "title": "商用辦公大容量檔案收納櫃", "image": "assets/images/ihome/S__16375828_0.jpg" },
-    { "visible": true, "title": "玄關一體式穿鞋椅與收納衣帽架", "image": "assets/images/ihome/S__16375829_0.jpg" },
-    { "visible": true, "title": "輕工業風鐵件系統展示架", "image": "assets/images/ihome/S__16375830_0.jpg" },
-    { "visible": true, "title": "主臥化妝桌一體化衣櫃", "image": "assets/images/ihome/S__16375831_0.jpg" },
-    { "visible": true, "title": "多層拉出式零食儲藏高櫃", "image": "assets/images/ihome/S__16375832_0.jpg" },
-    { "visible": true, "title": "臥室滑門衣櫃與抽屜配件", "image": "assets/images/ihome/S__16375833_0.jpg" },
-    { "visible": true, "title": "微波爐電器收納專用櫃", "image": "assets/images/ihome/S__16375834_0.jpg" },
-    { "visible": true, "title": "高質感木皮貼面精品玄關櫃", "image": "assets/images/ihome/S__16375835_0.jpg" },
-    { "visible": true, "title": "吧檯底部多功能藏酒櫃", "image": "assets/images/ihome/S__16375837_0.jpg" },
-    { "visible": true, "title": "書房整面式書牆系統櫃", "image": "assets/images/ihome/S__16375838_0.jpg" }
+    {
+      "visible": true,
+      "title": "客廳懸空收納電視牆",
+      "image": "assets/images/ihome/s__7684107_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "現代簡約雙色衣櫃",
+      "image": "assets/images/ihome/S__16375833_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "高級灰木紋系統櫥櫃",
+      "image": "assets/images/ihome/S__16375813_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "臥室多功能掀床儲物櫃",
+      "image": "assets/images/ihome/S__16375815_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "開放式精品更衣室",
+      "image": "assets/images/ihome/S__16375816_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "多功能折疊書桌櫃",
+      "image": "assets/images/ihome/S__16375817_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "極簡白色廚房收納中島",
+      "image": "assets/images/ihome/S__16375818_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "玄關懸空鞋櫃與展示收納",
+      "image": "assets/images/ihome/S__16375819_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "書房隱藏式折疊床系統",
+      "image": "assets/images/ihome/S__16375820_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "北歐木質風臥室衣櫃",
+      "image": "assets/images/ihome/S__16375821_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "都會套房多功能收納櫃",
+      "image": "assets/images/ihome/S__16375822_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "輕奢風大理石紋高櫃",
+      "image": "assets/images/ihome/S__16375823_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "兒童房機能收納雙層床",
+      "image": "assets/images/ihome/S__16375824_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "轉角拉籃與廚具櫃細節",
+      "image": "assets/images/ihome/S__16375826_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "日式無印風溫潤木質矮櫃",
+      "image": "assets/images/ihome/S__16375827_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "商用辦公大容量檔案收納櫃",
+      "image": "assets/images/ihome/S__16375828_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "玄關一體式穿鞋椅與收納衣帽架",
+      "image": "assets/images/ihome/S__16375829_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "輕工業風鐵件系統展示架",
+      "image": "assets/images/ihome/S__16375830_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "主臥化妝桌一體化衣櫃",
+      "image": "assets/images/ihome/S__16375831_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "多層拉出式零食儲藏高櫃",
+      "image": "assets/images/ihome/S__16375832_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "臥室滑門衣櫃與抽屜配件",
+      "image": "assets/images/ihome/S__16375833_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "微波爐電器收納專用櫃",
+      "image": "assets/images/ihome/S__16375834_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "高質感木皮貼面精品玄關櫃",
+      "image": "assets/images/ihome/S__16375835_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "吧檯底部多功能藏酒櫃",
+      "image": "assets/images/ihome/S__16375837_0.jpg"
+    },
+    {
+      "visible": true,
+      "title": "書房整面式書牆系統櫃",
+      "image": "assets/images/ihome/S__16375838_0.jpg"
+    }
   ]
 };
