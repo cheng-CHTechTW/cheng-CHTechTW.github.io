@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>愛家居系統櫥櫃｜現代智能櫥櫃與空間收納規劃專家</title>
+  <title>愛家居系統櫥櫃｜現代客製收納與空間規劃</title>
   <!-- Favicon / Shortcut Icon -->
   <link rel="shortcut icon" href="assets/images/ihome/logo.png" type="image/png">
   <!-- Open Graph / Share URL Preview Settings -->
@@ -2969,47 +2969,32 @@
 
       // Dynamic Favicon and OG Image loading from appImages
       try {
-        var fav = appImages.ihomeFavicon || "assets/images/ihome/logo.png";
-        var favLink = document.querySelector('link[rel*="icon"]');
-        if (!favLink) {
-          favLink = document.createElement("link");
-          favLink.rel = "shortcut icon";
-          document.head.appendChild(favLink);
+        var fav = appImages.ihomeFavicon;
+        if (fav) {
+          var favLink = document.querySelector('link[rel*="icon"]');
+          if (!favLink) {
+            favLink = document.createElement("link");
+            favLink.rel = "shortcut icon";
+            document.head.appendChild(favLink);
+          }
+          favLink.href = fav;
         }
-        favLink.href = resolveAssetPath(fav);
-        
-        var ogTitleText = config.ogTitle || "愛家居系統櫥櫃｜現代智能櫥櫃與空間收納規劃專家";
-        var ogTitle = document.querySelector('meta[property="og:title"]');
-        if (!ogTitle) {
-          ogTitle = document.createElement("meta");
-          ogTitle.setAttribute("property", "og:title");
-          document.head.appendChild(ogTitle);
+        var ogImg = appImages.ihomeOgImage;
+        if (ogImg) {
+          var ogMeta = document.querySelector('meta[property="og:image"]');
+          if (!ogMeta) {
+            ogMeta = document.createElement("meta");
+            ogMeta.setAttribute("property", "og:image");
+            document.head.appendChild(ogMeta);
+          }
+          ogMeta.content = ogImg;
         }
-        ogTitle.content = ogTitleText;
-
-        var ogDescText = config.ogDesc || "關係企業「愛家居」為您量身打造低甲醛防潮智能櫥櫃與空間收納規劃，以極致工藝實踐美學與環保兼具的居家與營業空間。";
-        var ogDesc = document.querySelector('meta[property="og:description"]');
-        if (!ogDesc) {
-          ogDesc = document.createElement("meta");
-          ogDesc.setAttribute("property", "og:description");
-          document.head.appendChild(ogDesc);
-        }
-        ogDesc.content = ogDescText;
-
-        var ogImg = appImages.ihomeOgImage || "assets/images/ihome/空間理念.jpg";
-        var ogMeta = document.querySelector('meta[property="og:image"]');
-        if (!ogMeta) {
-          ogMeta = document.createElement("meta");
-          ogMeta.setAttribute("property", "og:image");
-          document.head.appendChild(ogMeta);
-        }
-        ogMeta.content = resolveAssetPath(ogImg);
       } catch(e) {
         console.error("Error setting custom favicon/ogImage:", e);
       }
 
       // 1. Render Document Title & Meta
-      document.title = config.ogTitle || (config.banner.logoText || "愛家居系統櫥櫃") + "｜客製化收納設計與空間最佳化";
+      document.title = (config.banner.logoText || "愛家居系統櫥櫃") + "｜客製化收納設計與空間最佳化";
 
       // 2. Render Header & Logos
       var customLogo = imgVal("ihome_banner_logoImage", config.banner.logoImage);

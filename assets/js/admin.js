@@ -1,44 +1,6 @@
 const DATA_KEY="cc_full_site_data";
 const IMG_KEY="cc_full_site_images";
 
-function getBasePath() {
-  const path = window.location.pathname;
-  const match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
-  if (match) {
-    return window.location.origin + match[1] + "/";
-  }
-  const lastSlash = path.lastIndexOf("/");
-  if (lastSlash !== -1) {
-    return window.location.origin + path.substring(0, lastSlash + 1);
-  }
-  return window.location.origin + "/";
-}
-function resolveAssetPath(path) {
-  if (!path) return "";
-  if (path.startsWith("data:") || path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-  return getBasePath() + path;
-}
-
-// Dynamically set admin favicon
-(function() {
-  try {
-    const savedImgs = localStorage.getItem("cc_full_site_images");
-    const imgs = savedImgs ? JSON.parse(savedImgs) : {};
-    const fav = imgs.siteFavicon || "assets/images/logo.png";
-    let favLink = document.querySelector('link[rel*="icon"]');
-    if (!favLink) {
-      favLink = document.createElement("link");
-      favLink.rel = "shortcut icon";
-      document.head.appendChild(favLink);
-    }
-    favLink.href = resolveAssetPath(fav);
-  } catch(e) {
-    console.error("Error setting admin favicon:", e);
-  }
-})();
-
 const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
   users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
@@ -330,65 +292,15 @@ function save(){
   localStorage.setItem(DATA_KEY, JSON.stringify(data));
   localStorage.setItem(IMG_KEY, JSON.stringify(images));
   
-  const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "";
-  
-  if (isLocal) {
-    const saveBtn = document.getElementById("saveBtn");
-    const originalText = saveBtn ? saveBtn.textContent : "儲存修改";
-    if(saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.textContent = "本地編譯與 GitHub 同步中...";
-    }
-    
-    fetch("/api/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: data,
-        images: images
-      })
-    })
-    .then(async res => {
-      if (res.ok) {
-        const resData = await res.json();
-        logAdminChange("儲存網站設定", detail + " (本地已編譯並推送至 GitHub)");
-        originalData = clone(data);
-        if(saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.textContent = originalText;
-        }
-        let msg = "儲存成功！\n1. 本地 data.js 已寫入。\n2. index.html, ihome.html, 404.html 已編譯更新。\n3. Base64 自訂圖片已編譯為實體檔案。";
-        if (resData.gitPushSuccess) {
-          msg += "\n4. 變更已成功自動 Git Push 推送至 GitHub！";
-        } else {
-          msg += "\n4. 警告：Git Push 推送失敗，請手動確認本機 Git 狀態！";
-          if (resData.gitError) {
-            console.error(resData.gitError);
-          }
-        }
-        alert(msg);
-      } else {
-        throw new Error("Local API save failed status: " + res.status);
-      }
-    })
-    .catch(err => {
-      console.warn("本地 API 儲存失敗，嘗試使用 Google Apps Script 同步...", err);
-      fallbackCloudSave(detail, saveBtn, originalText);
-    });
-  } else {
-    const saveBtn = document.getElementById("saveBtn");
-    const originalText = saveBtn ? saveBtn.textContent : "儲存修改";
-    fallbackCloudSave(detail, saveBtn, originalText);
-  }
-}
-
-function fallbackCloudSave(detail, saveBtn, originalText) {
   const url = data.formConfig && data.formConfig.googleScriptUrl;
   if(url && !url.includes("請貼上")){
+    const saveBtn = document.getElementById("saveBtn");
+    const originalText = saveBtn ? saveBtn.textContent : "儲存修改";
     if(saveBtn) {
       saveBtn.disabled = true;
       saveBtn.textContent = "同步儲存中...";
     }
+    
     fetch(url, {
       method: "POST",
       mode: "no-cors",
@@ -420,10 +332,6 @@ function fallbackCloudSave(detail, saveBtn, originalText) {
   } else {
     logAdminChange("儲存網站設定", detail + " (後台資料已儲存於本機)");
     originalData = clone(data);
-    if(saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.textContent = originalText;
-    }
     alert("本地儲存成功！(尚未設定 Google Apps Script URL，無法進行線上多端同步。)");
   }
 }
@@ -1200,10 +1108,6 @@ function bindImg() {
                 images.siteLogo = compressedBase64;
                 images.headerLogo = compressedBase64;
               }
-              if (key === "siteFavicon") {
-                localStorage.setItem("cc_full_site_images", JSON.stringify(images));
-                applyAdminFavicon();
-              }
               
               progText.textContent = "✓ 上傳成功！";
               progText.style.color = "#4ade80";
@@ -1663,9 +1567,7 @@ function render(){
       <option value="square" ${siteFavShape === "square" ? "selected" : ""}>方形 (Square)</option>
       <option value="circle" ${siteFavShape === "circle" ? "selected" : ""}>圓形 (Circle)</option>
     </select>
-    ${imgUpload("siteOgImage","分享連結預覽圖 (OG Image) (獨立於首頁主圖)","assets/images/hero-bg.jpg")}
-    ${input("appearanceConfig.siteOgTitle","網址分享預覽標題 (OG Title)")}
-    ${input("appearanceConfig.siteOgDesc","網址分享預覽介紹 (OG Description)","textarea")}
+    ${imgUpload("siteOgImage","分享連結預覽圖 (OG Image)","assets/images/hero-bg.jpg")}
   </div>
   </div>`;
   
@@ -1684,11 +1586,7 @@ function render(){
       });
     }
     const frontText = document.getElementById("frontend-url-text");
-    if (frontText) {
-      const lastIdx = location.pathname.lastIndexOf("/admin.html");
-      const base = location.origin + (lastIdx !== -1 ? location.pathname.substring(0, lastIdx + 1) : "/");
-      frontText.textContent = base;
-    }
+    if (frontText) frontText.textContent = location.origin + location.pathname.replace("admin.html", "index.html");
   }, 50);
 }
 if(currentTab==="hero"){
@@ -1843,9 +1741,7 @@ if(currentTab==="hero"){
       <option value="square" ${ihomeFavShape === "square" ? "selected" : ""}>方形 (Square)</option>
       <option value="circle" ${ihomeFavShape === "circle" ? "selected" : ""}>圓形 (Circle)</option>
     </select>
-    ${imgUpload("ihomeOgImage","愛家居網址分享預覽圖 (OG Image) (獨立於愛家居首頁背景)","assets/images/ihome/空間理念.jpg")}
-    ${input("ihomeConfig.ogTitle","愛家居分享預覽標題 (OG Title)")}
-    ${input("ihomeConfig.ogDesc","愛家居分享預覽介紹 (OG Description)","textarea")}
+    ${imgUpload("ihomeOgImage","愛家居網址分享預覽圖 (OG Image)","assets/images/ihome/空間理念.jpg")}
   </div>
 
         <h2>🚪 愛家居系統櫥櫃 頁面編輯</h2>
@@ -1983,11 +1879,7 @@ if(currentTab==="hero"){
       });
     }
     const ihomeText = document.getElementById("ihome-url-text");
-    if (ihomeText) {
-      const lastIdx = location.pathname.lastIndexOf("/admin.html");
-      const base = location.origin + (lastIdx !== -1 ? location.pathname.substring(0, lastIdx + 1) : "/");
-      ihomeText.textContent = base + "ihome";
-    }
+    if (ihomeText) ihomeText.textContent = location.origin + location.pathname.replace("admin.html", "ihome.html");
   }, 50);
 }
 
@@ -2239,28 +2131,10 @@ function ccV16CloseMobileMenuOutside(){
     aside.classList.remove("open");
     toggle.textContent="選擇編輯項目 ☰";
   },true);
-function applyAdminFavicon() {
-  try {
-    const savedImgs = localStorage.getItem("cc_full_site_images");
-    let fav = "assets/images/logo.png";
-    if (savedImgs) {
-      const imgs = JSON.parse(savedImgs);
-      if (imgs.siteFavicon) fav = imgs.siteFavicon;
-    }
-    let favLink = document.querySelector('link[rel*="icon"]');
-    if (!favLink) {
-      favLink = document.createElement("link");
-      favLink.id = "adminFavicon";
-      favLink.rel = "shortcut icon";
-      document.head.appendChild(favLink);
-    }
-    favLink.href = fav;
-  } catch(e) {}
 }
 
 function bootAdmin(){
   try{
-    applyAdminFavicon();
     initLogin();
     syncAdminLogoImages();
     initMobileAdminMenu();

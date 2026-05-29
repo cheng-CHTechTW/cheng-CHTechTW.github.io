@@ -1,22 +1,11 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>誠創科技網站後台</title><link id="adminFavicon" rel="shortcut icon" href="assets/images/logo.png" type="image/png"><script>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>誠創科技網站後台</title><script>
 (function(){
-  var basePath = "/";
-  var path = window.location.pathname;
-  var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
-  if (match) {
-    basePath = match[1] + "/";
-  } else {
-    var lastSlash = path.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      basePath = path.substring(0, lastSlash + 1);
-    }
-  }
-  var ver = "006_v31";
+  var ver = "v23";
   try {
     var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
     if (local && local.siteVersion) { ver = local.siteVersion; }
   } catch(e) {}
-  document.write('<link rel="stylesheet" href="' + basePath + 'assets/css/admin.css?v=' + ver + '">');
+  document.write('<link rel="stylesheet" href="assets/css/admin.css?v=' + ver + '">');
 })();
 </script></head><body class="admin-page">
 <div id="loginScreen" class="login-screen">
@@ -145,23 +134,12 @@
 </script>
 <script>
 (function(){
-  var basePath = "/";
-  var path = window.location.pathname;
-  var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
-  if (match) {
-    basePath = match[1] + "/";
-  } else {
-    var lastSlash = path.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      basePath = path.substring(0, lastSlash + 1);
-    }
-  }
-  var ver = "006_v31";
+  var ver = "v23";
   try {
     var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
     if (local && local.siteVersion) { ver = local.siteVersion; }
   } catch(e) {}
-  document.write('<script src="' + basePath + 'assets/js/data.js?v=' + ver + '"><\/script>');
-  document.write('<script src="' + basePath + 'assets/js/admin.js?v=' + ver + '"><\/script>');
+  document.write('<script src="assets/js/data.js?v=' + ver + '"><\/script>');
+  document.write('<script src="assets/js/admin.js?v=' + ver + '"><\/script>');
 })();
 </script></body></html>
