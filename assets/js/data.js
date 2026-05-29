@@ -86,10 +86,10 @@ window.DEFAULT_DATA = {
     "address": "新北市淡水區水源街二段177巷10號6樓",
     "hours": "週一至週五 09:00 - 18:00",
     "lineId": "@905dqqqw",
-    "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
-    "facebookUrl": "https://facebook.com/",
-    "instagramUrl": "https://instagram.com/",
-    "youtubeUrl": "https://youtube.com/"
+    "lineUrl": "https://lin.ee/RbGc5o5",
+    "facebookUrl": "https://www.facebook.com/profile.php?id=61551798885885",
+    "instagramUrl": "",
+    "youtubeUrl": ""
   },
   "quickToolVisibility":{"show":true,"line":true,"phone":true,"form":true,"top":true},
 "socialVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true,"line":true},
@@ -389,8 +389,8 @@ window.DEFAULT_DATA = {
       "image": "assets/images/case-1.svg",
       "companyName": "誠創科技",
       "phone": "(02)-6623-7091",
-      "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
-      "facebookUrl": "https://facebook.com/",
+      "lineUrl": "https://lin.ee/RbGc5o5",
+      "facebookUrl": "https://www.facebook.com/profile.php?id=61551798885885",
       "websiteUrl": "index.html",
       "description": "POS 系統、電子發票、多元支付、網站與客製化開發整合服務。"
     },
@@ -399,7 +399,7 @@ window.DEFAULT_DATA = {
       "image": "assets/images/ihome/S__16375813_0.jpg",
       "companyName": "愛家居系統櫥櫃",
       "phone": "0955-149-470",
-      "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
+      "lineUrl": "",
       "facebookUrl": "",
       "websiteUrl": "ihome.html",
       "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
@@ -555,7 +555,7 @@ window.DEFAULT_DATA = {
       "email": "ihome.cabinet@gmail.com",
       "address": "新北市新莊區中原路261號",
       "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
-      "lineUrl": "https://line.me/R/ti/p/@905dqqqw",
+      "lineUrl": "",
       "lineQr": "assets/images/line-qr.png",
       "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
     }
