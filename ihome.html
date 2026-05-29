@@ -4,6 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>愛家居系統櫥櫃｜現代客製收納與空間規劃</title>
+  <!-- Favicon / Shortcut Icon -->
+  <link rel="shortcut icon" href="assets/images/ihome/logo.png" type="image/png">
+  <!-- Open Graph / Share URL Preview Settings -->
+  <meta property="og:title" content="愛家居系統櫥櫃｜現代智能櫥櫃與空間收納規劃專家">
+  <meta property="og:description" content="關係企業「愛家居」為您量身打造低甲醛防潮智能櫥櫃與空間收納規劃，以極致工藝實踐美學與環保兼具的居家與營業空間。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="ihome.html">
+  <meta property="og:image" content="assets/images/ihome/空間理念.jpg">
+  <meta property="og:site_name" content="愛家居系統櫥櫃">
   <!-- Import High-End Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;900&family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
   <style>
@@ -238,6 +247,12 @@
       padding: 120px 40px 40px 40px;
       gap: 32px;
       transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    body.modal-open {
+      overflow: hidden !important;
+      height: 100% !important;
     }
     .mobile-nav.open {
       right: 0;
@@ -2635,16 +2650,48 @@
   <!-- Script Configuration and Data Sync -->
   <script>
     (function(){
-      var ver = "v23";
+      var basePath = "/";
+      var path = window.location.pathname;
+      var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+      if (match) {
+        basePath = match[1] + "/";
+      } else {
+        var lastSlash = path.lastIndexOf("/");
+        if (lastSlash !== -1) {
+          basePath = path.substring(0, lastSlash + 1);
+        }
+      }
+      var ver = "006_v31";
       try {
         var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
         if (local && local.siteVersion) { ver = local.siteVersion; }
       } catch(e) {}
-      document.write('<script src="assets/js/data.js?v=' + ver + '"><\/script>');
+      document.write('<script src="' + basePath + 'assets/js/data.js?v=' + ver + '"><\/script>');
     })();
   </script>
 
   <script>
+    // Dynamic asset path resolver helpers
+    function getBasePath() {
+      var path = window.location.pathname;
+      var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+      if (match) {
+        return window.location.origin + match[1] + "/";
+      }
+      var lastSlash = path.lastIndexOf("/");
+      if (lastSlash !== -1) {
+        return window.location.origin + path.substring(0, lastSlash + 1);
+      }
+      return window.location.origin + "/";
+    }
+    function resolveAssetPath(path) {
+      if (!path) return "";
+      if (path.startsWith("data:") || path.startsWith("http://") || path.startsWith("https://")) {
+        return path;
+      }
+      return getBasePath() + path;
+    }
+
     // Core Application Variables
     var appData = null;
     var appImages = {};
@@ -2695,6 +2742,12 @@
       var isOpen = mobileNav.classList.toggle("open");
       mobileMenuBtn.innerHTML = isOpen ? "✕" : "☰";
       mobileOverlay.classList.toggle("show", isOpen);
+      
+      if (isOpen) {
+        document.body.classList.add("modal-open");
+      } else {
+        document.body.classList.remove("modal-open");
+      }
     });
 
     mobileOverlay.addEventListener("click", closeMobileMenu);
@@ -2703,6 +2756,7 @@
       mobileNav.classList.remove("open");
       mobileMenuBtn.innerHTML = "☰";
       mobileOverlay.classList.remove("show");
+      document.body.classList.remove("modal-open");
     }
 
     // Scroll behavior for Header shadow & glassmorphism
@@ -2913,6 +2967,32 @@
       var config = appData.ihomeConfig;
       if (!config) return;
 
+      // Dynamic Favicon and OG Image loading from appImages
+      try {
+        var fav = appImages.ihomeFavicon;
+        if (fav) {
+          var favLink = document.querySelector('link[rel*="icon"]');
+          if (!favLink) {
+            favLink = document.createElement("link");
+            favLink.rel = "shortcut icon";
+            document.head.appendChild(favLink);
+          }
+          favLink.href = fav;
+        }
+        var ogImg = appImages.ihomeOgImage;
+        if (ogImg) {
+          var ogMeta = document.querySelector('meta[property="og:image"]');
+          if (!ogMeta) {
+            ogMeta = document.createElement("meta");
+            ogMeta.setAttribute("property", "og:image");
+            document.head.appendChild(ogMeta);
+          }
+          ogMeta.content = ogImg;
+        }
+      } catch(e) {
+        console.error("Error setting custom favicon/ogImage:", e);
+      }
+
       // 1. Render Document Title & Meta
       document.title = (config.banner.logoText || "愛家居系統櫥櫃") + "｜客製化收納設計與空間最佳化";
 
@@ -2924,7 +3004,7 @@
       var logoSubEl = document.getElementById("logoSubEl");
 
       if (customLogo) {
-        navLogoImg.src = customLogo;
+        navLogoImg.src = resolveAssetPath(customLogo);
         navLogoImg.style.display = "block";
         navLogoText.style.display = "flex";
         navLogoText.style.borderLeft = "1px solid rgba(197, 168, 128, 0.3)";
@@ -2946,12 +3026,12 @@
       var hero = document.getElementById("homeSection");
       var heroBg = imgVal("ihome_banner_bgImage", config.banner.bgImage);
       if (heroBg) {
-        hero.style.backgroundImage = "linear-gradient(180deg, rgba(7, 9, 14, 0.3) 0%, rgba(7, 9, 14, 0.95) 100%), url('" + heroBg + "')";
+        hero.style.backgroundImage = "linear-gradient(180deg, rgba(7, 9, 14, 0.3) 0%, rgba(7, 9, 14, 0.95) 100%), url('" + resolveAssetPath(heroBg) + "')";
       }
       
       var bannerLogoImg = document.getElementById("bannerLogoImg");
       if (customLogo) {
-        bannerLogoImg.src = customLogo;
+        bannerLogoImg.src = resolveAssetPath(customLogo);
         bannerLogoImg.style.display = "block";
       } else {
         bannerLogoImg.style.display = "none";
@@ -2973,7 +3053,7 @@
         var aboutGraphicBg = document.getElementById("aboutGraphicBg");
         var phBg = imgVal("ihome_philosophy_bgImage", config.philosophy.bgImage || "assets/images/ihome/S__16375823_0.jpg");
         if (aboutGraphicBg && phBg) {
-          aboutGraphicBg.style.backgroundImage = "url('" + phBg + "')";
+          aboutGraphicBg.style.backgroundImage = "url('" + resolveAssetPath(phBg) + "')";
         }
 
         var featuresEl = document.getElementById("aboutFeaturesEl");
@@ -3010,7 +3090,7 @@
           var num = (idx + 1) < 10 ? "0" + (idx + 1) : (idx + 1);
           servicesGrid.innerHTML += `
             <article class="service-card-premium">
-              <div class="service-bg-img" style="background-image: url('${srvImg}');"></div>
+              <div class="service-bg-img" style="background-image: url('${resolveAssetPath(srvImg)}');"></div>
               <div class="service-overlay"></div>
               <span class="service-number">${num}</span>
               <div class="service-card-content">
@@ -3034,7 +3114,7 @@
         var philosophyImgEl = document.getElementById("philosophyImgEl");
         var phBg = imgVal("ihome_philosophy_bgImage", config.philosophy.bgImage || "assets/images/ihome/kitchen.jpg");
         if (philosophyImgEl && phBg) {
-          philosophyImgEl.src = phBg;
+          philosophyImgEl.src = resolveAssetPath(phBg);
         }
       }
 
@@ -3060,7 +3140,7 @@
           casesTrack.innerHTML += `
             <div class="case-item-premium" onclick="openLightbox(${idx})">
               <div class="case-img-wrap-premium">
-                <img class="case-img-premium" src="${imgPath}">
+                <img class="case-img-premium" src="${resolveAssetPath(imgPath)}">
                 <div class="case-overlay-premium">
                   <div class="case-meta-premium">
                     <span class="case-cat-premium">精選設計作品集</span>
@@ -3118,10 +3198,10 @@
         // LINE QR Image binding
         var customQr = imgVal("ihome_contact_lineQr", config.contact.lineQr);
         if (customQr) {
-          document.getElementById("lineQrImgEl").src = customQr;
+          document.getElementById("lineQrImgEl").src = resolveAssetPath(customQr);
         } else {
           var stdQr = (appData.appearanceConfig && appData.appearanceConfig.footerLineQrImage) || "assets/images/line-qr.png";
-          document.getElementById("lineQrImgEl").src = stdQr;
+          document.getElementById("lineQrImgEl").src = resolveAssetPath(stdQr);
         }
 
         // Google Maps iframe binding

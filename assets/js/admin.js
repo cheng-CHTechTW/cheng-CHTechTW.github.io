@@ -92,7 +92,15 @@ function logAdminChange(action, detail){
   }
 }
 
-function compressImage(file, maxWidth, maxHeight, quality, callback) {
+function compressImage(file, maxWidth, maxHeight, quality, shape, callback) {
+  let actualShape = "square";
+  let actualCallback = callback;
+  if (typeof shape === "function") {
+    actualCallback = shape;
+  } else {
+    actualShape = shape;
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
@@ -113,10 +121,24 @@ function compressImage(file, maxWidth, maxHeight, quality, callback) {
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
+
+      if (actualShape === "circle") {
+        ctx.beginPath();
+        const radius = Math.min(width, height) / 2;
+        ctx.arc(width / 2, height / 2, radius, 0, Math.PI * 2);
+        ctx.clip();
+      }
+      
       ctx.drawImage(img, 0, 0, width, height);
       
-      const compressedBase64 = canvas.toDataURL("image/jpeg", quality);
-      callback(compressedBase64);
+      // Preserve transparency for PNG uploads or files with logo/png in name/dimensions
+      const isPng = (file.type === "image/png") || 
+                    (file.name && file.name.toLowerCase().endsWith(".png")) ||
+                    (file.name && file.name.toLowerCase().includes("logo")) ||
+                    (maxWidth <= 400) || (actualShape === "circle");
+      const mimeType = isPng ? "image/png" : "image/jpeg";
+      const compressedBase64 = canvas.toDataURL(mimeType, mimeType === "image/png" ? undefined : quality);
+      actualCallback(compressedBase64);
     };
     img.src = e.target.result;
   };
@@ -630,10 +652,12 @@ function renderSocialSettingItem(key, label, path, defaultUrl) {
 
 function bindInputs(){
   document.querySelectorAll("[data-path]").forEach(el=>{
-    el.oninput = () => {
+    const handler = () => {
       set(el.dataset.path, el.value);
       markAdminDirty();
     };
+    el.oninput = handler;
+    el.onchange = handler;
   });
   document.querySelectorAll("[data-social-vis]").forEach(el=>{
     el.onchange = () => {
@@ -864,50 +888,243 @@ function bindDisplay(){
   });
 }
 
-function imgUpload(key,label,src){
-  const s = images[key] || src || "";
-  let hint = "";
-  if (key === "logo" || key === "ihome_banner_logoImage") {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 400 x 100 或 300 x 80 像素，寬度 400px 內，透明背景 PNG)</span>";
-  } else if (key === "lineQr" || key === "ihome_contact_lineQr") {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 150 x 150 至 300 x 300 像素，正方形 1:1)</span>";
-  } else if (key === "heroBg" || key === "ihome_banner_bgImage") {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 1920 x 1080 或 1920 x 800 像素，寬螢幕比例)</span>";
+function getImageSpec(key) {
+  let name = "圖片說明";
+  let size = "不限";
+  let formats = ".png, .jpg, .jpeg, .webp";
+  let usage = "一般版面示意圖";
+  
+  if (key === "logo") {
+    name = "前台網站商標 Logo";
+    size = "400 x 100 或 300 x 80 像素 (寬度 400px 以內)";
+    formats = ".png, .jpg, .jpeg, .svg (建議去背透明 PNG)";
+    usage = "首頁左上角固定導覽列、頁尾左側商標及登入畫面";
+  } else if (key === "ihome_banner_logoImage") {
+    name = "愛家居網站商標 Logo";
+    size = "300 x 80 像素 (高度 56px 比例)";
+    formats = ".png, .jpg, .jpeg, .svg (建議去背透明 PNG)";
+    usage = "愛家居頁首左側商標與英文副標題並排";
+  } else if (key === "lineQr") {
+    name = "前台 LINE 官方 QR Code";
+    size = "150 x 150 至 300 x 300 像素 (1:1 正方形)";
+    formats = ".png, .jpg, .jpeg, .svg";
+    usage = "前台頁尾最右側浮動區與 LINE 客服對接";
+  } else if (key === "ihome_contact_lineQr") {
+    name = "愛家居 LINE 客服 QR Code";
+    size = "150 x 150 至 300 x 300 像素 (1:1 正方形)";
+    formats = ".png, .jpg, .jpeg, .svg";
+    usage = "愛家居預約聯絡區塊官方 LINE 客戶端連結";
+  } else if (key === "heroBg") {
+    name = "前台主視覺 Banner 背景";
+    size = "1920 x 1080 或 1920 x 800 像素 (寬螢幕比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "首頁頂部大圖背景";
+  } else if (key === "ihome_banner_bgImage") {
+    name = "愛家居大圖 Banner 背景";
+    size = "1920 x 1080 像素";
+    formats = ".jpg, .jpeg, .png";
+    usage = "愛家居頂部大圖 Banner 背景";
   } else if (key === "ihome_philosophy_bgImage") {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 900 x 600 或 800 x 800 像素，橫版或正方形實景圖)</span>";
+    name = "愛家居收納理念背景圖";
+    size = "900 x 600 或 800 x 800 像素";
+    formats = ".jpg, .jpeg, .png";
+    usage = "愛家居空間收納理念區塊實景展示圖";
+  } else if (key === "siteFavicon") {
+    name = "前台網址列標籤圖示 (Favicon)";
+    size = "32 x 32 或 64 x 64 像素 (1:1)";
+    formats = ".ico, .png, .jpg (建議去背 PNG)";
+    usage = "瀏覽器標籤頁與書籤列之網址列 Icon";
+  } else if (key === "ihomeFavicon") {
+    name = "愛家居網址列標籤圖示 (Favicon)";
+    size = "32 x 32 或 64 x 64 像素 (1:1)";
+    formats = ".ico, .png, .jpg (建議去背 PNG)";
+    usage = "愛家居分頁瀏覽器標籤列之 Icon";
+  } else if (key === "siteOgImage") {
+    name = "前台分享網址預覽圖 (OG Image)";
+    size = "1200 x 630 像素 (1.91:1 黃金比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "分享網站連結至 LINE 或 FB 時顯示的預覽縮圖";
+  } else if (key === "ihomeOgImage") {
+    name = "愛家居分享網址預覽圖 (OG Image)";
+    size = "1200 x 630 像素 (1.91:1 黃金比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "分享愛家居頁面連結時在社群顯示的預覽縮圖";
   } else if (key.startsWith("case")) {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 800 x 500 像素，黃金 8:5 比例)</span>";
+    name = "成功案例封面圖";
+    size = "800 x 500 像素 (黃金 8:5 比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "首頁成功案例區卡片封面";
   } else if (key.startsWith("partner")) {
-    hint = " <span style='font-size:12px; color:#94a3b8; font-weight:normal;'>(建議尺寸: 400 x 250 像素，建議白底或透明 PNG)</span>";
+    name = "合作夥伴企業 Logo";
+    size = "400 x 250 像素";
+    formats = ".png, .jpg, .jpeg (建議白底或透明 PNG)";
+    usage = "首頁合作夥伴商標輪播/卡片";
+  } else if (key.startsWith("news")) {
+    name = "最新消息封面圖";
+    size = "800 x 500 像素 (8:5 比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "最新消息列表卡片封面";
+  } else if (key.startsWith("services")) {
+    name = "服務項目卡片封面";
+    size = "800 x 500 像素 (8:5 比例)";
+    formats = ".jpg, .jpeg, .png";
+    usage = "服務項目大圖卡片";
   }
-  return `<div class="item"><h3>${label}${hint}</h3>${s?`<img class="preview-img" src="${s}" style="max-height:160px; object-fit:contain; display:block; margin-bottom:8px;">`:""}<input type="file" accept="image/*" data-imgkey="${key}"></div>`;
+  
+  return `名稱：${name}\n建議尺寸：${size}\n支援格式：${formats}\n套用位置：${usage}`;
+}
+window.getImageSpec = getImageSpec;
+
+function copyTextToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert("網址已成功複製到剪貼簿！\n" + text);
+  }).catch(err => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      alert("網址已成功複製到剪貼簿！\n" + text);
+    } catch (e) {
+      alert("複製失敗，請手動複製：" + text);
+    }
+    document.body.removeChild(textarea);
+  });
+}
+window.copyTextToClipboard = copyTextToClipboard;
+
+function cancelPreUpload(key) {
+  const panel = document.getElementById("pre-upload-" + key);
+  const fileInp = document.getElementById("file-input-" + key);
+  if (panel) panel.style.display = "none";
+  if (fileInp) fileInp.value = "";
+}
+window.cancelPreUpload = cancelPreUpload;
+
+function imgUpload(key, label, src) {
+  const s = images[key] || src || "";
+  const spec = getImageSpec(key);
+  
+  const favShape = (key === "siteFavicon") ? ((data.appearanceConfig && data.appearanceConfig.siteFaviconShape) || "square") : (((data.ihomeConfig && data.ihomeConfig.faviconShape) || "square"));
+  const isFav = key === "siteFavicon" || key === "ihomeFavicon";
+  const borderRadius = (isFav && favShape === "circle") ? "50%" : "0%";
+  
+  return `
+    <div class="item">
+      <h3>
+        ${label}
+        <span class="info-tooltip" data-tooltip="${spec}">ℹ️</span>
+      </h3>
+      
+      ${s ? `<img class="preview-img" id="current-preview-${key}" src="${s}" style="max-height:160px; object-fit:contain; display:block; margin-bottom:8px; border-radius:${borderRadius};">` : ""}
+      
+      <div class="file-upload-wrapper" id="upload-wrapper-${key}">
+        <input type="file" accept="image/*" data-imgkey="${key}" style="display:none;" id="file-input-${key}">
+        <button type="button" class="btn-select-file" onclick="document.getElementById('file-input-${key}').click()" style="background:#475569; color:#fff; border:0; border-radius:6px; padding:8px 16px; font-weight:800; cursor:pointer; font-size:13px; display:inline-block; margin-bottom:8px;">選擇檔案...</button>
+        
+        <!-- Pre-upload panel (hidden by default) -->
+        <div class="pre-upload-panel" id="pre-upload-${key}" style="display:none; margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(45, 156, 255, 0.25); border-radius: 6px;">
+          <div class="file-info" style="font-size:13px; color:#cbd5e1; margin-bottom: 8px; line-height: 1.5;">
+            <strong>選取檔案：</strong><span class="file-name" id="file-name-${key}">-</span><br>
+            <strong>檔案格式：</strong><span class="file-ext" id="file-ext-${key}">-</span>
+          </div>
+          <img class="temp-preview" id="temp-preview-${key}" style="max-height:100px; object-fit:contain; display:block; margin-bottom:8px; border-radius: ${borderRadius}; border:1px solid rgba(255,255,255,0.1);">
+          
+          <div class="progress-bar-container" id="progress-container-${key}" style="display:none; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-bottom: 6px; position:relative;">
+            <div class="progress-bar" id="progress-bar-${key}" style="width: 0%; height: 100%; background: #2d9cff; transition: width 0.1s ease;"></div>
+          </div>
+          <span class="progress-text" id="progress-text-${key}" style="font-size:12px; color:#2d9cff; display:none; margin-bottom: 8px; font-weight:bold;">0%</span>
+          
+          <div class="upload-actions">
+            <button type="button" class="btn-confirm-upload" id="btn-confirm-${key}" style="background:#1688ef; color:#fff; border:0; border-radius:6px; padding:6px 14px; font-size:12px; font-weight:800; cursor:pointer;">確認正式上傳</button>
+            <button type="button" class="btn-cancel-upload" id="btn-cancel-${key}" onclick="cancelPreUpload('${key}')" style="background:#475569; color:#fff; border:0; border-radius:6px; padding:6px 14px; font-size:12px; font-weight:800; cursor:pointer; margin-left:8px;">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-function bindImg(){
-  document.querySelectorAll("[data-imgkey]").forEach(inp=>{
+function bindImg() {
+  document.querySelectorAll("[data-imgkey]").forEach(inp => {
     inp.onchange = e => {
       const file = e.target.files[0];
-      if(!file) return;
+      if (!file) return;
       
-      const isLogo = inp.dataset.imgkey === "logo" || inp.dataset.imgkey === "lineQr" || inp.dataset.imgkey === "ihome_banner_logoImage" || inp.dataset.imgkey === "ihome_contact_lineQr";
-      const maxWidth = isLogo ? 400 : 1024;
-      const maxHeight = isLogo ? 400 : 1024;
-      const quality = 0.82;
+      const key = inp.dataset.imgkey;
+      const panel = document.getElementById(`pre-upload-${key}`);
+      const nameEl = document.getElementById(`file-name-${key}`);
+      const extEl = document.getElementById(`file-ext-${key}`);
+      const prevEl = document.getElementById(`temp-preview-${key}`);
+      const confirmBtn = document.getElementById(`btn-confirm-${key}`);
+      const cancelBtn = document.getElementById(`btn-cancel-${key}`);
+      const progContainer = document.getElementById(`progress-container-${key}`);
+      const progBar = document.getElementById(`progress-bar-${key}`);
+      const progText = document.getElementById(`progress-text-${key}`);
       
-      compressImage(file, maxWidth, maxHeight, quality, (compressedBase64) => {
-        images[inp.dataset.imgkey] = compressedBase64;
-        if(inp.dataset.imgkey==="logo"){
-          images.siteLogo = compressedBase64;
-          images.headerLogo = compressedBase64;
-        }
-        syncAdminLogoImages();
-        ccV16AdminEnhance();
-        render();
-      });
+      if (!panel || !nameEl || !extEl || !prevEl || !confirmBtn) return;
+      
+      nameEl.textContent = file.name;
+      const dotIndex = file.name.lastIndexOf('.');
+      extEl.textContent = dotIndex !== -1 ? file.name.substring(dotIndex).toUpperCase() : "未知";
+      
+      const tempReader = new FileReader();
+      tempReader.onload = (ev) => {
+        prevEl.src = ev.target.result;
+        panel.style.display = "block";
+      };
+      tempReader.readAsDataURL(file);
+      
+      confirmBtn.onclick = () => {
+        confirmBtn.style.display = "none";
+        cancelBtn.style.display = "none";
+        progContainer.style.display = "block";
+        progText.style.display = "block";
+        
+        let percent = 0;
+        const interval = setInterval(() => {
+          percent += 10;
+          progBar.style.width = `${percent}%`;
+          progText.textContent = `${percent}% 上傳中...`;
+          
+          if (percent >= 100) {
+            clearInterval(interval);
+            
+            const isLogo = key === "logo" || key === "lineQr" || key === "ihome_banner_logoImage" || key === "ihome_contact_lineQr" || key === "siteFavicon" || key === "ihomeFavicon";
+            const maxWidth = isLogo ? 400 : 1024;
+            const maxHeight = isLogo ? 400 : 1024;
+            const quality = 0.82;
+            
+            let shape = "square";
+            if (key === "siteFavicon") {
+              shape = (data.appearanceConfig && data.appearanceConfig.siteFaviconShape) || "square";
+            } else if (key === "ihomeFavicon") {
+              shape = (data.ihomeConfig && data.ihomeConfig.faviconShape) || "square";
+            }
+            compressImage(file, maxWidth, maxHeight, quality, shape, (compressedBase64) => {
+              images[key] = compressedBase64;
+              if (key === "logo") {
+                images.siteLogo = compressedBase64;
+                images.headerLogo = compressedBase64;
+              }
+              
+              progText.textContent = "✓ 上傳成功！";
+              progText.style.color = "#4ade80";
+              progBar.style.background = "#4ade80";
+              
+              setTimeout(() => {
+                syncAdminLogoImages();
+                ccV16AdminEnhance();
+                render();
+              }, 600);
+            });
+          }
+        }, 80);
+      };
     };
   });
 }
-
 function render(){
   if(currentUser && !hasPerm(currentTab)){
     currentTab = firstAllowedTab();
@@ -1298,34 +1515,81 @@ function render(){
   }
 
   if(currentTab==="appearance"){
-    if(!data.appearanceConfig)data.appearanceConfig={desktopLogoHeight:56,mobileLogoHeight:64,adminLoginLogoHeight:58,footerLineQrShow:true,footerLineQrLabel:"官方 LINE",footerLineQrImage:"assets/images/line-qr.png",footerLineQrSize:150};
-    c.innerHTML=`<div class="group"><h2>手機 / 圖片顯示設定</h2>
-    <p>可調整手機與桌機 Logo 大小，以及頁尾 LINE QR 圖片顯示。</p>
-    <div class="item">
-      <h3>Logo 顯示大小與上傳</h3>
-      ${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}
-      ${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}
-      ${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}
-      ${imgUpload("logo","網站 Logo 圖片（首頁、頁尾、後台同步）","assets/images/logo.png")}
-    </div>
-    <div class="item">
-      <h3>頁尾 LINE QR 與上傳</h3>
-      <label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示頁尾 LINE QR</label>
-      ${input("appearanceConfig.footerLineQrLabel","QR 顯示名稱")}
-      ${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}
-      ${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}
-      ${input("appearanceConfig.lineJoinUrl","點 QR / LINE ID 前往的 LINE 加入網址")}
-      ${input("appearanceConfig.versionLabel","版本號顯示文字")}
-      ${imgUpload("lineQr","LINE QR 圖片","assets/images/line-qr.png")}
-      <p class="small">圖片上傳後將直接取代預設圖片；若不要顯示請取消勾選。</p>
-    </div>
-    </div>`;
-    bindInputs();
-    bindImg();
-    footerLineQrShow.onchange=e=>data.appearanceConfig.footerLineQrShow=e.target.checked;
-  }
+  if(!data.appearanceConfig)data.appearanceConfig={desktopLogoHeight:56,mobileLogoHeight:64,adminLoginLogoHeight:58,footerLineQrShow:true,footerLineQrLabel:"顯示 LINE",footerLineQrImage:"assets/images/line-qr.png",footerLineQrSize:150,animationDuration:1.2,animationType:"fadeInUp",siteFaviconShape:"square"};
+  const animTypeVal = data.appearanceConfig.animationType || "fadeInUp";
+  const siteFavShape = data.appearanceConfig.siteFaviconShape || "square";
+  c.innerHTML=`<div class="group"><h2>商標 / 圖片位置設定</h2>
+  <p>調整前台與後台 Logo 大小，以及設定 LINE QR 圖片顯示。</p>
+  
+  <div class="item">
+    <h3>Logo 大小與位置</h3>
+    ${input("appearanceConfig.desktopLogoHeight","桌機 Logo 高度 px")}
+    ${input("appearanceConfig.mobileLogoHeight","手機 Logo 高度 px")}
+    ${input("appearanceConfig.adminLoginLogoHeight","後台登入 Logo 高度 px")}
+    ${imgUpload("logo","首頁 Logo 圖片","assets/images/logo.png")}
+  </div>
+  
+  <div class="item">
+    <h3>頁尾 LINE QR 與設定</h3>
+    <label class="check-row"><input type="checkbox" id="footerLineQrShow" ${data.appearanceConfig.footerLineQrShow!==false?"checked":""}> 顯示 LINE QR</label>
+    ${input("appearanceConfig.footerLineQrLabel","QR 顯示標題")}
+    ${input("appearanceConfig.footerLineQrImage","QR 圖片路徑，例如 assets/images/line-qr.png")}
+    ${input("appearanceConfig.footerLineQrSize","QR 圖片大小 px")}
+    ${input("appearanceConfig.lineJoinUrl","點選 QR / LINE ID 對應之 LINE 加入好友連結")}
+    ${input("appearanceConfig.versionLabel","版本號文字")}
+    ${imgUpload("lineQr","LINE QR 圖片","assets/images/line-qr.png")}
+  </div>
 
-  if(currentTab==="hero"){
+  <div class="item">
+    <h3>網頁載入區塊動畫設定</h3>
+    ${input("appearanceConfig.animationDuration","動畫播放秒數 (秒)", "number")}
+    <label>動畫展開方式</label>
+    <select data-path="appearanceConfig.animationType" style="width:100%; padding:10px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:14px; margin-bottom:12px;">
+      <option value="fadeInUp" ${animTypeVal === "fadeInUp" ? "selected" : ""}>向上漸入 (fadeInUp)</option>
+      <option value="fadeInDown" ${animTypeVal === "fadeInDown" ? "selected" : ""}>向下漸入 (fadeInDown)</option>
+      <option value="zoomIn" ${animTypeVal === "zoomIn" ? "selected" : ""}>縮放微擴 (zoomIn)</option>
+      <option value="fade" ${animTypeVal === "fade" ? "selected" : ""}>純淡入 (fade)</option>
+    </select>
+  </div>
+
+  <div class="item">
+    <h3>網址、圖示與分享預覽 (Favicon / OG Image)</h3>
+    <div style="margin-bottom:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <strong style="color:#cbd5e1; font-size:13.5px;">前台首頁網址：</strong>
+        <span style="color:#94a3b8; font-size:12.5px;" id="frontend-url-text">-</span>
+      </div>
+      <button type="button" onclick="copyTextToClipboard(document.getElementById('frontend-url-text').textContent)" style="background:#2d9cff; color:#fff; border:0; border-radius:4px; padding:6px 12px; font-size:12px; font-weight:800; cursor:pointer;">一鍵複製網址</button>
+    </div>
+    ${imgUpload("siteFavicon","網址列標籤圖示 (Favicon)","assets/images/logo.png")}
+    <label>網址列標籤圖示形狀</label>
+    <select data-path="appearanceConfig.siteFaviconShape" style="width:100%; padding:10px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:14px; margin-bottom:12px;" id="siteFaviconShapeInp">
+      <option value="square" ${siteFavShape === "square" ? "selected" : ""}>方形 (Square)</option>
+      <option value="circle" ${siteFavShape === "circle" ? "selected" : ""}>圓形 (Circle)</option>
+    </select>
+    ${imgUpload("siteOgImage","分享連結預覽圖 (OG Image)","assets/images/hero-bg.jpg")}
+  </div>
+  </div>`;
+  
+  bindInputs();
+  bindImg();
+
+  setTimeout(() => {
+    const siteFavInp = document.getElementById("siteFaviconShapeInp");
+    if (siteFavInp) {
+      siteFavInp.addEventListener("change", () => {
+        const prev = document.getElementById("current-preview-siteFavicon");
+        const tempPrev = document.getElementById("temp-preview-siteFavicon");
+        const radius = siteFavInp.value === "circle" ? "50%" : "0%";
+        if (prev) prev.style.borderRadius = radius;
+        if (tempPrev) tempPrev.style.borderRadius = radius;
+      });
+    }
+    const frontText = document.getElementById("frontend-url-text");
+    if (frontText) frontText.textContent = location.origin + location.pathname.replace("admin.html", "index.html");
+  }, 50);
+}
+if(currentTab==="hero"){
     c.innerHTML = `<div class="group"><h2>主視覺</h2>
       ${input("hero.eyebrow","小標")}
       ${input("hero.title","主標題","textarea")}
@@ -1457,8 +1721,29 @@ function render(){
   }
 
   if(currentTab==="ihome"){
+  if(!data.ihomeConfig)data.ihomeConfig={};
+  if(!data.ihomeConfig.faviconShape)data.ihomeConfig.faviconShape="square";
+  const ihomeFavShape = data.ihomeConfig.faviconShape || "square";
     c.innerHTML = `
       <div class="group">
+  <div class="item" style="border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-bottom: 20px; background: #0f172a;">
+    <h3 style="color: #3b82f6; margin-top: 0;">0. 網址、圖示與分享預覽 (Favicon / OG Image)</h3>
+    <div style="margin-bottom:12px; background:rgba(255,255,255,0.02); padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <strong style="color:#cbd5e1; font-size:13.5px;">愛家居頁面網址：</strong>
+        <span style="color:#94a3b8; font-size:12.5px;" id="ihome-url-text">-</span>
+      </div>
+      <button type="button" onclick="copyTextToClipboard(document.getElementById('ihome-url-text').textContent)" style="background:#2d9cff; color:#fff; border:0; border-radius:4px; padding:6px 12px; font-size:12px; font-weight:800; cursor:pointer;">一鍵複製網址</button>
+    </div>
+    ${imgUpload("ihomeFavicon","愛家居網址標記 ico (Favicon)","assets/images/ihome/logo.png")}
+    <label>愛家居網址標籤形狀</label>
+    <select data-path="ihomeConfig.faviconShape" style="width:100%; padding:10px; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:14px; margin-bottom:12px;" id="ihomeFaviconShapeInp">
+      <option value="square" ${ihomeFavShape === "square" ? "selected" : ""}>方形 (Square)</option>
+      <option value="circle" ${ihomeFavShape === "circle" ? "selected" : ""}>圓形 (Circle)</option>
+    </select>
+    ${imgUpload("ihomeOgImage","愛家居網址分享預覽圖 (OG Image)","assets/images/ihome/空間理念.jpg")}
+  </div>
+
         <h2>🚪 愛家居系統櫥櫃 頁面編輯</h2>
         <p>在此編輯愛家居系統櫥櫃（ihome.html）一頁式介紹的內容。</p>
         
@@ -1581,7 +1866,22 @@ function render(){
     document.getElementById("ihomePhilosophyVisible").onchange = e => { data.ihomeConfig.philosophy.visible = e.target.checked; markAdminDirty(); };
     document.getElementById("ihomeCasesVisible").onchange = e => { data.ihomeConfig.cases.visible = e.target.checked; markAdminDirty(); };
     document.getElementById("ihomeContactVisible").onchange = e => { data.ihomeConfig.contact.visible = e.target.checked; markAdminDirty(); };
-  }
+  
+  setTimeout(() => {
+    const ihomeFavInp = document.getElementById("ihomeFaviconShapeInp");
+    if (ihomeFavInp) {
+      ihomeFavInp.addEventListener("change", () => {
+        const prev = document.getElementById("current-preview-ihomeFavicon");
+        const tempPrev = document.getElementById("temp-preview-ihomeFavicon");
+        const radius = ihomeFavInp.value === "circle" ? "50%" : "0%";
+        if (prev) prev.style.borderRadius = radius;
+        if (tempPrev) tempPrev.style.borderRadius = radius;
+      });
+    }
+    const ihomeText = document.getElementById("ihome-url-text");
+    if (ihomeText) ihomeText.textContent = location.origin + location.pathname.replace("admin.html", "ihome.html");
+  }, 50);
+}
 
   if(currentTab==="news"){
     c.innerHTML = `<div class="group"><h2>最新消息</h2>
@@ -1669,6 +1969,63 @@ function render(){
         render();
       }
     };
+  }
+
+  if(currentTab==="stats"){
+    if(!data.stats) data.stats = [];
+    c.innerHTML = `<div class="group"><h2>📊 統計數字設定</h2>
+      <p>設定前台展示的統計數字與標籤內容（勾選隱藏可暫時隱藏，不顯示在前台）。</p>
+      <div class="item">
+        <label class="check-row">
+          <input type="checkbox" id="statsVisible" ${data.statsVisible!==false?"checked":""}> 
+          <strong>顯示數字統計區塊</strong>
+        </label>
+      </div>
+      ${renderList("stats",[
+        {k:"number",l:"統計數字（例如: 500+）"},
+        {k:"label",l:"統計項目名稱（例如: 導入科技數量）"}
+      ],{visible:true,number:"0+",label:"新項目"})}
+    </div>`;
+    
+    const visInp = document.getElementById("statsVisible");
+    if (visInp) {
+      visInp.onchange = () => {
+        data.statsVisible = visInp.checked;
+        markAdminDirty();
+      };
+    }
+    
+    bindInputs();
+    bindList("stats",{visible:true,number:"0+",label:"新項目"});
+  }
+
+  if(currentTab==="shipping"){
+    if(!data.shipping) data.shipping = [];
+    c.innerHTML = `<div class="group"><h2>🚢 出貨流程設定</h2>
+      <p>設定前台顯示的出貨流程步驟（拖曳或點選上移/下移可排序，勾選隱藏可暫時隱藏）。</p>
+      <div class="item">
+        <label class="check-row">
+          <input type="checkbox" id="shippingVisible" ${data.shippingVisible!==false?"checked":""}> 
+          <strong>顯示出貨流程區塊</strong>
+        </label>
+      </div>
+      ${input("shippingTitle","區塊名稱標題")}
+      ${renderList("shipping",[
+        {k:"title",l:"步驟標題"},
+        {k:"text",l:"步驟描述說明",t:"textarea"}
+      ],{visible:true,title:"新步驟",text:""})}
+    </div>`;
+    
+    const visInp = document.getElementById("shippingVisible");
+    if (visInp) {
+      visInp.onchange = () => {
+        data.shippingVisible = visInp.checked;
+        markAdminDirty();
+      };
+    }
+    
+    bindInputs();
+    bindList("shipping",{visible:true,title:"新步驟",text:""});
   }
 }
 

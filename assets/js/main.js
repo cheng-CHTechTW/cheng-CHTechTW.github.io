@@ -1,3 +1,23 @@
+function getBasePath() {
+  const path = window.location.pathname;
+  const match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+  if (match) {
+    return window.location.origin + match[1] + "/";
+  }
+  const lastSlash = path.lastIndexOf("/");
+  if (lastSlash !== -1) {
+    return window.location.origin + path.substring(0, lastSlash + 1);
+  }
+  return window.location.origin + "/";
+}
+function resolveAssetPath(path) {
+  if (!path) return "";
+  if (path.startsWith("data:") || path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  return getBasePath() + path;
+}
+
 const DATA_KEY="cc_full_site_data",IMG_KEY="cc_full_site_images",GOOGLE_SCRIPT_URL="請貼上你的 Google Apps Script Web App URL";
 function clone(x){return JSON.parse(JSON.stringify(x))}function merge(a,b){Object.keys(b||{}).forEach(k=>{if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])&&a[k])merge(a[k],b[k]);else a[k]=b[k]});return a}
 function isPreviewMode(){return new URLSearchParams(location.search).get("preview")==="1"&&sessionStorage.getItem("cc_preview_mode")==="1"}
@@ -14,6 +34,30 @@ function applyAppearanceConfig(d){
  document.documentElement.style.setProperty("--site-logo-desktop-h",(a.desktopLogoHeight||56)+"px");
  document.documentElement.style.setProperty("--site-logo-mobile-h",(a.mobileLogoHeight||64)+"px");
  document.documentElement.style.setProperty("--footer-qr-size",(a.footerLineQrSize||150)+"px");
+ 
+ // Dynamic Favicon and OG Image loading from getImgs()
+ try {
+   const im = getImgs();
+   const fav = im.siteFavicon || "assets/images/logo.png";
+   let favLink = document.querySelector('link[rel*="icon"]');
+   if (!favLink) {
+     favLink = document.createElement("link");
+     favLink.rel = "shortcut icon";
+     document.head.appendChild(favLink);
+   }
+   favLink.href = resolveAssetPath(fav);
+
+   const ogImg = im.siteOgImage || "assets/images/hero-bg.jpg";
+   let ogMeta = document.querySelector('meta[property="og:image"]');
+   if (!ogMeta) {
+     ogMeta = document.createElement("meta");
+     ogMeta.setAttribute("property", "og:image");
+     document.head.appendChild(ogMeta);
+   }
+   ogMeta.content = resolveAssetPath(ogImg);
+ } catch(e) {
+   console.error("Error setting custom favicon/ogImage:", e);
+ }
 }
 function renderFooterQr(d){
  const a=d.appearanceConfig||{}, box=document.querySelector('[data-footer-block="qr"]');
@@ -58,14 +102,39 @@ function ensureMobileFloatingButtons(){
 
 function syncAllLogoImages(){
   const im=getImgs();
-  const logo=im.logo||im.siteLogo||im.headerLogo;
-  if(!logo)return;
+  const logo=im.logo||im.siteLogo||im.headerLogo||"assets/images/logo.png";
   document.querySelectorAll('img[src*="logo"], .logo img, .footer-logo, [data-logo-img]').forEach(el=>{
-    el.src=logo;
+    el.src=resolveAssetPath(logo);
   });
 }
 
-function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.siteTitle;renderNav(d);const align=d.appearanceConfig?.mobileMenuAlign||"right";menu.classList.remove("menu-left","menu-right");menu.classList.add("menu-"+align);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=im[k]});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${im.heroBg})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");statsGrid.innerHTML=d.stats.map(s=>`<div class="stat"><strong>${s.number}</strong><span>${s.label}</span></div>`).join("");shippingGrid.innerHTML=d.shipping.map((s,i)=>`<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);applySocialVisibility(d);bind()}
+function apply(){const d=getData(),im=getImgs();applyAppearanceConfig(d);syncAllLogoImages();document.title=d.siteTitle;renderNav(d);const align=d.appearanceConfig?.mobileMenuAlign||"right";menu.classList.remove("menu-left","menu-right");menu.classList.add("menu-"+align);document.querySelectorAll("[data-text]").forEach(e=>txt(e,gp(d,e.dataset.text)));document.querySelectorAll("[data-img]").forEach(e=>{let k=e.dataset.img;if(im[k])e.src=resolveAssetPath(im[k])});if(im.heroBg)document.querySelector(".hero").style.backgroundImage=`url(${resolveAssetPath(im.heroBg)})`;document.querySelector("[data-line]").href=d.contact.lineUrl;document.querySelector("[data-phone]").href="tel:"+d.contact.phone.replace(/[^\d]/g,"");document.querySelectorAll("[data-social]").forEach(a=>{a.href=d.contact[a.dataset.social]||"#";a.target="_blank"});document.querySelector("[data-field=lineId]").textContent=d.contactFields?.lineId?.value||d.contact.lineId||"";heroPoints.innerHTML=d.hero.points.map(x=>`<span>${x}</span>`).join("");serviceGrid.innerHTML=d.services.map(s=>`<article class="service-card"><div class="icon" style="font-size:38px">${icon(s.icon)}</div><h3>${s.title}</h3><p>${s.text}</p><button data-scroll="${s.target}">了解更多 →</button></article>`).join("");industryGrid.innerHTML=d.industries.map((s,i)=>`<article class="industry-card"><img src="${imgVal("industry"+i,s.image)}"><div><h3>${s.title}</h3><p>${s.subtitle}</p></div></article>`).join("");solutionGrid.innerHTML=d.solutions.map(s=>`<article class="solution-card"><h3>${s.title}</h3><p>${s.text}</p></article>`).join("");
+  // Handle stats grid visibility and rendering
+  const statsSec = document.getElementById("stats");
+  if (statsSec) {
+    statsSec.style.display = (d.statsVisible !== false) ? "" : "none";
+  }
+  if (typeof statsGrid !== "undefined" && statsGrid) {
+    statsGrid.innerHTML = (d.stats || []).filter(s => s.visible !== false).map(s => {
+      const match = s.number.match(/(\d+)/);
+      let initialText = s.number;
+      if (match) {
+        const suffix = s.number.replace(match[1], "");
+        initialText = "1" + suffix;
+      }
+      return `<div class="stat"><strong data-val="${s.number}">${initialText}</strong><span>${s.label}</span></div>`;
+    }).join("");
+  }
+  
+  // Handle shipping grid visibility and rendering
+  const shippingSec = document.getElementById("shipping");
+  if (shippingSec) {
+    shippingSec.style.display = (d.shippingVisible !== false) ? "" : "none";
+  }
+  if (typeof shippingGrid !== "undefined" && shippingGrid) {
+    shippingGrid.innerHTML = (d.shipping || []).filter(s => s.visible !== false).map((s, i) => `<div class="ship"><div class="circle">${i+1}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join("");
+  }
+Object.keys(d.details).forEach(id=>{let x=d.details[id],el=document.getElementById(id);if(el)el.innerHTML=`<div class="container"><div><span class="blue-tag">${x.title}</span><h2>${x.headline}</h2><p>${x.text}</p></div><ul>${x.items.map(y=>`<li>${y}</li>`).join("")}</ul></div>`});renderFooter(d);renderCases(d);renderPartners(d);renderNews(d);renderFAQ(d);renderEditEntry(d);applySocialVisibility(d);bind()}
 function renderFooter(d){const f=d.contactFields||{};footerContactLines.innerHTML=Object.keys(f).filter(k=>f[k].show!==false).map(k=>`<div class="${k==="address"||k==="email"||k==="hours"?"wide":""}"><b>${f[k].label}</b><span>${f[k].value}</span></div>`).join("");document.querySelectorAll("[data-footer-block]").forEach(el=>{let k=el.dataset.footerBlock;el.style.display=d.footerVisibility?.[k]===false?"none":""})}
 function renderCases(d){let conf=d.casesDisplay||{limit:4};let r=renderCards(d.cases,conf.limit||4,(c,i)=>`<article><img src="${imgVal("case"+i,c.image)}"><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</article>`);caseGrid.innerHTML=r.shown;caseMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="cases">顯示更多成功案例</button>`:""}
 function renderPartners(d){partners.style.display=d.partnersDisplay?.visible===false?"none":"";let conf=d.partnersDisplay||{limit:4};let r=renderCards(d.partners,conf.limit||4,(p,i)=>`<article class="partner-card"><img src="${imgVal("partner"+i,p.image)}"><div class="partner-body"><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p><div class="partner-links">${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}${p.lineUrl?`<a href="${p.lineUrl}" target="_blank">LINE</a>`:""}${p.facebookUrl?`<a href="${p.facebookUrl}" target="_blank">粉專</a>`:""}</div></div></article>`);partnerGrid.innerHTML=r.shown;partnerMoreWrap.innerHTML=r.more?`<button class="btn outline-blue" data-open-list="partners">顯示更多關係企業</button>`:""}
@@ -74,7 +143,121 @@ function renderFAQ(d){faq.style.display=d.faqDisplay?.visible===false?"none":"";
 function renderEditEntry(d){let a=adminEditEntry,c=d.editEntry||{};a.textContent=c.icon||"✎";a.title=c.title||"網站後台";a.className="admin-edit-entry";if(c.show===false)a.classList.add("hide");if(c.position)a.classList.add(c.position)}
 function openList(type){const d=getData();let title="",body="";if(type==="cases"){title=d.casesTitle;body=visibleItems(d.cases).map((c,i)=>`<article class="modal-card"><img src="${imgVal("case"+i,c.image)}"><div><h3>${c.title}</h3><p>${c.subtitle||""}</p><p>${c.text||""}</p>${c.url?`<a href="${c.url}" target="_blank">前往查看</a>`:""}</div></article>`).join("")}if(type==="partners"){title=d.partnersTitle;body=visibleItems(d.partners).map((p,i)=>`<article class="modal-card"><img src="${imgVal("partner"+i,p.image)}"><div><h3>${p.companyName}</h3><p>${p.description||""}</p><p>電話：${p.phone||""}</p>${p.websiteUrl?`<a href="${p.websiteUrl}" target="_blank">形象網站</a>`:""}</div></article>`).join("")}if(type==="news"){title=d.newsTitle;body=publishedNews(d.news).map((n,i)=>`<article class="modal-card ${n.pinned?"pinned-news":""}"><div><div class="news-meta">${n.pinned?`<span class="pin-badge">置頂</span>`:""}${n.publishDate?`<time>${n.publishDate}</time>`:""}</div><h3>${n.title}</h3><p>${n.subtitle||""}</p><p>${n.text||""}</p>${renderNewsExtras(n)}</div></article>`).join("")}if(type==="faqs"){title=d.faqTitle;body=visibleItems(d.faqs).map(f=>`<div class="faq-item open"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join("")}contentModalTitle.textContent=title;contentModalBody.innerHTML=`<div class="${type==='faqs'?'faq-grid':'modal-list-grid'}">${body}</div>`;contentModal.classList.add("show");document.body.classList.add("modal-open")}
 function bind(){document.querySelectorAll("[data-scroll]").forEach(e=>e.onclick=x=>{x.preventDefault();scrollToSection(e.dataset.scroll)});document.querySelectorAll(".faq-q").forEach(q=>q.onclick=()=>q.parentElement.classList.toggle("open"));document.querySelectorAll("[data-open-form]").forEach(e=>e.onclick=x=>{x.preventDefault();openForm()});document.querySelectorAll("[data-open-list]").forEach(e=>e.onclick=x=>{x.preventDefault();openList(e.dataset.openList)})}
-function scrollToSection(id){let t=document.getElementById(id);if(!t)return;window.scrollTo({top:t.getBoundingClientRect().top+scrollY-86,behavior:"smooth"});menu.classList.remove("show")}mobileToggle.onclick=e=>{e.stopPropagation();menu.classList.toggle("show")};document.addEventListener("click",e=>{if(window.innerWidth<=760&&menu.classList.contains("show")){if(!menu.contains(e.target)&&e.target!==mobileToggle){menu.classList.remove("show")}}});function openForm(){leadModal.classList.add("show");document.body.classList.add("modal-open");formStatus.textContent=""}function closeForm(){leadModal.classList.remove("show");document.body.classList.remove("modal-open")}document.querySelectorAll("[data-close-form]").forEach(e=>e.onclick=closeForm);document.querySelectorAll("[data-close-content]").forEach(e=>e.onclick=()=>{contentModal.classList.remove("show");document.body.classList.remove("modal-open")});pageUrl.value=location.href;if(document.getElementById("notifyEmail"))notifyEmail.value=(getData().formConfig&&getData().formConfig.notifyEmail)||"";leadForm.onsubmit=async e=>{e.preventDefault();const d=getData(),url=d.formConfig?.googleScriptUrl||GOOGLE_SCRIPT_URL;if(notifyEmail)notifyEmail.value=d.formConfig?.notifyEmail||"";if(!url||url.includes("請貼上")){formStatus.textContent="尚未設定 Google Apps Script URL。";formStatus.className="err";return}let btn=leadForm.querySelector("button[type=submit]");btn.disabled=true;btn.textContent="送出中...";let send=Object.fromEntries(new FormData(leadForm).entries());send.createdAt=new Date().toLocaleString("zh-TW",{hour12:false});try{await fetch(url,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(send)});formStatus.textContent="已送出，我們會盡快與您聯絡！";formStatus.className="ok";leadForm.reset();setTimeout(closeForm,1200)}catch(err){formStatus.textContent="送出失敗。";formStatus.className="err"}finally{btn.disabled=false;btn.textContent="送出表單"}};apply();initSearch();setTimeout(syncFromCloudAndApply,100);
+function scrollToSection(id) {
+  let t = document.getElementById(id);
+  if (!t) return;
+  window.scrollTo({ top: t.getBoundingClientRect().top + scrollY - 86, behavior: "smooth" });
+  
+  menu.classList.remove("show");
+  if (mobileToggle) mobileToggle.textContent = "☰";
+  const menuOverlay = document.getElementById("menuOverlay");
+  if (menuOverlay) menuOverlay.classList.remove("show");
+  
+  // Remove content blur
+  document.querySelectorAll("main, footer, .hero").forEach(el => el.classList.remove("blur-content"));
+}
+
+if (mobileToggle) {
+  mobileToggle.onclick = e => {
+    e.stopPropagation();
+    const isOpen = menu.classList.toggle("show");
+    mobileToggle.textContent = isOpen ? "✕" : "☰";
+    const menuOverlay = document.getElementById("menuOverlay");
+    if (menuOverlay) menuOverlay.classList.toggle("show", isOpen);
+    
+    // Toggle content blur
+    document.querySelectorAll("main, footer, .hero").forEach(el => {
+      el.classList.toggle("blur-content", isOpen);
+    });
+  };
+}
+
+const menuOverlay = document.getElementById("menuOverlay");
+if (menuOverlay) {
+  menuOverlay.onclick = () => {
+    menu.classList.remove("show");
+    if (mobileToggle) mobileToggle.textContent = "☰";
+    menuOverlay.classList.remove("show");
+    
+    // Remove content blur
+    document.querySelectorAll("main, footer, .hero").forEach(el => el.classList.remove("blur-content"));
+  };
+}
+
+document.addEventListener("click", e => {
+  if (window.innerWidth <= 760 && menu.classList.contains("show")) {
+    if (!menu.contains(e.target) && e.target !== mobileToggle) {
+      menu.classList.remove("show");
+      if (mobileToggle) mobileToggle.textContent = "☰";
+      const menuOverlay = document.getElementById("menuOverlay");
+      if (menuOverlay) menuOverlay.classList.remove("show");
+      
+      // Remove content blur
+      document.querySelectorAll("main, footer, .hero").forEach(el => el.classList.remove("blur-content"));
+    }
+  }
+});
+
+function openForm() {
+  leadModal.classList.add("show");
+  document.body.classList.add("modal-open");
+  formStatus.textContent = "";
+}
+
+function closeForm() {
+  leadModal.classList.remove("show");
+  document.body.classList.remove("modal-open");
+}
+
+document.querySelectorAll("[data-close-form]").forEach(e => e.onclick = closeForm);
+document.querySelectorAll("[data-close-content]").forEach(e => e.onclick = () => {
+  contentModal.classList.remove("show");
+  document.body.classList.remove("modal-open");
+});
+
+pageUrl.value = location.href;
+if (document.getElementById("notifyEmail")) {
+  notifyEmail.value = (getData().formConfig && getData().formConfig.notifyEmail) || "";
+}
+
+leadForm.onsubmit = async e => {
+  e.preventDefault();
+  const d = getData();
+  const url = d.formConfig?.googleScriptUrl || GOOGLE_SCRIPT_URL;
+  if (notifyEmail) notifyEmail.value = d.formConfig?.notifyEmail || "";
+  if (!url || url.includes("請貼上")) {
+    formStatus.textContent = "尚未設定 Google Apps Script URL。";
+    formStatus.className = "err";
+    return;
+  }
+  let btn = leadForm.querySelector("button[type=submit]");
+  btn.disabled = true;
+  btn.textContent = "送出中...";
+  let send = Object.fromEntries(new FormData(leadForm).entries());
+  send.createdAt = new Date().toLocaleString("zh-TW", { hour12: false });
+  try {
+    await fetch(url, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(send)
+    });
+    formStatus.textContent = "已送出，我們會盡快與您聯絡！";
+    formStatus.className = "ok";
+    leadForm.reset();
+    setTimeout(closeForm, 1200);
+  } catch (err) {
+    formStatus.textContent = "送出失敗。";
+    formStatus.className = "err";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "送出表單";
+  }
+};
+
+apply();
+initSearch();
+setTimeout(syncFromCloudAndApply, 100);
 
 /* 006 v16 post render fixes */
 function ccV16Enhance(){
@@ -397,13 +580,46 @@ async function syncFromCloudAndApply(){
 }
 
 function initSearch() {
+  const searchToggleBtn = document.getElementById("searchToggleBtn");
+  const searchOverlay = document.getElementById("searchOverlay");
+  const searchCloseBtn = document.getElementById("searchCloseBtn");
   const input = document.getElementById("searchInput");
   const btn = document.getElementById("searchBtn");
-  if (!input || !btn) return;
+  const resultsContainer = document.getElementById("searchOverlayResults");
   
+  if (!searchToggleBtn || !searchOverlay || !input || !btn || !resultsContainer) return;
+  
+  searchToggleBtn.onclick = (e) => {
+    e.preventDefault();
+    searchOverlay.classList.add("show");
+    document.body.classList.add("modal-open");
+    setTimeout(() => input.focus(), 150);
+  };
+  
+  const closeSearch = () => {
+    searchOverlay.classList.remove("show");
+    document.body.classList.remove("modal-open");
+    input.value = "";
+    resultsContainer.innerHTML = "";
+  };
+  
+  if (searchCloseBtn) {
+    searchCloseBtn.onclick = closeSearch;
+  }
+  
+  // Close on Escape key
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && searchOverlay.classList.contains("show")) {
+      closeSearch();
+    }
+  });
+
   function doSearch() {
     const q = input.value.trim().toLowerCase();
-    if (!q) return;
+    if (!q) {
+      resultsContainer.innerHTML = "";
+      return;
+    }
     
     const d = getData();
     const results = [];
@@ -509,20 +725,19 @@ function initSearch() {
     }
     
     // Render Results
-    contentModalTitle.textContent = `搜尋結果: 『${input.value}』`;
     if (results.length === 0) {
-      contentModalBody.innerHTML = `<div style="padding: 24px; text-align: center; color: #475569; font-size: 16px;">沒有找到與『${input.value}』相符的項目，請換個關鍵字試試。</div>`;
+      resultsContainer.innerHTML = `<div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 16px;">無匹配“${input.value}”的內容，請嘗試其他關鍵字。</div>`;
     } else {
-      let html = `<div class="search-results-list" style="display:flex; flex-direction:column; gap:20px; color:#1e293b;">`;
+      let html = `<div class="search-results-list" style="display:flex; flex-direction:column; gap:20px; color:#ffffff;">`;
       results.forEach(cat => {
         html += `
-          <div style="border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
-            <h3 style="color:#2d9cff; margin:0 0 10px 0; font-size:18px; border-left:4px solid #2d9cff; padding-left:8px;">${cat.category}</h3>
-            <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+            <h3 style="color:#2d9cff; margin:0 0 10px 0; font-size:16px; border-left:3px solid #2d9cff; padding-left:8px; font-weight: 600;">${cat.category}</h3>
+            <div style="display:flex; flex-direction:column; gap:8px;">
               ${cat.items.map(it => `
-                <div class="search-result-item" style="padding:8px; border-radius:6px; background:#f8fafc; transition:background 0.2s; cursor:pointer;" onclick="closeSearchAndNavigate('${it.target}', '${it.url || ''}')">
-                  <strong style="display:block; font-size:15px; color:#0f172a;">${it.title}</strong>
-                  <span style="font-size:13px; color:#475569; display:block; margin-top:2px;">${it.desc}</span>
+                <div class="search-result-item" style="padding:10px; border-radius:6px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition:all 0.2s; cursor:pointer;" onclick="closeSearchAndNavigate('${it.target}', '${it.url || ''}')">
+                  <strong style="display:block; font-size:14.5px; color:#ffffff;">${it.title}</strong>
+                  <span style="font-size:12.5px; color:#94a3b8; display:block; margin-top:2px;">${it.desc}</span>
                 </div>
               `).join("")}
             </div>
@@ -530,11 +745,21 @@ function initSearch() {
         `;
       });
       html += `</div>`;
-      contentModalBody.innerHTML = html;
+      resultsContainer.innerHTML = html;
+      
+      // Add hover effects dynamically
+      const items = resultsContainer.querySelectorAll(".search-result-item");
+      items.forEach(el => {
+        el.onmouseenter = () => {
+          el.style.background = "rgba(45, 156, 255, 0.1)";
+          el.style.borderColor = "rgba(45, 156, 255, 0.3)";
+        };
+        el.onmouseleave = () => {
+          el.style.background = "rgba(255,255,255,0.03)";
+          el.style.borderColor = "rgba(255,255,255,0.05)";
+        };
+      });
     }
-    
-    contentModal.classList.add("show");
-    document.body.classList.add("modal-open");
   }
   
   btn.onclick = (e) => { e.preventDefault(); doSearch(); };
@@ -544,10 +769,17 @@ function initSearch() {
       doSearch();
     }
   });
+  // Real-time search as user types
+  input.addEventListener("input", () => {
+    doSearch();
+  });
 }
 
 function closeSearchAndNavigate(target, url) {
-  contentModal.classList.remove("show");
+  const searchOverlay = document.getElementById("searchOverlay");
+  if (searchOverlay) {
+    searchOverlay.classList.remove("show");
+  }
   document.body.classList.remove("modal-open");
   
   if (url && url !== "index.html" && !url.includes("index.html")) {
@@ -560,5 +792,147 @@ function closeSearchAndNavigate(target, url) {
   }
 }
 
+function fillSearch(val) {
+  const input = document.getElementById("searchInput");
+  if (input) {
+    input.value = val;
+    // Trigger input event to run real-time search
+    input.dispatchEvent(new Event("input"));
+  }
+}
+
 window.closeSearchAndNavigate = closeSearchAndNavigate;
 window.initSearch = initSearch;
+window.fillSearch = fillSearch;
+
+// Scroll event listener for premium navigation styling & active section highlighting
+window.addEventListener("scroll", function() {
+  const header = document.querySelector(".header");
+  if (header) {
+    if (window.scrollY > 50) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
+    }
+  }
+
+  // Sync active menu link on scroll
+  const sections = document.querySelectorAll(".section-anchor");
+  const navLinks = document.querySelectorAll(".menu a[data-scroll]");
+  let currentActive = "";
+  
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop;
+    const sectionHeight = section.offsetHeight;
+    if (window.scrollY >= sectionTop - 120) {
+      currentActive = section.getAttribute("id");
+    }
+  });
+
+  navLinks.forEach(link => {
+    if (link.getAttribute("data-scroll") === currentActive) {
+      link.classList.add("active");
+    } else {
+      link.classList.remove("active");
+    }
+  });
+});
+
+// Scroll Reveal Observer (Ihome style block animation loader)
+function animateSingleStatNumber(statEl) {
+  const el = statEl.querySelector("strong[data-val]");
+  if (!el) return;
+  const targetStr = el.getAttribute("data-val") || "";
+  const match = targetStr.match(/(\d+)/);
+  if (!match) return;
+  
+  const targetNum = parseInt(match[1], 10);
+  const suffix = targetStr.replace(match[1], "");
+  
+  const duration = 1200; // 1.2 seconds count duration
+  const startTime = performance.now();
+  
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeProgress = progress * (2 - progress); // easeOutQuad
+    const currentVal = Math.floor(easeProgress * targetNum);
+    
+    el.textContent = currentVal + suffix;
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = targetStr;
+    }
+  }
+  requestAnimationFrame(update);
+}
+
+function initScrollReveal() {
+  const d = getData();
+  const animConfig = d.appearanceConfig || {};
+  const duration = animConfig.animationDuration !== undefined ? animConfig.animationDuration : 1.2;
+  const animType = animConfig.animationType || 'fadeInUp'; // fadeInUp, fadeInDown, zoomIn, fade
+  
+  // Map animation types to reveal class names
+  let animClass = 'reveal-fade-up';
+  if (animType === 'fadeInDown') animClass = 'reveal-fade-down';
+  else if (animType === 'zoomIn') animClass = 'reveal-zoom-in';
+  else if (animType === 'fade') animClass = 'reveal-fade-only';
+
+  const elements = document.querySelectorAll('.section, .service-card, .industry-card, .solution-card, .stat, .partner-card, .case-card, .news-card, .faq-item, .detail .container > div, .detail .container > ul');
+  
+  elements.forEach((el, index) => {
+    el.classList.add(animClass);
+    // Apply dynamic duration as inline style
+    el.style.transitionDuration = `${duration}s`;
+    
+    // Add a slight stagger delay for grid items
+    const gridIndex = index % 4;
+    if (gridIndex > 0 && !el.classList.contains('section')) {
+      el.style.transitionDelay = `${gridIndex * 0.08}s`;
+    }
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        if (entry.target.classList.contains('stat')) {
+          try { animateSingleStatNumber(entry.target); } catch(e) {}
+        }
+        observer.unobserve(entry.target); // Animates only once
+      }
+    });
+  }, {
+    root: null,
+    threshold: 0.05,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  elements.forEach(el => observer.observe(el));
+}
+
+// Call Scroll Reveal initialization
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(initScrollReveal, 200);
+});
+
+/* ==========================================================================
+   Desktop Viewport Resize Proportionate Scaling Helper
+   ========================================================================== */
+function handleDesktopScaling() {
+  const width = window.innerWidth;
+  // Apply proportional zoom scaling on desktop widths (between 768px and 1400px)
+  if (width > 760 && width < 1400) {
+    const scale = width / 1400;
+    document.body.style.zoom = scale;
+  } else {
+    document.body.style.zoom = "";
+  }
+}
+window.addEventListener("resize", handleDesktopScaling);
+window.addEventListener("DOMContentLoaded", handleDesktopScaling);
+// Run immediately to prevent layout shifts
+handleDesktopScaling();

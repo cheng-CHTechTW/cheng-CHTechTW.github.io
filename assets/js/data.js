@@ -1,12 +1,14 @@
 window.DEFAULT_DATA = {
-  "siteVersion":"006_v21",
+  "siteVersion":"006_v33",
+  "statsVisible": true,
+  "shippingVisible": true,
   "siteTitle": "誠創科技｜智慧 POS 解決方案",
   "adminUsers":[{"enabled":true,"isMaster":true,"username":"admin","password":"123456","displayName":"工程總帳號","email":"chengchuang1012@gmail.com","permissions":{"basic":true,"header":true,"footer":true,"security":true,"editEntry":true,"appearance":true,"hero":true,"services":true,"cases":true,"partners":true,"news":true,"faq":true,"form":true,"images":true,"backup":true,"masterAccount":true}}],
 "adminConfig": {
     "username": "admin",
     "password": "123456"
   },
-  "appearanceConfig":{"versionLabel":"006_v16","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://line.me/ti/p/@905dqqqw"},
+  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v29","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://line.me/ti/p/@905dqqqw"},
   "editEntry": {
     "show": true,
     "icon": "✎",
@@ -155,27 +157,27 @@ window.DEFAULT_DATA = {
     {
       "title": "餐飲業",
       "subtitle": "餐廳・咖啡廳・飲料店",
-      "image": "assets/images/industry-food.jpg"
+      "image": "assets/images/多元產業圖片對應/industry-food.png"
     },
     {
       "title": "零售業",
       "subtitle": "服飾・百貨・連鎖零售",
-      "image": "assets/images/industry-retail.jpg"
+      "image": "assets/images/多元產業圖片對應/industry-retail.png"
     },
     {
       "title": "美食街",
       "subtitle": "多櫃位・集中管理",
-      "image": "assets/images/industry-foodcourt.jpg"
+      "image": "assets/images/多元產業圖片對應/industry-foodcourt.png"
     },
     {
       "title": "商圈店家",
       "subtitle": "商圈店面・複合店家",
-      "image": "assets/images/industry-district.jpg"
+      "image": "assets/images/多元產業圖片對應/industry-district.png"
     },
     {
       "title": "小吃店",
       "subtitle": "小吃攤・早餐・滷味店",
-      "image": "assets/images/industry-snack.jpg"
+      "image": "assets/images/多元產業圖片對應/industry-snack.png"
     }
   ],
   "solutionsTitle": "完整解決方案・打造智慧營運",
@@ -241,22 +243,10 @@ window.DEFAULT_DATA = {
     }
   ],
   "stats": [
-    {
-      "number": "500+",
-      "label": "服務客戶"
-    },
-    {
-      "number": "1000+",
-      "label": "導入門市"
-    },
-    {
-      "number": "98%",
-      "label": "客戶滿意度"
-    },
-    {
-      "number": "10+",
-      "label": "年專業經驗"
-    }
+    { "visible": true, "number": "500+", "label": "導入科技數量" },
+    { "visible": true, "number": "1000+", "label": "使用店家數量" },
+    { "visible": false, "number": "98%", "label": "客戶滿意度" },
+    { "visible": false, "number": "10+", "label": "年專業經驗" }
   ],
   "about": {
     "title": "關於誠創科技",
@@ -399,7 +389,7 @@ window.DEFAULT_DATA = {
       "image": "assets/images/ihome/S__16375813_0.jpg",
       "companyName": "愛家居系統櫥櫃",
       "phone": "0955-149-470",
-      "lineUrl": "",
+      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
       "facebookUrl": "",
       "websiteUrl": "ihome.html",
       "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
@@ -478,6 +468,7 @@ window.DEFAULT_DATA = {
     }
   ],
   "ihomeConfig": {
+    "faviconShape": "square",
     "banner": {
       "logoText": "愛家居系統櫥櫃",
       "logoSub": "I-HOME CABINETS",
@@ -552,10 +543,10 @@ window.DEFAULT_DATA = {
       "title": "預約您的空間規劃",
       "subtitle": "即刻與專業設計師聊聊您的需求",
       "phone": "0955-149-470",
-      "email": "ihome.cabinet@gmail.com",
+      "email": "micmmm83@gmail.com",
       "address": "新北市新莊區中原路261號",
       "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
-      "lineUrl": "",
+      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
       "lineQr": "assets/images/line-qr.png",
       "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
     }

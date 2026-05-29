@@ -757,3 +757,94 @@ body.admin-page .floatbar{
 .move-btn-mini:hover {
   background: #475569;
 }
+
+/* ==========================================================================
+   Admin Opaque Theme Color Optimization (Matching Chengchuang Tech Blue)
+   ========================================================================== */
+.login-card {
+  background: #101923 !important; /* 科技面板深藍 (Opaque panel blue) */
+  border: 1px solid rgba(45, 156, 255, 0.25) !important; /* 科技藍細邊框 */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+.admin-header {
+  background: #070d13 !important; /* 科技深邃藍 (Opaque header blue) */
+  border-bottom: 1px solid rgba(45, 156, 255, 0.15) !important; /* 科技藍底線 */
+}
+
+/* ==========================================================================
+   Specifications Info Tooltips & Pre-upload Progress Card Layout
+   ========================================================================== */
+.info-tooltip {
+  position: relative;
+  cursor: pointer;
+  margin-left: 6px;
+  font-size: 14px;
+  color: #3b82f6;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+.info-tooltip:hover {
+  color: #60a5fa;
+}
+.info-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  width: 280px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: normal;
+  text-align: left;
+  line-height: 1.5;
+}
+.info-tooltip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Pre-upload card layouts */
+.pre-upload-panel {
+  background: rgba(15, 23, 42, 0.65) !important;
+  border: 1px dashed rgba(45, 156, 255, 0.4) !important;
+  border-radius: 8px !important;
+  padding: 14px !important;
+  margin-top: 10px !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+.progress-bar-container {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.progress-bar {
+  background: linear-gradient(90deg, #2d9cff 0%, #1688ef 100%) !important;
+  box-shadow: 0 0 8px rgba(45, 156, 255, 0.6);
+  height: 100%;
+}
+.btn-select-file, .btn-confirm-upload, .btn-cancel-upload {
+  transition: all 0.2s ease !important;
+}
+.btn-select-file:hover {
+  background: #64748b !important;
+}
+.btn-confirm-upload:hover {
+  background: #1178d8 !important;
+  box-shadow: 0 0 10px rgba(45, 156, 255, 0.4);
+}
+.btn-cancel-upload:hover {
+  background: #64748b !important;
+}

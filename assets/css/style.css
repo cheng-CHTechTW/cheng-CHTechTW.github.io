@@ -263,172 +263,32 @@
   .news-extra-images{grid-template-columns:1fr;}
 }
 
-/* 001 v12 mobile/logo/QR/form fixes + transparent logo */
-:root{
-  --site-logo-desktop-h:56px;
-  --site-logo-mobile-h:64px;
-  --footer-qr-size:150px;
-}
-
-/* ===== Logo 修正 ===== */
-.logo,
-.logo a,
-.logo img,
-.footer-logo,
-.admin-logo,
-.admin-logo img{
-  background:transparent !important;
-  box-shadow:none !important;
-  border:none !important;
-}
-
-.logo img{
-  height:var(--site-logo-desktop-h);
-  width:auto;
-  max-width:260px;
-  object-fit:contain;
-  display:block;
-}
-
-.footer-logo{
-  height:var(--site-logo-desktop-h);
-  width:auto;
-  max-width:260px;
-  object-fit:contain;
-  display:block;
-}
-
-/* ===== QR ===== */
-.qr-box{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-}
-
-.fake-qr{
-  width:var(--footer-qr-size);
-  height:var(--footer-qr-size);
-  background:#fff;
-  color:#111827;
-  border-radius:14px;
-  padding:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-
-.fake-qr img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  display:block;
-}
-
-.qr-box p{
-  text-align:center;
-  margin:0;
-}
-
-/* ===== Modal ===== */
-body.modal-open{
-  overflow:hidden!important;
-  touch-action:none;
-}
-
-.modal{
-  overflow:hidden;
-  align-items:flex-start!important;
-  justify-content:center;
-  padding:18px 12px;
-}
-
-.modal-box{
-  width:min(720px,96vw);
-  max-height:calc(100dvh - 42px)!important;
-  overflow-y:auto!important;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-  margin:auto 0;
-}
-
-#leadForm{
-  padding-bottom:28px;
-}
-
-#leadForm input,
-#leadForm select,
-#leadForm textarea{
-  font-size:16px;
-  min-height:46px;
-}
-
-#leadForm textarea{
-  min-height:130px;
-}
-
-/* ===== 手機版 ===== */
+/* 001 v11 mobile/logo/QR/form fixes */
+:root{--site-logo-desktop-h:56px;--site-logo-mobile-h:64px;--footer-qr-size:150px}
+.logo img{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
+.footer-logo{height:var(--site-logo-desktop-h);width:auto;max-width:260px;object-fit:contain}
+.qr-box{display:flex;flex-direction:column;align-items:center;gap:10px}
+.fake-qr{width:var(--footer-qr-size);height:var(--footer-qr-size);background:#fff;color:#111827;border-radius:14px;padding:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.fake-qr img{width:100%;height:100%;object-fit:contain;display:block}
+.qr-box p{text-align:center;margin:0}
+body.modal-open{overflow:hidden!important;touch-action:none}
+.modal{overflow:hidden;align-items:flex-start!important;justify-content:center;padding:18px 12px}
+.modal-box{width:min(720px,96vw);max-height:calc(100dvh - 42px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:auto 0}
+#leadForm{padding-bottom:28px}
+#leadForm input,#leadForm select,#leadForm textarea{font-size:16px;min-height:46px}
+#leadForm textarea{min-height:130px}
 @media(max-width:760px){
-
-  .header,
-  .nav{
-    min-height:74px;
-  }
-
-  .nav{
-    padding:0 18px;
-  }
-
-  .logo img{
-    height:var(--site-logo-mobile-h)!important;
-    max-width:210px!important;
-  }
-
-  .footer-logo{
-    height:var(--site-logo-mobile-h)!important;
-    max-width:210px!important;
-  }
-
-  .mobile-toggle{
-    font-size:34px!important;
-    width:54px;
-    height:54px;
-  }
-
-  .menu.show{
-    max-height:calc(100dvh - 74px);
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-
-  .footer-grid,
-  .responsive-footer{
-    display:grid!important;
-    grid-template-columns:1fr!important;
-    gap:28px!important;
-  }
-
-  .contact-lines{
-    grid-template-columns:1fr!important;
-  }
-
-  .contact-lines div{
-    grid-template-columns:96px 1fr!important;
-    font-size:16px;
-  }
-
-  .modal{
-    padding:12px 8px;
-  }
-
-  .modal-box{
-    width:96vw!important;
-    max-height:calc(100dvh - 24px)!important;
-    border-radius:16px!important;
-    padding:20px!important;
-  }
-}
+  .header,.nav{min-height:74px}
+  .nav{padding:0 18px}
+  .logo img{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
+  .footer-logo{height:var(--site-logo-mobile-h)!important;max-width:210px!important}
+  .mobile-toggle{font-size:34px!important;width:54px;height:54px}
+  .menu.show{max-height:calc(100dvh - 74px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .footer-grid,.responsive-footer{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
+  .contact-lines{grid-template-columns:1fr!important}
+  .contact-lines div{grid-template-columns:96px 1fr!important;font-size:16px}
+  .modal{padding:12px 8px}
+  .modal-box{width:96vw!important;max-height:calc(100dvh - 24px)!important;border-radius:16px!important;padding:20px!important}
   /* 手機版靠左/靠右側邊欄抽屜式樣式 */
   .menu.menu-left {
     position: fixed !important;
@@ -964,4 +824,404 @@ body.admin-page .floatbar{
     right: 8px;
     font-size: 12px;
   }
+}
+
+
+/* ==========================================================================
+   Premium Navigation Header & Menu Style (Adapted from ihome.html)
+   ========================================================================== */
+.header {
+  transition: all 0.4s ease !important;
+  background: #070d13 !important; /* Opaque technology dark blue */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(45, 156, 255, 0.15) !important;
+}
+.header.scrolled {
+  background: #04080c !important; /* Slightly darker opaque tech navy */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+  border-bottom: 1px solid rgba(45, 156, 255, 0.25) !important;
+}
+
+/* Nav height transition on scroll */
+.nav {
+  height: 96px !important;
+  transition: height 0.4s ease !important;
+}
+.header.scrolled .nav {
+  height: 74px !important;
+}
+
+/* Logo scaling transition on scroll */
+.logo img {
+  height: var(--site-logo-desktop-h, 52px) !important;
+  transition: height 0.4s ease !important;
+}
+.header.scrolled .logo img {
+  height: calc(var(--site-logo-desktop-h, 52px) - 10px) !important;
+}
+
+/* Menu links with animated underline indicator (ihome style) */
+.menu {
+  display: flex !important;
+  align-items: center !important;
+  gap: 36px !important;
+}
+.menu a {
+  color: #eaf2ff !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  font-size: 14.5px !important;
+  letter-spacing: 0.08em !important;
+  transition: color 0.3s ease !important;
+  cursor: pointer !important;
+  position: relative !important;
+  padding: 8px 0 !important;
+}
+.menu a::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  height: 2px !important;
+  background: var(--blue) !important;
+  transition: width 0.3s ease !important;
+}
+.menu a:hover {
+  color: #ffffff !important;
+}
+.menu a:hover::after, .menu a.active::after {
+  width: 100% !important;
+}
+
+/* Contact Button inside menu (styled premium) */
+.menu button {
+  background: linear-gradient(135deg, rgba(45, 156, 255, 0.15) 0%, rgba(45, 156, 255, 0.03) 100%) !important;
+  border: 1px solid rgba(45, 156, 255, 0.4) !important;
+  color: #90c8ff !important;
+  border-radius: 6px !important;
+  padding: 10px 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  letter-spacing: 0.05em !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+.menu button:hover {
+  background: var(--blue) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(45, 156, 255, 0.4) !important;
+  border-color: var(--blue) !important;
+}
+
+/* Responsive fixes */
+@media (max-width: 760px) {
+  .header, .nav {
+    min-height: 74px !important;
+    height: 74px !important;
+  }
+  .menu {
+    gap: 16px !important;
+    background: #071018 !important;
+  }
+  .menu a::after {
+    display: none !important; /* Hide hover underline on mobile side menu drawer */
+  }
+  .logo img {
+    height: var(--site-logo-mobile-h, 48px) !important;
+  }
+  .header.scrolled .logo img {
+    height: var(--site-logo-mobile-h, 48px) !important;
+  }
+}
+
+/* ==========================================================================
+   Mobile Side Drawer Navigation Overlay (Ihome Style)
+   ========================================================================== */
+.mobile-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 1040 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s ease !important;
+}
+.mobile-overlay.show {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 760px) {
+  .mobile-toggle {
+    display: block !important;
+    z-index: 1100 !important;
+    position: relative !important;
+  }
+  .menu {
+    position: fixed !important;
+    top: 0 !important;
+    right: -320px !important;
+    width: 320px !important;
+    height: 100vh !important;
+    background: rgba(7, 13, 19, 0.97) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border-left: 1px solid rgba(45, 156, 255, 0.15) !important;
+    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.8) !important;
+    z-index: 1050 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+    padding: 120px 40px 40px 40px !important;
+    gap: 28px !important;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    left: auto !important;
+    bottom: auto !important;
+  }
+  .menu.show {
+    right: 0 !important;
+  }
+  .menu a {
+    font-size: 17px !important;
+    padding: 6px 0 !important;
+    width: 100% !important;
+  }
+  .menu button {
+    width: 100% !important;
+    text-align: center !important;
+    padding: 12px !important;
+  }
+}
+
+/* ==========================================================================
+   Search Toggle Button & Full-Screen Overlay Style (Ihome Style Expand Blur)
+   ========================================================================== */
+.search-toggle-btn {
+  background: none !important;
+  border: none !important;
+  color: #9fb0c2 !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  padding: 8px !important;
+  margin-left: auto !important;
+  margin-right: 24px !important;
+  transition: color 0.3s, transform 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 100 !important;
+}
+.search-toggle-btn:hover {
+  color: #2d9cff !important;
+  transform: scale(1.1) !important;
+}
+@media (max-width: 760px) {
+  .search-toggle-btn {
+    margin-right: 16px !important;
+    font-size: 16px !important;
+  }
+}
+
+.search-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(4, 8, 12, 0.94) !important;
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  z-index: 1200 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+.search-overlay.show {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+.search-close-btn {
+  position: absolute !important;
+  top: 40px !important;
+  right: 40px !important;
+  background: none !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  font-size: 38px !important;
+  cursor: pointer !important;
+  transition: color 0.3s, transform 0.3s !important;
+  line-height: 1 !important;
+}
+.search-close-btn:hover {
+  color: #ffffff !important;
+  transform: rotate(90deg) !important;
+}
+.search-overlay-content {
+  width: min(700px, 90%) !important;
+  text-align: center !important;
+}
+.search-overlay-title {
+  color: #ffffff !important;
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin-bottom: 24px !important;
+  letter-spacing: 0.05em !important;
+}
+.search-field-wrapper {
+  position: relative !important;
+  margin-bottom: 20px !important;
+}
+.search-overlay-input {
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-bottom: 2px solid rgba(45, 156, 255, 0.3) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  padding: 16px 64px 16px 20px !important;
+  font-size: 18px !important;
+  outline: none !important;
+  transition: all 0.3s ease !important;
+}
+.search-overlay-input:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: #2d9cff !important;
+  border-bottom-color: #2d9cff !important;
+  box-shadow: 0 4px 20px rgba(45, 156, 255, 0.15) !important;
+}
+.search-overlay-submit-btn {
+  position: absolute !important;
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background: none !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+  transition: color 0.3s !important;
+}
+.search-overlay-submit-btn:hover {
+  color: #2d9cff !important;
+}
+.search-suggestions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  font-size: 14.5px !important;
+  color: #94a3b8 !important;
+  margin-bottom: 30px !important;
+}
+.suggestion-tag {
+  background: rgba(45, 156, 255, 0.1) !important;
+  border: 1px solid rgba(45, 156, 255, 0.2) !important;
+  color: #90c8ff !important;
+  padding: 4px 12px !important;
+  border-radius: 15px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+}
+.suggestion-tag:hover {
+  background: #2d9cff !important;
+  color: #ffffff !important;
+  border-color: #2d9cff !important;
+}
+.search-overlay-results {
+  max-height: 45vh !important;
+  overflow-y: auto !important;
+  margin-top: 20px !important;
+  text-align: left !important;
+  padding-right: 8px !important;
+}
+
+/* Hide original desktop search container rules */
+.search-container {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Scroll Reveal Animations (Ihome Style Block Animation Display Mode)
+   ========================================================================== */
+.reveal-fade-up {
+  opacity: 0 !important;
+  transform: translateY(40px) !important;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.reveal-fade-up.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Stagger delays for beautiful list/grid items animations */
+.reveal-delay-1 { transition-delay: 0.08s !important; }
+.reveal-delay-2 { transition-delay: 0.16s !important; }
+.reveal-delay-3 { transition-delay: 0.24s !important; }
+.reveal-delay-4 { transition-delay: 0.32s !important; }
+
+/* ==========================================================================
+   Main Page Content Blur (When Mobile Menu Drawer Is Opened)
+   ========================================================================== */
+main.blur-content,
+footer.blur-content,
+.hero.blur-content {
+  filter: blur(8px) !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  transition: filter 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* ==========================================================================
+   Stacking Context Adjustments (Header & Mobile Overlay z-index alignment)
+   ========================================================================== */
+.header {
+  z-index: 1000 !important;
+}
+.mobile-overlay {
+  z-index: 990 !important;
+}
+
+/* ==========================================================================
+   Additional Scroll Reveal Animation Types (Fade Down, Zoom In, Pure Fade)
+   ========================================================================== */
+.reveal-fade-down {
+  opacity: 0 !important;
+  transform: translateY(-40px) !important;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.reveal-fade-down.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.reveal-zoom-in {
+  opacity: 0 !important;
+  transform: scale(0.92) !important;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.reveal-zoom-in.visible {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+}
+
+.reveal-fade-only {
+  opacity: 0 !important;
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.reveal-fade-only.visible {
+  opacity: 1 !important;
 }
