@@ -18,11 +18,54 @@ function resolveAssetPath(path) {
   return getBasePath() + path;
 }
 
-const DATA_KEY="cc_full_site_data",IMG_KEY="cc_full_site_images",GOOGLE_SCRIPT_URL="請貼上你的 Google Apps Script Web App URL";
-function clone(x){return JSON.parse(JSON.stringify(x))}function merge(a,b){Object.keys(b||{}).forEach(k=>{if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])&&a[k])merge(a[k],b[k]);else a[k]=b[k]});return a}
+const DATA_KEY="cc_full_site_data",IMG_KEY="cc_full_site_images";
+const CLOUD_DATA_KEY="cc_cloud_site_data",CLOUD_IMG_KEY="cc_cloud_site_images";
+const CLOUD_DATA_URL="assets/data/site-data.json";
+// GAS URL 由後台 admin 寫入 localStorage 的 cc_gas_url，或 data.js formConfig.googleScriptUrl
+function getGasUrl(){return localStorage.getItem("cc_gas_url")||(window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||""}
+function clone(x){return JSON.parse(JSON.stringify(x))}
+function merge(a,b){Object.keys(b||{}).forEach(k=>{if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==="object"&&!Array.isArray(a[k]))merge(a[k],b[k]);else a[k]=b[k]});return a}
 function isPreviewMode(){return new URLSearchParams(location.search).get("preview")==="1"&&sessionStorage.getItem("cc_preview_mode")==="1"}
-function getData(){let s=isPreviewMode()?sessionStorage.getItem("cc_preview_site_data"):localStorage.getItem(DATA_KEY);return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
-function getImgs(){return JSON.parse((isPreviewMode()?sessionStorage.getItem("cc_preview_site_images"):localStorage.getItem(IMG_KEY))||"{}")}
+// 資料讀取優先順序：預覽 > 雲端(sessionStorage快取) > localStorage > DEFAULT_DATA
+function getData(){
+  if(isPreviewMode()){const s=sessionStorage.getItem("cc_preview_site_data");return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
+  const cloud=sessionStorage.getItem(CLOUD_DATA_KEY);
+  if(cloud){try{return merge(clone(DEFAULT_DATA),JSON.parse(cloud))}catch(e){}}
+  const local=localStorage.getItem(DATA_KEY);
+  return local?merge(clone(DEFAULT_DATA),JSON.parse(local)):clone(DEFAULT_DATA)
+}
+function getImgs(){
+  if(isPreviewMode())return JSON.parse(sessionStorage.getItem("cc_preview_site_images")||"{}");
+  const cloud=sessionStorage.getItem(CLOUD_IMG_KEY);
+  if(cloud){try{return JSON.parse(cloud)}catch(e){}}
+  return JSON.parse(localStorage.getItem(IMG_KEY)||"{}")
+}
+// 從雲端載入資料（GitHub JSON 優先，GAS 備援）
+async function _fetchCloudData(){
+  // 1. 試從 GitHub Pages JSON 讀取
+  try{
+    const r=await fetch(resolveAssetPath(CLOUD_DATA_URL)+"?_="+Date.now(),{cache:"no-cache"});
+    if(r.ok){const j=await r.json();if(j&&j._meta&&j.siteVersion)return j}
+  }catch(e){}
+  // 2. 試從 GAS 讀取
+  const gasUrl=getGasUrl();
+  if(gasUrl&&!gasUrl.includes("請貼上")){
+    try{
+      const r=await fetch(gasUrl+"?action=getData",{cache:"no-cache"});
+      if(r.ok){const j=await r.json();if(j&&j.data)return j.data}
+    }catch(e){}
+  }
+  return null;
+}
+// 頁面初始化時呼叫，載入雲端資料後重新渲染
+async function initCloudSync(renderFn){
+  const d=await _fetchCloudData();
+  if(d){
+    sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(d));
+    if(d.images)sessionStorage.setItem(CLOUD_IMG_KEY,JSON.stringify(d.images));
+    if(typeof renderFn==="function")renderFn();
+  }
+}
 function gp(o,p){return p.split(".").reduce((x,k)=>x&&x[k],o)}function txt(el,v){el.innerHTML=String(v??"").replace(/\n/g,"<br>")}function visibleItems(arr){return (arr||[]).filter(x=>x.visible!==false)}
 function todayYMD(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`}
 function publishedNews(arr){const today=todayYMD();return visibleItems(arr).filter(n=>!n.publishDate || n.publishDate<=today).sort((a,b)=>{if((a.pinned?1:0)!==(b.pinned?1:0))return (b.pinned?1:0)-(a.pinned?1:0);return String(b.publishDate||"").localeCompare(String(a.publishDate||"") )})}
@@ -223,10 +266,10 @@ if (document.getElementById("notifyEmail")) {
 leadForm.onsubmit = async e => {
   e.preventDefault();
   const d = getData();
-  const url = d.formConfig?.googleScriptUrl || GOOGLE_SCRIPT_URL;
+  const url = getGasUrl() || d.formConfig?.googleScriptUrl;
   if (notifyEmail) notifyEmail.value = d.formConfig?.notifyEmail || "";
   if (!url || url.includes("請貼上")) {
-    formStatus.textContent = "尚未設定 Google Apps Script URL。";
+    formStatus.textContent = "尚未設定表單服務，請聯絡管理員。";
     formStatus.className = "err";
     return;
   }
@@ -234,7 +277,11 @@ leadForm.onsubmit = async e => {
   btn.disabled = true;
   btn.textContent = "送出中...";
   let send = Object.fromEntries(new FormData(leadForm).entries());
-  send.createdAt = new Date().toLocaleString("zh-TW", { hour12: false });
+  send.type        = "submitForm";
+  send.formType    = leadForm.dataset.formType || "contact";
+  send.sourceUrl   = location.href;
+  send.createdAt   = new Date().toLocaleString("zh-TW", { hour12: false });
+  send.notifyEmail = d.formConfig?.notifyEmail || "";
   try {
     await fetch(url, {
       method: "POST",
@@ -242,18 +289,30 @@ leadForm.onsubmit = async e => {
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(send)
     });
-    formStatus.textContent = "已送出，我們會盡快與您聯絡！";
+    formStatus.textContent = "✅ 已送出，我們會盡快與您聯絡！";
     formStatus.className = "ok";
     leadForm.reset();
-    setTimeout(closeForm, 1200);
+    setTimeout(closeForm, 1500);
   } catch (err) {
-    formStatus.textContent = "送出失敗。";
+    formStatus.textContent = "❌ 送出失敗，請電話或 LINE 聯繫我們。";
     formStatus.className = "err";
   } finally {
     btn.disabled = false;
     btn.textContent = "送出表單";
   }
 };
+
+// 開啟指定類型的表單
+function openFormType(formType){
+  const labels = {contact:"聯絡我們",quote:"報價需求",repair:"維修申請",customer:"客戶需求",register:"合作申請"};
+  const modal = document.getElementById("leadModal");
+  if(modal){
+    leadForm.dataset.formType = formType || "contact";
+    const title = modal.querySelector("h2");
+    if(title) title.textContent = labels[formType] || "聯絡我們";
+    openForm();
+  }
+}
 
 apply();
 initSearch();
@@ -541,40 +600,25 @@ setTimeout(() => {
   }
 })();
 
+function _reapplyAll(){
+  apply();
+  if(window.ccV16Enhance) ccV16Enhance();
+  if(window.ccV17FloatingFollow) ccV17FloatingFollow();
+  if(window.applySocialVisibility009) applySocialVisibility009(getData());
+  if(window.applySocialIconVisibilityV19) applySocialIconVisibilityV19(getData());
+}
+
 async function syncFromCloudAndApply(){
-  const d = getData();
-  const url = d.formConfig?.googleScriptUrl || GOOGLE_SCRIPT_URL;
-  if(url && !url.includes("請貼上")){
-    try {
-      const res = await fetch(url);
-      const cloud = await res.json();
-      let updated = false;
-      if(cloud && cloud.data){
-        const cloudStr = JSON.stringify(cloud.data);
-        const localStr = localStorage.getItem(DATA_KEY);
-        if(cloudStr !== localStr){
-          localStorage.setItem(DATA_KEY, cloudStr);
-          updated = true;
-        }
-      }
-      if(cloud && cloud.images){
-        const cloudImgStr = JSON.stringify(cloud.images);
-        const localImgStr = localStorage.getItem(IMG_KEY);
-        if(cloudImgStr !== localImgStr){
-          localStorage.setItem(IMG_KEY, cloudImgStr);
-          updated = true;
-        }
-      }
-      if(updated){
-        console.log("檢測到線上資料有更新，重新渲染頁面...");
-        apply();
-        if(window.ccV16Enhance) ccV16Enhance();
-        if(window.ccV17FloatingFollow) ccV17FloatingFollow();
-        if(window.applySocialVisibility009) applySocialVisibility009(getData());
-        if(window.applySocialIconVisibilityV19) applySocialIconVisibilityV19(getData());
-      }
-    } catch(e) {
-      console.warn("同步線上資料失敗，使用本地快取", e);
+  // 優先順序：GitHub JSON → GAS → 不更新
+  const cloudData = await _fetchCloudData();
+  if(cloudData){
+    const newStr = JSON.stringify(cloudData);
+    const curStr = JSON.stringify(getData());
+    if(newStr !== curStr){
+      console.log("雲端資料已更新，重新渲染頁面...");
+      sessionStorage.setItem(CLOUD_DATA_KEY, newStr);
+      if(cloudData.images) sessionStorage.setItem(CLOUD_IMG_KEY, JSON.stringify(cloudData.images));
+      _reapplyAll();
     }
   }
 }

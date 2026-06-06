@@ -5,7 +5,7 @@ const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
   users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
   details:"服務細節模組", cases:"成功案例", partners:"關係企業", ihome:"愛家居系統櫥櫃", news:"最新消息", faq:"常見問題",
-  form:"表單設定", backup:"備份/還原", masterAccount:"工程總帳號修改"
+  form:"表單設定", formRecords:"📋 表單紀錄", publish:"🚀 發布管理", backup:"備份/還原", masterAccount:"工程總帳號修改"
 };
 const PERMISSION_KEYS = Object.keys(TAB_LABELS).filter(k=>k!=="masterAccount").concat(["masterAccount"]).concat(["images"]);
 
@@ -1934,34 +1934,35 @@ if(currentTab==="hero"){
   }
 
   if(currentTab==="backup"){
-    c.innerHTML = `<div class="group"><h2>備份</h2>
-      <button class="add-btn" id="exportBtn">匯出備份</button>
+    c.innerHTML = `<div class="group"><h2>備份 / 還原</h2>
+      <button class="add-btn" id="exportBtn">📥 匯出備份 JSON</button>
       <label>匯入備份</label><input type="file" id="importFile">
-      <button class="danger" id="resetBtn">恢復原始資料</button>
-      <pre class="code">${JSON.stringify(data,null,2)}</pre>
+      <button class="danger" id="resetBtn">⚠️ 恢復原始資料</button>
+      <pre class="code" style="max-height:300px;overflow:auto">${JSON.stringify(data,null,2)}</pre>
     </div>`;
-    exportBtn.onclick = () => {
+    document.getElementById("exportBtn").onclick = () => {
       const blob = new Blob([JSON.stringify({data,images},null,2)],{type:"application/json"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "chengchuang_site_backup.json";
+      a.download = "chengchuang_site_backup_"+ new Date().toISOString().slice(0,10) +".json";
       a.click();
     };
-    importFile.onchange = e => {
+    document.getElementById("importFile").onchange = e => {
       const file = e.target.files[0];
       if(!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        const obj = JSON.parse(reader.result);
-        data = obj.data || data;
-        images = obj.images || {};
-        save();
-        render();
+        try {
+          const obj = JSON.parse(reader.result);
+          data = obj.data || data;
+          images = obj.images || {};
+          save(); render();
+        } catch(e) { alert("檔案格式錯誤"); }
       };
       reader.readAsText(file);
     };
-    resetBtn.onclick = () => {
-      if(confirm("確定恢復？")){
+    document.getElementById("resetBtn").onclick = () => {
+      if(confirm("確定恢復原始資料？所有修改將遺失！")){
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(IMG_KEY);
         data = clone(DEFAULT_DATA);
@@ -1969,6 +1970,138 @@ if(currentTab==="hero"){
         render();
       }
     };
+  }
+
+  // ── 發布管理 ──────────────────────────────────────────
+  if(currentTab==="publish"){
+    const gasUrl = (data.formConfig && data.formConfig.googleScriptUrl) || "";
+    const gasOk = gasUrl && !gasUrl.includes("請貼上");
+    c.innerHTML = `<div class="group">
+      <h2>🚀 發布管理</h2>
+      <p style="color:#888;margin-bottom:12px">發布後所有裝置（手機/電腦/LINE瀏覽器）立即同步顯示最新內容。</p>
+      ${!gasOk ? `<div style="background:#fff3cd;color:#856404;padding:12px;border-radius:8px;margin-bottom:16px">
+        ⚠️ 尚未設定 Google Apps Script URL，請先在「表單設定」頁面填入。設定後才能使用雲端同步和發布功能。
+      </div>` : ""}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+        <button class="add-btn" id="draftBtn">💾 儲存草稿</button>
+        <button class="add-btn" id="previewBtn" style="background:#17a2b8">👁 預覽</button>
+        <button class="add-btn" id="publishBtn" style="background:#28a745" ${!gasOk?"disabled":""}>🚀 發布到正式網站</button>
+      </div>
+      <div id="publishStatus" style="margin-bottom:16px"></div>
+      <h3 style="margin-bottom:8px">📜 版本歷史</h3>
+      <div id="versionList"><p style="color:#888">載入中...</p></div>
+    </div>`;
+
+    document.getElementById("draftBtn").onclick = () => {
+      save();
+      document.getElementById("publishStatus").innerHTML = `<span style="color:green">✓ 草稿已儲存至本機 (${new Date().toLocaleTimeString("zh-TW")})</span>`;
+    };
+
+    document.getElementById("previewBtn").onclick = () => {
+      sessionStorage.setItem("cc_preview_mode","1");
+      sessionStorage.setItem("cc_preview_site_data", JSON.stringify(data));
+      sessionStorage.setItem("cc_preview_site_images", JSON.stringify(images));
+      window.open("index.html?preview=1","_blank");
+    };
+
+    document.getElementById("publishBtn").onclick = async () => {
+      if(!gasOk){ alert("請先設定 Google Apps Script URL"); return; }
+      const note = prompt("發布備註（選填）：","");
+      if(note === null) return;
+      const btn = document.getElementById("publishBtn");
+      const statusDiv = document.getElementById("publishStatus");
+      btn.disabled = true;
+      btn.textContent = "🔄 發布中...";
+      statusDiv.innerHTML = `<span style="color:#888">正在發布，請稍候...</span>`;
+      try {
+        const resp = await fetch(gasUrl, {
+          method:"POST",
+          headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body: JSON.stringify({
+            type:"publish", data, images,
+            publishedBy: currentUser && currentUser.displayName || "admin",
+            note: note || ""
+          })
+        });
+        const result = await resp.json();
+        if(result.result === "success"){
+          localStorage.setItem(DATA_KEY, JSON.stringify(data));
+          statusDiv.innerHTML = `<span style="color:green">✅ 發布成功！版本：${result.version || ""} (${new Date().toLocaleTimeString("zh-TW")})<br>所有裝置將在幾分鐘內同步更新。</span>`;
+          logAdminChange("發布網站", `版本 ${result.version}, 備註: ${note}`);
+          _loadVersionHistory(gasUrl);
+        } else {
+          statusDiv.innerHTML = `<span style="color:red">❌ 發布失敗：${result.message || "未知錯誤"}</span>`;
+        }
+      } catch(e) {
+        statusDiv.innerHTML = `<span style="color:red">❌ 連線失敗：${e.message}</span>`;
+      }
+      btn.disabled = false;
+      btn.textContent = "🚀 發布到正式網站";
+    };
+
+    if(gasOk) _loadVersionHistory(gasUrl);
+  }
+
+  // ── 表單紀錄 ──────────────────────────────────────────
+  if(currentTab==="formRecords"){
+    const gasUrl = (data.formConfig && data.formConfig.googleScriptUrl) || "";
+    const gasOk = gasUrl && !gasUrl.includes("請貼上");
+    c.innerHTML = `<div class="group">
+      <h2>📋 表單紀錄</h2>
+      ${!gasOk ? `<div style="background:#fff3cd;color:#856404;padding:12px;border-radius:8px">⚠️ 請先設定 Google Apps Script URL</div>` : `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <select id="fr-type" style="padding:8px">
+          <option value="">所有表單</option>
+          <option value="contact">聯絡我們</option>
+          <option value="quote">報價需求</option>
+          <option value="repair">維修申請</option>
+          <option value="customer">客戶需求</option>
+          <option value="register">合作註冊</option>
+        </select>
+        <select id="fr-status" style="padding:8px">
+          <option value="">所有狀態</option>
+          <option value="未處理">未處理</option>
+          <option value="已聯絡">已聯絡</option>
+          <option value="報價中">報價中</option>
+          <option value="已成交">已成交</option>
+          <option value="未成交">未成交</option>
+          <option value="已結案">已結案</option>
+        </select>
+        <input id="fr-search" type="text" placeholder="搜尋姓名/電話/Email" style="padding:8px;min-width:160px">
+        <input id="fr-from" type="date" style="padding:8px">
+        <input id="fr-to" type="date" style="padding:8px">
+        <button class="add-btn" id="fr-search-btn" style="padding:8px 16px">🔍 搜尋</button>
+        <button class="add-btn" id="fr-export-btn" style="padding:8px 16px;background:#28a745">📊 匯出 CSV</button>
+      </div>
+      <div id="fr-summary" style="color:#888;margin-bottom:8px"></div>
+      <div id="fr-table" style="overflow-x:auto"><p style="color:#888">點搜尋載入紀錄...</p></div>
+      <div id="fr-pages" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      `}
+    </div>`;
+    if(!gasOk) return;
+
+    let frPage = 1;
+    async function loadFormRecords(page){
+      frPage = page || 1;
+      const type   = document.getElementById("fr-type").value;
+      const status = document.getElementById("fr-status").value;
+      const search = document.getElementById("fr-search").value;
+      const from   = document.getElementById("fr-from").value;
+      const to     = document.getElementById("fr-to").value;
+      document.getElementById("fr-table").innerHTML = `<p style="color:#888">載入中...</p>`;
+      try {
+        const params = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,page:frPage,pageSize:30});
+        const resp = await fetch(gasUrl + "?" + params);
+        const result = await resp.json();
+        _renderFormTable(result, gasUrl);
+      } catch(e) {
+        document.getElementById("fr-table").innerHTML = `<p style="color:red">載入失敗：${e.message}</p>`;
+      }
+    }
+
+    document.getElementById("fr-search-btn").onclick = () => loadFormRecords(1);
+    document.getElementById("fr-export-btn").onclick = () => _exportFormsCsv(gasUrl);
+    window._frLoadPage = loadFormRecords;
   }
 
   if(currentTab==="stats"){
@@ -2544,3 +2677,180 @@ setTimeout(()=>{
 
   setInterval(boot011,2000);
 })();
+
+// ── 版本歷史 ─────────────────────────────────────────────
+async function _loadVersionHistory(gasUrl){
+  const el = document.getElementById("versionList");
+  if(!el) return;
+  try {
+    const resp = await fetch(gasUrl + "?action=getVersions");
+    const result = await resp.json();
+    const versions = result.versions || [];
+    if(!versions.length){ el.innerHTML = `<p style="color:#888">尚無版本紀錄</p>`; return; }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="background:#f5f5f5">
+        <th style="padding:8px;text-align:left;border:1px solid #ddd">版本號</th>
+        <th style="padding:8px;text-align:left;border:1px solid #ddd">發布時間</th>
+        <th style="padding:8px;text-align:left;border:1px solid #ddd">發布人員</th>
+        <th style="padding:8px;text-align:left;border:1px solid #ddd">備註</th>
+        <th style="padding:8px;border:1px solid #ddd">還原</th>
+      </tr></thead>
+      <tbody>
+      ${versions.slice(0,20).map((v,i)=>`<tr style="background:${i===0?'#f0fff4':'white'}">
+        <td style="padding:8px;border:1px solid #ddd;font-family:monospace">${v.versionNo}</td>
+        <td style="padding:8px;border:1px solid #ddd">${new Date(v.publishedAt).toLocaleString("zh-TW")}</td>
+        <td style="padding:8px;border:1px solid #ddd">${v.publishedBy||""}</td>
+        <td style="padding:8px;border:1px solid #ddd">${v.note||""}</td>
+        <td style="padding:8px;border:1px solid #ddd;text-align:center">
+          ${i===0 ? '<span style="color:green">目前版本</span>' :
+            `<button onclick="_restoreVersion(${JSON.stringify(v.dataSnapshot||'{}').replace(/"/g,"&quot;")})" style="padding:4px 10px;cursor:pointer">還原</button>`}
+        </td>
+      </tr>`).join("")}
+      </tbody>
+    </table>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:red">載入失敗：${e.message}</p>`;
+  }
+}
+
+function _restoreVersion(snapshotStr){
+  if(!confirm("確定還原此版本？目前未發布的修改將遺失！")) return;
+  try {
+    const snapshot = typeof snapshotStr==="string" ? JSON.parse(snapshotStr) : snapshotStr;
+    data = merge(clone(DEFAULT_DATA), snapshot);
+    localStorage.setItem(DATA_KEY, JSON.stringify(data));
+    alert("版本已還原至本機，請確認後再發布。");
+    render();
+  } catch(e) { alert("還原失敗：" + e.message); }
+}
+
+// ── 表單紀錄渲染 ──────────────────────────────────────────
+function _renderFormTable(result, gasUrl){
+  const total = result.total || 0;
+  const records = result.records || [];
+  const summaryEl = document.getElementById("fr-summary");
+  const tableEl   = document.getElementById("fr-table");
+  const pagesEl   = document.getElementById("fr-pages");
+  if(summaryEl) summaryEl.textContent = `共 ${total} 筆`;
+  if(!tableEl) return;
+  if(!records.length){ tableEl.innerHTML = `<p style="color:#888">沒有符合的紀錄</p>`; return; }
+
+  const statusColors = {"未處理":"#dc3545","已聯絡":"#fd7e14","報價中":"#ffc107","已成交":"#28a745","未成交":"#6c757d","已結案":"#17a2b8"};
+  const cols = ["送出時間","表單類型","姓名","公司名稱","電話","Email","LINE ID","需求類型","需求內容","處理狀態","負責人","備註"];
+
+  tableEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:900px">
+    <thead><tr style="background:#343a40;color:white">
+      ${cols.map(h=>`<th style="padding:8px;text-align:left;border:1px solid #555;white-space:nowrap">${h}</th>`).join("")}
+      <th style="padding:8px;border:1px solid #555">操作</th>
+    </tr></thead>
+    <tbody>
+    ${records.map((r,idx)=>{
+      const st = r["處理狀態"]||"未處理";
+      const stColor = statusColors[st]||"#888";
+      return `<tr style="background:${idx%2===0?'white':'#f9f9f9'}">
+        ${cols.map(h=>{
+          if(h==="處理狀態") return `<td style="padding:6px 8px;border:1px solid #ddd;text-align:center">
+            <span style="background:${stColor};color:white;padding:2px 8px;border-radius:12px;font-size:11px;white-space:nowrap">${st}</span></td>`;
+          if(h==="送出時間") return `<td style="padding:6px 8px;border:1px solid #ddd;white-space:nowrap;font-size:11px">${r[h]?new Date(r[h]).toLocaleString("zh-TW",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):""}</td>`;
+          if(h==="需求內容") return `<td style="padding:6px 8px;border:1px solid #ddd;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r[h]||"").replace(/"/g,"&quot;")}">${r[h]||""}</td>`;
+          return `<td style="padding:6px 8px;border:1px solid #ddd;white-space:nowrap">${r[h]||""}</td>`;
+        }).join("")}
+        <td style="padding:6px 8px;border:1px solid #ddd;text-align:center;white-space:nowrap">
+          <button onclick="_editFormRecord(${idx})" style="padding:3px 8px;font-size:11px;cursor:pointer">編輯</button>
+        </td>
+      </tr>`;
+    }).join("")}
+    </tbody>
+  </table>`;
+
+  // 儲存紀錄供編輯用
+  window._frRecords = records;
+  window._frGasUrl = gasUrl;
+
+  // 分頁
+  if(pagesEl){
+    const totalPages = Math.ceil(total / (result.pageSize||30));
+    const cur = result.page||1;
+    pagesEl.innerHTML = Array.from({length:Math.min(totalPages,10)},(_,i)=>{
+      const p = i+1;
+      return `<button onclick="window._frLoadPage(${p})" style="padding:4px 10px;background:${p===cur?'#007bff':'#f8f9fa'};color:${p===cur?'white':'#333'};border:1px solid #ddd;cursor:pointer">${p}</button>`;
+    }).join("");
+  }
+}
+
+function _editFormRecord(idx){
+  const r = window._frRecords && window._frRecords[idx];
+  if(!r) return;
+  const statusOptions = ["未處理","已聯絡","報價中","已成交","未成交","已結案"];
+  const modal = document.createElement("div");
+  modal.style.cssText = "position:fixed;inset:0;background:#0007;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px";
+  modal.innerHTML = `<div style="background:white;padding:24px;border-radius:12px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto">
+    <h3 style="margin-bottom:16px">編輯表單紀錄</h3>
+    <p><strong>姓名：</strong>${r["姓名"]||""} ${r["公司名稱"]?"/ "+r["公司名稱"]:""}</p>
+    <p><strong>電話：</strong>${r["電話"]||""} &nbsp; <strong>Email：</strong>${r["Email"]||""}</p>
+    <p style="margin:8px 0"><strong>需求：</strong>${r["需求內容"]||""}</p>
+    <label style="display:block;margin-top:12px"><strong>處理狀態</strong>
+      <select id="edit-status" style="display:block;width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:6px">
+        ${statusOptions.map(s=>`<option value="${s}" ${r["處理狀態"]===s?"selected":""}>${s}</option>`).join("")}
+      </select>
+    </label>
+    <label style="display:block;margin-top:10px"><strong>負責人</strong>
+      <input id="edit-assignee" type="text" value="${r["負責人"]||""}" style="display:block;width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:6px">
+    </label>
+    <label style="display:block;margin-top:10px"><strong>備註</strong>
+      <textarea id="edit-note" style="display:block;width:100%;padding:8px;margin-top:4px;border:1px solid #ddd;border-radius:6px;height:80px">${r["備註"]||""}</textarea>
+    </label>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button id="edit-save" style="flex:1;padding:10px;background:#28a745;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px">儲存</button>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:10px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px">取消</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+
+  modal.querySelector("#edit-save").onclick = async () => {
+    const newStatus   = modal.querySelector("#edit-status").value;
+    const newNote     = modal.querySelector("#edit-note").value;
+    const newAssignee = modal.querySelector("#edit-assignee").value;
+    const gasUrl = window._frGasUrl || "";
+    if(gasUrl){
+      try {
+        await fetch(gasUrl, {
+          method:"POST",
+          headers:{"Content-Type":"text/plain;charset=utf-8"},
+          body:JSON.stringify({ type:"updateFormStatus", sheetName:r._sheetName||"表單_contact",
+            rowIndex:idx+2, status:newStatus, note:newNote, assignee:newAssignee })
+        });
+      } catch(e) {}
+    }
+    modal.remove();
+    if(typeof window._frLoadPage==="function") window._frLoadPage(1);
+  };
+}
+
+async function _exportFormsCsv(gasUrl){
+  try {
+    const type   = document.getElementById("fr-type").value;
+    const status = document.getElementById("fr-status").value;
+    const search = document.getElementById("fr-search").value;
+    const from   = document.getElementById("fr-from").value;
+    const to     = document.getElementById("fr-to").value;
+    const params = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,page:1,pageSize:9999});
+    const resp = await fetch(gasUrl + "?" + params);
+    const result = await resp.json();
+    const records = result.records || [];
+    if(!records.length){ alert("沒有資料可匯出"); return; }
+    const cols = Object.keys(records[0]).filter(k=>!k.startsWith("_"));
+    const bom = "﻿";
+    const csv = bom + [cols.join(","), ...records.map(r=>cols.map(k=>_csvEsc(r[k])).join(","))].join("\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "formRecords_" + new Date().toISOString().slice(0,10) + ".csv";
+    a.click();
+  } catch(e) { alert("匯出失敗：" + e.message); }
+}
+
+function _csvEsc(v){
+  const s = String(v||"").replace(/"/g,'""');
+  return s.includes(",")||s.includes("\n")||s.includes('"') ? `"${s}"` : s;
+}
