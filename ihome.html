@@ -2954,6 +2954,7 @@
         appData = Object.assign({}, window.DEFAULT_DATA, appData);
       }
 
+      // 圖片：優先使用雲端 site-images.json 快取（sessionStorage）
       if (!appImages || Object.keys(appImages).length === 0) {
         try {
           var cloudImgStr = sessionStorage.getItem("cc_cloud_site_images");
@@ -2961,6 +2962,11 @@
         } catch(e) {}
       }
       if (!appImages) appImages = {};
+      // 合併雲端圖片（避免舊版本圖片覆蓋新版）
+      try {
+        var extraImgStr = sessionStorage.getItem("cc_cloud_site_images");
+        if(extraImgStr){ var extraImgs = JSON.parse(extraImgStr); appImages = Object.assign({}, appImages, extraImgs); }
+      } catch(e) {}
 
       var config = appData.ihomeConfig;
       if (!config) return;
@@ -3218,35 +3224,44 @@
       }
     });
 
-    // ── 雲端同步：ihome.html 頁面載入時拉最新資料重繪 ────────
+    // ── 雲端同步：ihome.html 頁面載入時拉最新資料+圖片重繪 ────────
     (async function ihomeCloudSync(){
       if(sessionStorage.getItem("cc_preview_mode")==="1") return;
-      var CLOUD_URL = "assets/data/site-data.json";
       var bust = "?_=" + Date.now();
-      var fresh = null;
-      try {
-        var r = await fetch(CLOUD_URL + bust, {cache:"no-store"});
-        if(r.ok){
-          var j = await r.json();
-          if(j && j._meta && j._meta.version && j.siteVersion) fresh = j;
-        }
-      } catch(e) {}
-      // GAS 備援
-      if(!fresh){
-        try {
-          var gasUrl = (window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||"";
-          if(gasUrl && !gasUrl.includes("請貼上")){
-            var r2 = await fetch(gasUrl + "?action=getData" + bust, {cache:"no-store"});
-            if(r2.ok){var j2 = await r2.json(); if(j2&&j2.data&&j2.data.siteVersion) fresh = j2.data;}
-          }
-        } catch(e) {}
+      var fresh = null, freshImgs = null;
+
+      async function fetchJson(url){
+        try{var r=await fetch(url+bust,{cache:"no-store"});if(r.ok)return await r.json();}catch(e){}
+        return null;
       }
+
+      // 同時拉資料和圖片
+      var results = await Promise.all([
+        fetchJson("assets/data/site-data.json"),
+        fetchJson("assets/data/site-images.json")
+      ]);
+      fresh = results[0]; freshImgs = results[1];
+
+      if(fresh && fresh._meta && fresh._meta.version && fresh.siteVersion){
+        // 有效的發布資料
+      } else {
+        fresh = null; // 尚未發布，嘗試 GAS
+        var gasUrl = (window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||"";
+        if(gasUrl && !gasUrl.includes("請貼上")){
+          var j = await fetchJson(gasUrl + "?action=getData");
+          if(j && j.data && j.data.siteVersion){
+            fresh = j.data;
+            if(j.images) freshImgs = { images: j.images };
+          }
+        }
+      }
+
       if(fresh){
         sessionStorage.removeItem("cc_cloud_site_data");
         sessionStorage.removeItem("cc_cloud_site_images");
         sessionStorage.setItem("cc_cloud_site_data", JSON.stringify(fresh));
-        if(fresh.images) sessionStorage.setItem("cc_cloud_site_images", JSON.stringify(fresh.images));
-        // 重新載入頁面以反映最新資料（只在資料有變更時）
+        if(freshImgs && freshImgs.images)
+          sessionStorage.setItem("cc_cloud_site_images", JSON.stringify(freshImgs.images));
         var curStr = JSON.stringify(appData);
         var newStr = JSON.stringify(Object.assign({}, window.DEFAULT_DATA, fresh));
         if(curStr !== newStr) location.reload();

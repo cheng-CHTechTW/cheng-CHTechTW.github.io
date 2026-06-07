@@ -190,7 +190,7 @@ function handleSaveConfig(d) {
   return { result: "success", type: "saveConfig" };
 }
 
-// 發布到 GitHub（更新 assets/data/site-data.json）
+// 發布到 GitHub（同步更新 site-data.json + site-images.json）
 function handlePublish(d) {
   var props = getProps();
   var token = props.getProperty("GITHUB_TOKEN");
@@ -199,34 +199,59 @@ function handlePublish(d) {
 
   if (!token) return { result: "error", message: "未設定 GITHUB_TOKEN，請在 Script Properties 設定" };
 
-  // 先儲存到 Sheets
+  // 先儲存到 Sheets（含圖片）
   handleSaveConfig(d);
 
   // 建立版本號
-  var versionNo = _generateVersionNo();
+  var versionNo   = _generateVersionNo();
   var publishedAt = new Date().toISOString();
   var publishedBy = d.publishedBy || "admin";
-  var note = d.note || "";
+  var note        = d.note || "";
+  var commitMsg   = "publish: " + versionNo + " by " + publishedBy;
 
-  // 組合要寫入 GitHub 的 JSON
+  // ── 1. 發布 site-data.json（網站設定，不含圖片 base64）
   var siteDataJson = Object.assign({}, d.data || {}, {
-    _meta: { version: versionNo, publishedAt: publishedAt, publishedBy: publishedBy, note: note }
+    _meta: {
+      version:     versionNo,
+      publishedAt: publishedAt,
+      publishedBy: publishedBy,
+      note:        note,
+      imagesVersion: versionNo  // 讓前端知道對應哪版圖片
+    }
   });
-
-  // 更新 site-data.json
-  var pushResult = _updateGithubFile(
-    token, owner, repo,
+  var r1 = _updateGithubFile(token, owner, repo,
     "assets/data/site-data.json",
     JSON.stringify(siteDataJson, null, 2),
-    "publish: " + versionNo + " by " + publishedBy
+    commitMsg
   );
+  if (r1.error) return { result: "error", message: "site-data.json 失敗: " + r1.error };
 
-  if (pushResult.error) return { result: "error", message: pushResult.error };
+  // ── 2. 發布 site-images.json（所有圖片 base64/URL，獨立檔案）
+  var imagesObj = d.images || {};
+  var siteImagesJson = {
+    _meta: { version: versionNo, publishedAt: publishedAt },
+    images: imagesObj
+  };
+  var r2 = _updateGithubFile(token, owner, repo,
+    "assets/data/site-images.json",
+    JSON.stringify(siteImagesJson),  // 不美化，節省空間
+    commitMsg
+  );
+  if (r2.error) {
+    // 圖片上傳失敗不擋住整個發布，但回報警告
+    Logger.log("site-images.json 失敗: " + r2.error);
+  }
 
-  // 記錄版本歷史
+  // ── 3. 記錄版本歷史
   _saveVersion(versionNo, publishedAt, publishedBy, note, d.data);
 
-  return { result: "success", type: "publish", version: versionNo, publishedAt: publishedAt };
+  return {
+    result:      "success",
+    type:        "publish",
+    version:     versionNo,
+    publishedAt: publishedAt,
+    imagesOk:    !r2.error
+  };
 }
 
 // 表單送出

@@ -21,6 +21,7 @@ function resolveAssetPath(path) {
 const DATA_KEY="cc_full_site_data",IMG_KEY="cc_full_site_images";
 const CLOUD_DATA_KEY="cc_cloud_site_data",CLOUD_IMG_KEY="cc_cloud_site_images";
 const CLOUD_DATA_URL="assets/data/site-data.json";
+const CLOUD_IMGS_URL="assets/data/site-images.json";
 // GAS URL 由後台 admin 寫入 localStorage 的 cc_gas_url，或 data.js formConfig.googleScriptUrl
 function getGasUrl(){return localStorage.getItem("cc_gas_url")||(window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||""}
 function clone(x){return JSON.parse(JSON.stringify(x))}
@@ -48,25 +49,45 @@ function getImgs(){
   return {}
 }
 
-// ── 雲端載入：每次開頁都強制拉最新，不用舊快取 ────────────────
+// ── 雲端載入：每次開頁都強制拉最新，資料與圖片同步 ────────────
 async function _fetchCloudData(){
-  // 每次都加時間戳確保拿最新，不被 CDN / 瀏覽器快取
   const bust="?_="+Date.now();
-  // 1. GitHub Pages JSON（發布後的正式資料）
-  try{
-    const r=await fetch(resolveAssetPath(CLOUD_DATA_URL)+bust,{cache:"no-store"});
-    if(r.ok){
-      const j=await r.json();
-      // 有效的發布資料必須有 _meta.version（代表曾被後台發布過）
-      if(j&&j._meta&&j._meta.version&&j.siteVersion)return j;
+
+  // ── 同時拉資料和圖片（平行請求，加速）──
+  async function fetchJson(url){
+    try{
+      const r=await fetch(resolveAssetPath(url)+bust,{cache:"no-store"});
+      if(r.ok) return await r.json();
+    }catch(e){}
+    return null;
+  }
+
+  // 1. GitHub Pages JSON（正式發布資料）
+  const [siteData, siteImages] = await Promise.all([
+    fetchJson(CLOUD_DATA_URL),
+    fetchJson(CLOUD_IMGS_URL)
+  ]);
+
+  if(siteData && siteData._meta && siteData._meta.version && siteData.siteVersion){
+    // 圖片單獨存入 sessionStorage，避免資料 JSON 過大
+    if(siteImages && siteImages.images){
+      sessionStorage.setItem(CLOUD_IMG_KEY, JSON.stringify(siteImages.images));
     }
-  }catch(e){}
-  // 2. GAS 備援（當 GitHub JSON 尚未發布或拉取失敗時）
+    return siteData;
+  }
+
+  // 2. GAS 備援（GitHub JSON 尚未發布時）
   const gasUrl=getGasUrl();
   if(gasUrl&&!gasUrl.includes("請貼上")){
     try{
       const r=await fetch(gasUrl+"?action=getData"+bust,{cache:"no-store"});
-      if(r.ok){const j=await r.json();if(j&&j.data&&j.data.siteVersion)return j.data}
+      if(r.ok){
+        const j=await r.json();
+        if(j&&j.data&&j.data.siteVersion){
+          if(j.images) sessionStorage.setItem(CLOUD_IMG_KEY, JSON.stringify(j.images));
+          return j.data;
+        }
+      }
     }catch(e){}
   }
   return null;
@@ -74,17 +95,16 @@ async function _fetchCloudData(){
 
 // ── 前台核心同步函式：載入雲端→清除舊快取→立刻重繪 ─────────────
 async function syncFromCloudAndApply(){
-  if(isAdminPage()||isPreviewMode())return; // 後台/預覽不走此流程
+  if(isAdminPage()||isPreviewMode())return;
+  // 清除舊快取（_fetchCloudData 內部會寫入新的 CLOUD_IMG_KEY）
+  sessionStorage.removeItem(CLOUD_DATA_KEY);
+  sessionStorage.removeItem(CLOUD_IMG_KEY);
   const fresh=await _fetchCloudData();
   if(fresh){
-    // 清除舊的 sessionStorage 快取，寫入最新資料
-    sessionStorage.removeItem(CLOUD_DATA_KEY);
-    sessionStorage.removeItem(CLOUD_IMG_KEY);
     sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(fresh));
-    if(fresh.images)sessionStorage.setItem(CLOUD_IMG_KEY,JSON.stringify(fresh.images));
     _reapplyAll();
   }
-  // 雲端拉取失敗時保持 DEFAULT_DATA 顯示，不顯示任何本機舊資料
+  // 雲端失敗 → 保持 DEFAULT_DATA，不顯示任何本機舊資料
 }
 function gp(o,p){return p.split(".").reduce((x,k)=>x&&x[k],o)}function txt(el,v){el.innerHTML=String(v??"").replace(/\n/g,"<br>")}function visibleItems(arr){return (arr||[]).filter(x=>x.visible!==false)}
 function todayYMD(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`}
