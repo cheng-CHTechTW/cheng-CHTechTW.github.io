@@ -272,8 +272,8 @@
 .fake-qr img{width:100%;height:100%;object-fit:contain;display:block}
 .qr-box p{text-align:center;margin:0}
 body.modal-open{overflow:hidden!important;touch-action:none}
-.modal{overflow:hidden;align-items:flex-start!important;justify-content:center;padding:18px 12px}
-.modal-box{width:min(720px,96vw);max-height:calc(100dvh - 42px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:auto 0}
+.modal{overflow:hidden;align-items:flex-start!important;justify-content:center;padding:90px 12px 18px}
+.modal-box{width:min(720px,96vw);max-height:calc(100dvh - 106px)!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:auto 0}
 #leadForm{padding-bottom:28px}
 #leadForm input,#leadForm select,#leadForm textarea{font-size:16px;min-height:46px}
 #leadForm textarea{min-height:130px}
@@ -287,8 +287,8 @@ body.modal-open{overflow:hidden!important;touch-action:none}
   .footer-grid,.responsive-footer{display:grid!important;grid-template-columns:1fr!important;gap:28px!important}
   .contact-lines{grid-template-columns:1fr!important}
   .contact-lines div{grid-template-columns:96px 1fr!important;font-size:16px}
-  .modal{padding:12px 8px}
-  .modal-box{width:96vw!important;max-height:calc(100dvh - 24px)!important;border-radius:16px!important;padding:20px!important}
+  .modal{padding:80px 8px 12px}
+  .modal-box{width:96vw!important;max-height:calc(100dvh - 92px)!important;border-radius:16px!important;padding:20px!important}
   /* 手機版靠左/靠右側邊欄抽屜式樣式 */
   .menu.menu-left {
     position: fixed !important;

@@ -414,9 +414,11 @@ function quickBindLoginFallback(){
           sessionStorage.setItem("cc_admin_logged_in","1");
           sessionStorage.setItem("cc_admin_user",found.username);
           sessionStorage.setItem("cc_admin_user_display",found.displayName||found.username);
+          sessionStorage.setItem("cc_admin_siteId", found.siteId||"chengchuang");
           showAdmin();
           refreshPermissionMenu();
-          currentTab = firstAllowedTab();
+          // 登入後優先顯示「表單紀錄」（若有權限），否則第一個允許的 tab
+          currentTab = hasPerm("formRecords") ? "formRecords" : firstAllowedTab();
           setActiveTabButton();
           logAdminChange("登入後台","使用者登入後台");
           render();
@@ -1003,6 +1005,16 @@ function cancelPreUpload(key) {
 }
 window.cancelPreUpload = cancelPreUpload;
 
+// 圖片 key → 對應的主要讀取檔名
+const IMG_KEY_NAMES = {
+  logo:"logo.png", siteLogo:"logo.png", lineQr:"line-qr.jpg", siteFavicon:"favicon.png",
+  siteOgImage:"og-image.jpg", heroBg:"hero-bg.jpg",
+  industry0:"industry-food.jpg", industry1:"industry-retail.jpg",
+  industry2:"industry-foodcourt.jpg", industry3:"industry-district.jpg", industry4:"industry-snack.jpg",
+  ihomeFavicon:"ihome-favicon.png", ihomeOgImage:"ihome-og.jpg"
+};
+function getImgTargetName(key){ return IMG_KEY_NAMES[key] || (key.replace(/(\d+)$/,(m)=>"-"+m) + ".jpg"); }
+
 function imgUpload(key, label, src) {
   const s = images[key] || src || "";
   const spec = getImageSpec(key);
@@ -1026,9 +1038,10 @@ function imgUpload(key, label, src) {
         
         <!-- Pre-upload panel (hidden by default) -->
         <div class="pre-upload-panel" id="pre-upload-${key}" style="display:none; margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(45, 156, 255, 0.25); border-radius: 6px;">
-          <div class="file-info" style="font-size:13px; color:#cbd5e1; margin-bottom: 8px; line-height: 1.5;">
+          <div class="file-info" style="font-size:13px; color:#cbd5e1; margin-bottom: 8px; line-height: 1.8;">
             <strong>選取檔案：</strong><span class="file-name" id="file-name-${key}">-</span><br>
-            <strong>檔案格式：</strong><span class="file-ext" id="file-ext-${key}">-</span>
+            <strong>儲存為（覆蓋）：</strong><span style="color:#4ade80;font-weight:bold">${getImgTargetName(key)}</span><br>
+            <strong>格式：</strong><span class="file-ext" id="file-ext-${key}">-</span>
           </div>
           <img class="temp-preview" id="temp-preview-${key}" style="max-height:100px; object-fit:contain; display:block; margin-bottom:8px; border-radius: ${borderRadius}; border:1px solid rgba(255,255,255,0.1);">
           
@@ -1128,9 +1141,15 @@ function bindImg() {
                 if(data.partners && data.partners[idx]) data.partners[idx].image = compressedBase64;
               }
 
-              progText.textContent = "✓ 上傳成功！";
+              progText.textContent = "✓ 上傳成功！已覆蓋 " + getImgTargetName(key);
               progText.style.color = "#4ade80";
               progBar.style.background = "#4ade80";
+              // 立即更新後台當前預覽圖
+              const curPreview = document.getElementById("current-preview-" + key);
+              if(curPreview){ curPreview.src = compressedBase64; curPreview.style.display = "block"; }
+              // 隱藏 pre-upload panel，回到正常狀態
+              const prePanel = document.getElementById("pre-upload-" + key);
+              if(prePanel){ setTimeout(()=>{ prePanel.style.display="none"; }, 1200); }
               markAdminDirty();
               setTimeout(() => {
                 syncAdminLogoImages();
@@ -2105,6 +2124,11 @@ if(currentTab==="hero"){
       <h2>📋 表單紀錄</h2>
       ${!gasOk ? `<div style="background:#fff3cd;color:#856404;padding:12px;border-radius:8px">⚠️ 請先設定 Google Apps Script URL</div>` : `
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        ${currentUser && currentUser.isMaster ? `<select id="fr-site" style="padding:8px;background:#28a745;color:white;font-weight:600;border:none;border-radius:4px">
+          <option value="">全部站台</option>
+          <option value="chengchuang">誠創科技</option>
+          <option value="ihome">愛家居</option>
+        </select>` : `<span style="background:#4472C4;color:white;padding:6px 12px;border-radius:4px;font-size:13px;font-weight:600">🏢 ${currentUser&&currentUser.siteId||'chengchuang'} 站台</span>`}
         <select id="fr-type" style="padding:8px">
           <option value="">所有表單</option>
           <option value="contact">聯絡我們</option>
@@ -2136,6 +2160,9 @@ if(currentTab==="hero"){
     if(!gasOk) return;
 
     let frPage = 1;
+    // 取得此用戶的 siteId（非 chengchuang 主帳號則傳入過濾）
+    const mySiteId = currentUser && currentUser.isMaster ? "" : (currentUser && currentUser.siteId || "");
+
     async function loadFormRecords(page){
       frPage = page || 1;
       const type   = document.getElementById("fr-type").value;
@@ -2145,7 +2172,11 @@ if(currentTab==="hero"){
       const to     = document.getElementById("fr-to").value;
       document.getElementById("fr-table").innerHTML = `<p style="color:#888">載入中...</p>`;
       try {
-        const params = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,page:frPage,pageSize:30});
+        // 主帳號可用下拉選擇站台；子帳號強制為自己的 siteId
+        const siteFilter = currentUser && currentUser.isMaster
+          ? (document.getElementById("fr-site")?.value || "")
+          : mySiteId;
+        const params = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,siteId:siteFilter,page:frPage,pageSize:30});
         const resp = await fetch(gasUrl + "?" + params);
         const result = await resp.json();
         _renderFormTable(result, gasUrl);
@@ -2884,12 +2915,13 @@ function _editFormRecord(idx){
 
 async function _exportFormsCsv(gasUrl){
   try {
-    const type   = document.getElementById("fr-type").value;
-    const status = document.getElementById("fr-status").value;
-    const search = document.getElementById("fr-search").value;
-    const from   = document.getElementById("fr-from").value;
-    const to     = document.getElementById("fr-to").value;
-    const params = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,page:1,pageSize:9999});
+    const type     = document.getElementById("fr-type").value;
+    const status   = document.getElementById("fr-status").value;
+    const search   = document.getElementById("fr-search").value;
+    const from     = document.getElementById("fr-from").value;
+    const to       = document.getElementById("fr-to").value;
+    const mySiteId = currentUser && currentUser.isMaster ? "" : (currentUser && currentUser.siteId || "");
+    const params   = new URLSearchParams({action:"getForms",formType:type,status,search,dateFrom:from,dateTo:to,siteId:mySiteId,page:1,pageSize:9999});
     const resp = await fetch(gasUrl + "?" + params);
     const result = await resp.json();
     const records = result.records || [];

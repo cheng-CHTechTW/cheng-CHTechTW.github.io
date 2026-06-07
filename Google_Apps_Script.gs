@@ -106,6 +106,7 @@ function handleGetForms(e) {
   var search   = params.search   || "";
   var dateFrom = params.dateFrom || "";
   var dateTo   = params.dateTo   || "";
+  var siteId   = params.siteId   || "";  // 空 = super_admin 可看全部
   var page     = parseInt(params.page || "1");
   var pageSize = parseInt(params.pageSize || "50");
 
@@ -116,7 +117,7 @@ function handleGetForms(e) {
   if (!sheet) {
     // 嘗試從所有表單 sheet 合併
     var all = getAllFormRecords(ss, formType);
-    return paginateRecords(all, status, search, dateFrom, dateTo, page, pageSize);
+    return paginateRecords(all, status, search, dateFrom, dateTo, siteId, page, pageSize);
   }
 
   var rows = sheet.getDataRange().getValues();
@@ -124,12 +125,12 @@ function handleGetForms(e) {
   var records = [];
   for (var i = 1; i < rows.length; i++) {
     if (!rows[i][0]) continue;
-    var rec = {};
+    var rec = { _rowIndex: i + 1, _sheetName: sheetName };
     headers.forEach(function(h, idx) { rec[h] = rows[i][idx]; });
     records.push(rec);
   }
 
-  return paginateRecords(records, status, search, dateFrom, dateTo, page, pageSize);
+  return paginateRecords(records, status, search, dateFrom, dateTo, siteId, page, pageSize);
 }
 
 function getAllFormRecords(ss, filterType) {
@@ -153,12 +154,17 @@ function getAllFormRecords(ss, filterType) {
   return all;
 }
 
-function paginateRecords(records, status, search, dateFrom, dateTo, page, pageSize) {
+function paginateRecords(records, status, search, dateFrom, dateTo, siteId, page, pageSize) {
   var filtered = records.filter(function(r) {
+    // siteId 過濾：非空白 siteId 只能看自己站台，chengchuang 可看全部
+    if (siteId && siteId !== "chengchuang") {
+      var recSite = r["站台"] || r["siteId"] || "chengchuang";
+      if (recSite !== siteId) return false;
+    }
     if (status && r["處理狀態"] !== status) return false;
     if (search) {
       var s = search.toLowerCase();
-      var hay = (r["姓名"]+r["公司名稱"]+r["電話"]+r["Email"]+r["LINE ID"]||"").toLowerCase();
+      var hay = ((r["姓名"]||"")+(r["公司名稱"]||"")+(r["電話"]||"")+(r["Email"]||"")+(r["LINE ID"]||"")).toLowerCase();
       if (!hay.includes(s)) return false;
     }
     if (dateFrom && r["送出時間"] && new Date(r["送出時間"]) < new Date(dateFrom)) return false;
@@ -261,7 +267,7 @@ function handleFormSubmit(d) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(sheetName);
 
-  var headers = ["送出時間","表單類型","姓名","公司名稱","電話","Email","LINE ID",
+  var headers = ["送出時間","站台","表單類型","姓名","公司名稱","電話","Email","LINE ID",
                  "需求類型","需求內容","來源頁面","上傳附件","處理狀態","負責人","備註","最後更新"];
 
   if (!sheet) {
@@ -274,6 +280,7 @@ function handleFormSubmit(d) {
   var now = new Date();
   sheet.appendRow([
     now,
+    d.siteId        || "chengchuang",
     d.formType      || "",
     d.name          || "",
     d.companyName   || "",

@@ -319,6 +319,7 @@ leadForm.onsubmit = async e => {
   let send = Object.fromEntries(new FormData(leadForm).entries());
   send.type        = "submitForm";
   send.formType    = leadForm.dataset.formType || "contact";
+  send.siteId      = (getData().siteId) || "chengchuang"; // 站台識別
   send.sourceUrl   = location.href;
   send.createdAt   = new Date().toLocaleString("zh-TW", { hour12: false });
   send.notifyEmail = d.formConfig?.notifyEmail || "";

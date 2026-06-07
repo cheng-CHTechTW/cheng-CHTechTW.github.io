@@ -2893,18 +2893,21 @@
         
         var formData = new FormData(leadForm);
         var send = {
+          type: "submitForm",
+          formType: "quote",
+          siteId: "ihome",  // 愛家居站台識別
           createdAt: new Date().toLocaleString("zh-TW", { hour12: false }),
           name: formData.get("name"),
           phone: formData.get("phone"),
           email: "",
           lineId: "",
           businessArea: formData.get("area"),
-          storeStatus: formData.get("type"), // Mapped to storeStatus
+          storeStatus: formData.get("type"),
           service: "系統櫥櫃客製設計",
           message: formData.get("message") || "",
           source: "愛家居系統櫥櫃頁面",
           pageUrl: window.location.href,
-          notifyEmail: "micmmm83@gmail.com" // Direct email notification
+          notifyEmail: "micmmm83@gmail.com"
         };
         
         try {
