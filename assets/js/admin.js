@@ -4,7 +4,8 @@ const IMG_KEY="cc_full_site_images";
 const TAB_LABELS = {
   basic:"基本資料", header:"頁首欄位", footer:"頁尾顯示", security:"登入密碼",
   users:"使用者權限", editEntry:"編輯入口", appearance:"手機/圖片顯示", hero:"主視覺", services:"服務項目",
-  details:"服務細節模組", cases:"成功案例", partners:"關係企業", ihome:"愛家居系統櫥櫃", news:"最新消息", faq:"常見問題",
+  industries:"🏭 行業封面", details:"服務細節模組", cases:"成功案例", partners:"關係企業",
+  ihome:"愛家居系統櫥櫃", news:"最新消息", faq:"常見問題",
   form:"表單設定", formRecords:"📋 表單紀錄", publish:"🚀 發布管理", backup:"備份/還原", masterAccount:"工程總帳號修改"
 };
 const PERMISSION_KEYS = Object.keys(TAB_LABELS).filter(k=>k!=="masterAccount").concat(["masterAccount"]).concat(["images"]);
@@ -1108,11 +1109,29 @@ function bindImg() {
                 images.siteLogo = compressedBase64;
                 images.headerLogo = compressedBase64;
               }
-              
+              // 行業封面：同步更新 data.industries[i].image
+              const industryMatch = key.match(/^industry(\d+)$/);
+              if(industryMatch){
+                const idx = parseInt(industryMatch[1]);
+                if(data.industries && data.industries[idx]) data.industries[idx].image = compressedBase64;
+              }
+              // 案例封面：同步更新 data.cases[i].image
+              const caseMatch = key.match(/^case(\d+)$/);
+              if(caseMatch){
+                const idx = parseInt(caseMatch[1]);
+                if(data.cases && data.cases[idx]) data.cases[idx].image = compressedBase64;
+              }
+              // 關係企業封面：同步更新 data.partners[i].image
+              const partnerMatch = key.match(/^partner(\d+)$/);
+              if(partnerMatch){
+                const idx = parseInt(partnerMatch[1]);
+                if(data.partners && data.partners[idx]) data.partners[idx].image = compressedBase64;
+              }
+
               progText.textContent = "✓ 上傳成功！";
               progText.style.color = "#4ade80";
               progBar.style.background = "#4ade80";
-              
+              markAdminDirty();
               setTimeout(() => {
                 syncAdminLogoImages();
                 ccV16AdminEnhance();
@@ -1697,27 +1716,63 @@ if(currentTab==="hero"){
     c.innerHTML = `<div class="group"><h2>成功案例</h2>
       ${input("casesTitle","區塊標題")}
       ${displaySettings("casesDisplay","顯示設定")}
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:8px">💡 封面圖可在下方直接上傳，或填入網址路徑</p>
       ${renderList("cases",[
         {k:"title",l:"標題"},{k:"subtitle",l:"小標題"},{k:"text",l:"內文",t:"textarea"},
-        {k:"image",l:"封面圖路徑"},{k:"url",l:"網址"}
+        {k:"image",l:"封面圖路徑（可上傳後自動填入）"},{k:"url",l:"網址"}
       ],{visible:false,title:"新案例",subtitle:"",text:"",image:"assets/images/case-1.svg",url:""})}
+      <h3 style="margin-top:20px">📷 案例封面圖上傳</h3>
+      <div id="case-img-uploads">
+        ${(data.cases||[]).map((_,i)=>imgUpload("case"+i,"案例 "+(i+1)+" 封面","assets/images/case-1.svg")).join("")}
+      </div>
     </div>`;
     bindInputs(); bindDisplay();
     bindList("cases",{visible:false,title:"新案例",subtitle:"",text:"",image:"assets/images/case-1.svg",url:""});
+    bindImg();
   }
 
   if(currentTab==="partners"){
     c.innerHTML = `<div class="group"><h2>關係企業</h2>
       ${input("partnersTitle","區塊標題")}
       ${displaySettings("partnersDisplay","顯示設定")}
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:8px">💡 封面圖可在下方直接上傳，或填入路徑</p>
       ${renderList("partners",[
         {k:"companyName",l:"公司名稱"},{k:"phone",l:"電話"},{k:"lineUrl",l:"LINE網址"},
         {k:"facebookUrl",l:"粉專網址"},{k:"websiteUrl",l:"形象網站"},
-        {k:"image",l:"封面圖片"},{k:"description",l:"介紹",t:"textarea"}
+        {k:"image",l:"封面圖路徑（可上傳後自動填入）"},{k:"description",l:"介紹",t:"textarea"}
       ],{visible:false,image:"assets/images/case-1.svg",companyName:"新關係企業",phone:"",lineUrl:"",facebookUrl:"",websiteUrl:"",description:""})}
+      <h3 style="margin-top:20px">📷 關係企業封面圖上傳</h3>
+      <div id="partner-img-uploads">
+        ${(data.partners||[]).map((_,i)=>imgUpload("partner"+i,"關係企業 "+(i+1)+" 封面","assets/images/case-1.svg")).join("")}
+      </div>
     </div>`;
     bindInputs(); bindDisplay();
     bindList("partners",{visible:false,image:"assets/images/case-1.svg",companyName:"新關係企業",phone:"",lineUrl:"",facebookUrl:"",websiteUrl:"",description:""});
+    bindImg();
+  }
+
+  if(currentTab==="industries"){
+    if(!data.industries) data.industries=[];
+    c.innerHTML = `<div class="group"><h2>🏭 多元產業封面</h2>
+      ${input("industriesTitle","區塊標題")}
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">上傳各產業封面圖（建議 4:3 比例，JPG 或 PNG）</p>
+      ${(data.industries||[]).map((ind,i)=>`
+        <div class="item" style="border:1px solid #334155;padding:12px;border-radius:8px;margin-bottom:12px">
+          <h3>${ind.title||"產業 "+(i+1)}</h3>
+          <label>標題</label><input data-industry-title="${i}" value="${ind.title||""}">
+          <label>副標題</label><input data-industry-sub="${i}" value="${ind.subtitle||""}">
+          ${imgUpload("industry"+i,"封面圖",ind.image||"assets/images/industry-food.jpg")}
+        </div>
+      `).join("")}
+    </div>`;
+    bindImg();
+    // 綁定 title/subtitle
+    c.querySelectorAll("[data-industry-title]").forEach(inp=>{
+      inp.oninput=e=>{const i=+inp.dataset.industryTitle;if(data.industries[i])data.industries[i].title=e.target.value;markAdminDirty();};
+    });
+    c.querySelectorAll("[data-industry-sub]").forEach(inp=>{
+      inp.oninput=e=>{const i=+inp.dataset.industrySub;if(data.industries[i])data.industries[i].subtitle=e.target.value;markAdminDirty();};
+    });
   }
 
   if(currentTab==="ihome"){

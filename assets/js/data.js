@@ -157,27 +157,27 @@ window.DEFAULT_DATA = {
     {
       "title": "餐飲業",
       "subtitle": "餐廳・咖啡廳・飲料店",
-      "image": "assets/images/多元產業圖片對應/industry-food.png"
+      "image": "assets/images/industry-food.jpg"
     },
     {
       "title": "零售業",
       "subtitle": "服飾・百貨・連鎖零售",
-      "image": "assets/images/多元產業圖片對應/industry-retail.png"
+      "image": "assets/images/industry-retail.jpg"
     },
     {
       "title": "美食街",
       "subtitle": "多櫃位・集中管理",
-      "image": "assets/images/多元產業圖片對應/industry-foodcourt.png"
+      "image": "assets/images/industry-foodcourt.jpg"
     },
     {
       "title": "商圈店家",
       "subtitle": "商圈店面・複合店家",
-      "image": "assets/images/多元產業圖片對應/industry-district.png"
+      "image": "assets/images/industry-district.jpg"
     },
     {
       "title": "小吃店",
       "subtitle": "小吃攤・早餐・滷味店",
-      "image": "assets/images/多元產業圖片對應/industry-snack.png"
+      "image": "assets/images/industry-snack.jpg"
     }
   ],
   "solutionsTitle": "完整解決方案・打造智慧營運",
