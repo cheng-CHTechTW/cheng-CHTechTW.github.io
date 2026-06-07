@@ -25,46 +25,66 @@ const CLOUD_DATA_URL="assets/data/site-data.json";
 function getGasUrl(){return localStorage.getItem("cc_gas_url")||(window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||""}
 function clone(x){return JSON.parse(JSON.stringify(x))}
 function merge(a,b){Object.keys(b||{}).forEach(k=>{if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==="object"&&!Array.isArray(a[k]))merge(a[k],b[k]);else a[k]=b[k]});return a}
+function isAdminPage(){return /admin\.html/i.test(location.pathname)}
 function isPreviewMode(){return new URLSearchParams(location.search).get("preview")==="1"&&sessionStorage.getItem("cc_preview_mode")==="1"}
-// 資料讀取優先順序：預覽 > 雲端(sessionStorage快取) > localStorage > DEFAULT_DATA
+
+// ── 資料讀取規則 ────────────────────────────────────────────
+// 後台 admin.html : localStorage（草稿編輯用）
+// 預覽模式        : sessionStorage preview
+// 前台訪客        : sessionStorage 雲端快取 → DEFAULT_DATA（絕不用 localStorage）
+// ──────────────────────────────────────────────────────────
 function getData(){
+  if(isAdminPage())  {const s=localStorage.getItem(DATA_KEY);return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
   if(isPreviewMode()){const s=sessionStorage.getItem("cc_preview_site_data");return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
   const cloud=sessionStorage.getItem(CLOUD_DATA_KEY);
   if(cloud){try{return merge(clone(DEFAULT_DATA),JSON.parse(cloud))}catch(e){}}
-  const local=localStorage.getItem(DATA_KEY);
-  return local?merge(clone(DEFAULT_DATA),JSON.parse(local)):clone(DEFAULT_DATA)
+  return clone(DEFAULT_DATA)  // 雲端尚未載入時先用預設，不顯示舊快取
 }
 function getImgs(){
+  if(isAdminPage())  return JSON.parse(localStorage.getItem(IMG_KEY)||"{}");
   if(isPreviewMode())return JSON.parse(sessionStorage.getItem("cc_preview_site_images")||"{}");
   const cloud=sessionStorage.getItem(CLOUD_IMG_KEY);
   if(cloud){try{return JSON.parse(cloud)}catch(e){}}
-  return JSON.parse(localStorage.getItem(IMG_KEY)||"{}")
+  return {}
 }
-// 從雲端載入資料（GitHub JSON 優先，GAS 備援）
+
+// ── 雲端載入：每次開頁都強制拉最新，不用舊快取 ────────────────
 async function _fetchCloudData(){
-  // 1. 試從 GitHub Pages JSON 讀取
+  // 每次都加時間戳確保拿最新，不被 CDN / 瀏覽器快取
+  const bust="?_="+Date.now();
+  // 1. GitHub Pages JSON（發布後的正式資料）
   try{
-    const r=await fetch(resolveAssetPath(CLOUD_DATA_URL)+"?_="+Date.now(),{cache:"no-cache"});
-    if(r.ok){const j=await r.json();if(j&&j._meta&&j.siteVersion)return j}
+    const r=await fetch(resolveAssetPath(CLOUD_DATA_URL)+bust,{cache:"no-store"});
+    if(r.ok){
+      const j=await r.json();
+      // 有效的發布資料必須有 _meta.version（代表曾被後台發布過）
+      if(j&&j._meta&&j._meta.version&&j.siteVersion)return j;
+    }
   }catch(e){}
-  // 2. 試從 GAS 讀取
+  // 2. GAS 備援（當 GitHub JSON 尚未發布或拉取失敗時）
   const gasUrl=getGasUrl();
   if(gasUrl&&!gasUrl.includes("請貼上")){
     try{
-      const r=await fetch(gasUrl+"?action=getData",{cache:"no-cache"});
-      if(r.ok){const j=await r.json();if(j&&j.data)return j.data}
+      const r=await fetch(gasUrl+"?action=getData"+bust,{cache:"no-store"});
+      if(r.ok){const j=await r.json();if(j&&j.data&&j.data.siteVersion)return j.data}
     }catch(e){}
   }
   return null;
 }
-// 頁面初始化時呼叫，載入雲端資料後重新渲染
-async function initCloudSync(renderFn){
-  const d=await _fetchCloudData();
-  if(d){
-    sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(d));
-    if(d.images)sessionStorage.setItem(CLOUD_IMG_KEY,JSON.stringify(d.images));
-    if(typeof renderFn==="function")renderFn();
+
+// ── 前台核心同步函式：載入雲端→清除舊快取→立刻重繪 ─────────────
+async function syncFromCloudAndApply(){
+  if(isAdminPage()||isPreviewMode())return; // 後台/預覽不走此流程
+  const fresh=await _fetchCloudData();
+  if(fresh){
+    // 清除舊的 sessionStorage 快取，寫入最新資料
+    sessionStorage.removeItem(CLOUD_DATA_KEY);
+    sessionStorage.removeItem(CLOUD_IMG_KEY);
+    sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(fresh));
+    if(fresh.images)sessionStorage.setItem(CLOUD_IMG_KEY,JSON.stringify(fresh.images));
+    _reapplyAll();
   }
+  // 雲端拉取失敗時保持 DEFAULT_DATA 顯示，不顯示任何本機舊資料
 }
 function gp(o,p){return p.split(".").reduce((x,k)=>x&&x[k],o)}function txt(el,v){el.innerHTML=String(v??"").replace(/\n/g,"<br>")}function visibleItems(arr){return (arr||[]).filter(x=>x.visible!==false)}
 function todayYMD(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`}
@@ -314,9 +334,9 @@ function openFormType(formType){
   }
 }
 
-apply();
+apply();          // 立刻用 DEFAULT_DATA 渲染，確保頁面不空白
 initSearch();
-setTimeout(syncFromCloudAndApply, 100);
+syncFromCloudAndApply(); // 同時非同步拉雲端，拉到立刻重繪（不 delay）
 
 /* 006 v16 post render fixes */
 function ccV16Enhance(){
@@ -606,21 +626,6 @@ function _reapplyAll(){
   if(window.ccV17FloatingFollow) ccV17FloatingFollow();
   if(window.applySocialVisibility009) applySocialVisibility009(getData());
   if(window.applySocialIconVisibilityV19) applySocialIconVisibilityV19(getData());
-}
-
-async function syncFromCloudAndApply(){
-  // 優先順序：GitHub JSON → GAS → 不更新
-  const cloudData = await _fetchCloudData();
-  if(cloudData){
-    const newStr = JSON.stringify(cloudData);
-    const curStr = JSON.stringify(getData());
-    if(newStr !== curStr){
-      console.log("雲端資料已更新，重新渲染頁面...");
-      sessionStorage.setItem(CLOUD_DATA_KEY, newStr);
-      if(cloudData.images) sessionStorage.setItem(CLOUD_IMG_KEY, JSON.stringify(cloudData.images));
-      _reapplyAll();
-    }
-  }
 }
 
 function initSearch() {

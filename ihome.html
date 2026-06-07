@@ -2941,25 +2941,23 @@
         }
       } catch(e) {}
 
-      // Fallback to local storage or DEFAULT_DATA
+      // 前台訪客：只用 sessionStorage 雲端快取 或 DEFAULT_DATA（不讀 localStorage）
       if (!appData) {
         try {
-          var saved = localStorage.getItem("cc_full_site_data");
-          if (saved) appData = JSON.parse(saved);
+          var cloudStr = sessionStorage.getItem("cc_cloud_site_data");
+          if (cloudStr) appData = JSON.parse(cloudStr);
         } catch(e) {}
       }
-      
       if (!appData) {
         appData = window.DEFAULT_DATA;
       } else {
-        // Merge to make sure missing keys don't throw errors
         appData = Object.assign({}, window.DEFAULT_DATA, appData);
       }
 
       if (!appImages || Object.keys(appImages).length === 0) {
         try {
-          var savedImgs = localStorage.getItem("cc_full_site_images");
-          if (savedImgs) appImages = JSON.parse(savedImgs);
+          var cloudImgStr = sessionStorage.getItem("cc_cloud_site_images");
+          if (cloudImgStr) appImages = JSON.parse(cloudImgStr);
         } catch(e) {}
       }
       if (!appImages) appImages = {};
@@ -3219,6 +3217,41 @@
         }
       }
     });
+
+    // ── 雲端同步：ihome.html 頁面載入時拉最新資料重繪 ────────
+    (async function ihomeCloudSync(){
+      if(sessionStorage.getItem("cc_preview_mode")==="1") return;
+      var CLOUD_URL = "assets/data/site-data.json";
+      var bust = "?_=" + Date.now();
+      var fresh = null;
+      try {
+        var r = await fetch(CLOUD_URL + bust, {cache:"no-store"});
+        if(r.ok){
+          var j = await r.json();
+          if(j && j._meta && j._meta.version && j.siteVersion) fresh = j;
+        }
+      } catch(e) {}
+      // GAS 備援
+      if(!fresh){
+        try {
+          var gasUrl = (window.DEFAULT_DATA&&DEFAULT_DATA.formConfig&&DEFAULT_DATA.formConfig.googleScriptUrl)||"";
+          if(gasUrl && !gasUrl.includes("請貼上")){
+            var r2 = await fetch(gasUrl + "?action=getData" + bust, {cache:"no-store"});
+            if(r2.ok){var j2 = await r2.json(); if(j2&&j2.data&&j2.data.siteVersion) fresh = j2.data;}
+          }
+        } catch(e) {}
+      }
+      if(fresh){
+        sessionStorage.removeItem("cc_cloud_site_data");
+        sessionStorage.removeItem("cc_cloud_site_images");
+        sessionStorage.setItem("cc_cloud_site_data", JSON.stringify(fresh));
+        if(fresh.images) sessionStorage.setItem("cc_cloud_site_images", JSON.stringify(fresh.images));
+        // 重新載入頁面以反映最新資料（只在資料有變更時）
+        var curStr = JSON.stringify(appData);
+        var newStr = JSON.stringify(Object.assign({}, window.DEFAULT_DATA, fresh));
+        if(curStr !== newStr) location.reload();
+      }
+    })();
   </script>
 </body>
 </html>
