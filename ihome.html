@@ -2944,11 +2944,17 @@
         }
       } catch(e) {}
 
-      // 前台訪客：只用 sessionStorage 雲端快取 或 DEFAULT_DATA（不讀 localStorage）
+      // 資料優先順序：雲端快取 → localStorage → DEFAULT_DATA
       if (!appData) {
         try {
           var cloudStr = sessionStorage.getItem("cc_cloud_site_data");
-          if (cloudStr) appData = JSON.parse(cloudStr);
+          if (cloudStr) { var cd = JSON.parse(cloudStr); if(cd && cd.siteVersion) appData = cd; }
+        } catch(e) {}
+      }
+      if (!appData) {
+        try {
+          var localStr = localStorage.getItem("cc_full_site_data");
+          if (localStr) appData = JSON.parse(localStr);
         } catch(e) {}
       }
       if (!appData) {
@@ -2957,19 +2963,20 @@
         appData = Object.assign({}, window.DEFAULT_DATA, appData);
       }
 
-      // 圖片：優先使用雲端 site-images.json 快取（sessionStorage）
+      // 圖片：雲端快取 → localStorage → 空物件
       if (!appImages || Object.keys(appImages).length === 0) {
         try {
           var cloudImgStr = sessionStorage.getItem("cc_cloud_site_images");
           if (cloudImgStr) appImages = JSON.parse(cloudImgStr);
         } catch(e) {}
       }
+      if (!appImages || Object.keys(appImages).length === 0) {
+        try {
+          var localImgStr = localStorage.getItem("cc_full_site_images");
+          if (localImgStr) appImages = JSON.parse(localImgStr);
+        } catch(e) {}
+      }
       if (!appImages) appImages = {};
-      // 合併雲端圖片（避免舊版本圖片覆蓋新版）
-      try {
-        var extraImgStr = sessionStorage.getItem("cc_cloud_site_images");
-        if(extraImgStr){ var extraImgs = JSON.parse(extraImgStr); appImages = Object.assign({}, appImages, extraImgs); }
-      } catch(e) {}
 
       var config = appData.ihomeConfig;
       if (!config) return;

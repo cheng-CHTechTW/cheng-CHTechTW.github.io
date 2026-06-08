@@ -29,24 +29,25 @@ function merge(a,b){Object.keys(b||{}).forEach(k=>{if(b[k]&&typeof b[k]==="objec
 function isAdminPage(){return /admin\.html/i.test(location.pathname)}
 function isPreviewMode(){return new URLSearchParams(location.search).get("preview")==="1"&&sessionStorage.getItem("cc_preview_mode")==="1"}
 
-// ── 資料讀取規則 ────────────────────────────────────────────
-// 後台 admin.html : localStorage（草稿編輯用）
+// ── 資料讀取優先順序 ──────────────────────────────────────────
 // 預覽模式        : sessionStorage preview
-// 前台訪客        : sessionStorage 雲端快取 → DEFAULT_DATA（絕不用 localStorage）
-// ──────────────────────────────────────────────────────────
+// 有雲端快取      : sessionStorage 雲端資料（syncFromCloudAndApply 寫入）
+// 有本機資料      : localStorage（管理員已設定的內容，GAS 設定前的備援）
+// 最後備援        : DEFAULT_DATA
+// ─────────────────────────────────────────────────────────────
 function getData(){
-  if(isAdminPage())  {const s=localStorage.getItem(DATA_KEY);return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
   if(isPreviewMode()){const s=sessionStorage.getItem("cc_preview_site_data");return s?merge(clone(DEFAULT_DATA),JSON.parse(s)):clone(DEFAULT_DATA)}
   const cloud=sessionStorage.getItem(CLOUD_DATA_KEY);
-  if(cloud){try{return merge(clone(DEFAULT_DATA),JSON.parse(cloud))}catch(e){}}
-  return clone(DEFAULT_DATA)  // 雲端尚未載入時先用預設，不顯示舊快取
+  if(cloud){try{const d=JSON.parse(cloud);if(d&&d.siteVersion)return merge(clone(DEFAULT_DATA),d)}catch(e){}}
+  const local=localStorage.getItem(DATA_KEY);
+  if(local){try{const d=JSON.parse(local);if(d&&d.siteVersion)return merge(clone(DEFAULT_DATA),d)}catch(e){}}
+  return clone(DEFAULT_DATA)
 }
 function getImgs(){
-  if(isAdminPage())  return JSON.parse(localStorage.getItem(IMG_KEY)||"{}");
   if(isPreviewMode())return JSON.parse(sessionStorage.getItem("cc_preview_site_images")||"{}");
   const cloud=sessionStorage.getItem(CLOUD_IMG_KEY);
-  if(cloud){try{return JSON.parse(cloud)}catch(e){}}
-  return {}
+  if(cloud){try{const d=JSON.parse(cloud);if(d&&typeof d==="object")return d}catch(e){}}
+  return JSON.parse(localStorage.getItem(IMG_KEY)||"{}")
 }
 
 // ── 雲端載入：每次開頁都強制拉最新，資料與圖片同步 ────────────
@@ -93,18 +94,19 @@ async function _fetchCloudData(){
   return null;
 }
 
-// ── 前台核心同步函式：載入雲端→清除舊快取→立刻重繪 ─────────────
+// ── 前台核心同步函式：載入雲端→更新快取→重繪（只有資料有更新才重繪）─
 async function syncFromCloudAndApply(){
-  if(isAdminPage()||isPreviewMode())return;
-  // 清除舊快取（_fetchCloudData 內部會寫入新的 CLOUD_IMG_KEY）
-  sessionStorage.removeItem(CLOUD_DATA_KEY);
-  sessionStorage.removeItem(CLOUD_IMG_KEY);
+  if(isPreviewMode())return;
   const fresh=await _fetchCloudData();
-  if(fresh){
-    sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(fresh));
-    _reapplyAll();
-  }
-  // 雲端失敗 → 保持 DEFAULT_DATA，不顯示任何本機舊資料
+  if(!fresh)return; // 雲端拉取失敗 → 保持現有顯示（localStorage 的內容）
+  // 比對是否有更新
+  const curStr=JSON.stringify(getData());
+  const newStr=JSON.stringify(merge(clone(DEFAULT_DATA),fresh));
+  if(curStr===newStr)return; // 沒有變化，不重繪
+  // 寫入快取並同步 localStorage（讓下次開頁也能讀到最新）
+  sessionStorage.setItem(CLOUD_DATA_KEY,JSON.stringify(fresh));
+  if(!isAdminPage()) localStorage.setItem(DATA_KEY,JSON.stringify(fresh));
+  _reapplyAll();
 }
 function gp(o,p){return p.split(".").reduce((x,k)=>x&&x[k],o)}function txt(el,v){el.innerHTML=String(v??"").replace(/\n/g,"<br>")}function visibleItems(arr){return (arr||[]).filter(x=>x.visible!==false)}
 function todayYMD(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${d.getFullYear()}-${m}-${day}`}
