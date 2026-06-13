@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "version": "002_JSON_Sync_Prototype",
+    "source": "assets/data/news.json",
+    "status": "prototype"
+  },
+  "items": [
+    {
+      "id": "news-json-sync-prototype",
+      "visible": true,
+      "pinned": true,
+      "publishDate": "2026-06-14",
+      "title": "JSON 同步測試版建立中",
+      "subtitle": "網站同步化",
+      "summary": "本測試版會讓前台優先讀取 GitHub Pages 上的 JSON 資料，降低不同裝置 localStorage 不一致的問題。",
+      "url": ""
+    }
+  ]
+}
