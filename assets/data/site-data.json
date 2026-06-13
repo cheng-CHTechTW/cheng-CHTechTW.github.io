@@ -1,8 +1,34 @@
 {
   "_meta": {
-    "version": "001_current_official",
+    "version": "002_JSON_Sync_Prototype",
+    "source": "assets/data/site-data.json",
+    "status": "prototype",
     "publishedAt": "",
     "publishedBy": "",
-    "note": "由後台發布系統自動生成，請勿手動修改"
+    "note": "Dev prototype data for JSON-first loading. Do not store customer data, secrets, tokens, or admin credentials here."
+  },
+  "site": {
+    "companyId": "chengchuang",
+    "siteKey": "main",
+    "title": "誠創科技｜智慧 POS 解決方案",
+    "description": "誠創科技提供 POS 系統、電子發票、多元支付、周邊設備與客製化系統整合服務。",
+    "contact": {
+      "phone": "(02)-6623-7091",
+      "email": "chengchuang1012@gmail.com",
+      "lineId": "@905dqqqw"
+    }
+  },
+  "sync": {
+    "officialSource": "github-pages-json",
+    "jsonFirst": true,
+    "localStorageUsage": ["draft", "preview", "temporary-fallback"],
+    "forbiddenPublicData": [
+      "customer_form_submissions",
+      "admin_passwords",
+      "github_tokens",
+      "firebase_secrets",
+      "internal_notes",
+      "quotation_records"
+    ]
   }
 }
