@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "version": "002_JSON_Sync_Prototype",
+    "source": "assets/data/partners.json",
+    "status": "prototype"
+  },
+  "items": [
+    {
+      "id": "chengchuang",
+      "visible": true,
+      "companyName": "誠創科技",
+      "siteKey": "main",
+      "websiteUrl": "index.html",
+      "description": "POS 系統、電子發票、多元支付、網站與客製化開發整合服務。"
+    },
+    {
+      "id": "ihome",
+      "visible": true,
+      "companyName": "愛家居系統櫥櫃",
+      "siteKey": "ihome",
+      "websiteUrl": "ihome.html",
+      "description": "客製化空間設計、系統櫥櫃與作品集管理的第一個子站模組。"
+    }
+  ]
+}
