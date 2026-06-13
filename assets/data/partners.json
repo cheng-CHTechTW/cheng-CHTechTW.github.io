@@ -1,25 +1,36 @@
 {
   "_meta": {
-    "version": "002_JSON_Sync_Prototype",
-    "source": "assets/data/partners.json",
-    "status": "prototype"
+    "version": "006_v33",
+    "source": "assets/js/data.js",
+    "extractedFrom": "DEFAULT_DATA.partners",
+    "status": "extracted"
+  },
+  "title": "關係企業・一條龍服務",
+  "display": {
+    "visible": true,
+    "limit": 4,
+    "mode": "more"
   },
   "items": [
     {
-      "id": "chengchuang",
       "visible": true,
+      "image": "assets/images/case-1.svg",
       "companyName": "誠創科技",
-      "siteKey": "main",
+      "phone": "(02)-6623-7091",
+      "lineUrl": "https://lin.ee/RbGc5o5",
+      "facebookUrl": "https://www.facebook.com/profile.php?id=61551798885885",
       "websiteUrl": "index.html",
       "description": "POS 系統、電子發票、多元支付、網站與客製化開發整合服務。"
     },
     {
-      "id": "ihome",
       "visible": true,
+      "image": "assets/images/ihome/S__16375813_0.jpg",
       "companyName": "愛家居系統櫥櫃",
-      "siteKey": "ihome",
+      "phone": "0955-149-470",
+      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
+      "facebookUrl": "",
       "websiteUrl": "ihome.html",
-      "description": "客製化空間設計、系統櫥櫃與作品集管理的第一個子站模組。"
+      "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
     }
   ]
 }
