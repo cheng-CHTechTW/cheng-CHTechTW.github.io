@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "version": "002_JSON_Sync_Prototype",
+    "source": "assets/data/faq.json",
+    "status": "prototype"
+  },
+  "items": [
+    {
+      "id": "json-sync-source",
+      "visible": true,
+      "question": "為什麼要改成 JSON 同步？",
+      "answer": "正式內容放在 GitHub Pages 可讀取的 JSON 檔案後，手機、LINE 內建瀏覽器與桌機會讀同一份資料，不再各自依賴本機 localStorage。"
+    },
+    {
+      "id": "localstorage-role",
+      "visible": true,
+      "question": "localStorage 還可以使用嗎？",
+      "answer": "可以，但只應作為後台草稿、預覽或讀取失敗時的暫時備援，不可作為正式網站資料庫。"
+    }
+  ]
+}
