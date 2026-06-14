@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "version": "006_v33",
+    "source": "assets/js/data.js",
+    "extractedFrom": "DEFAULT_DATA.news",
+    "status": "extracted"
+  },
+  "title": "最新消息",
+  "display": {
+    "visible": true,
+    "limit": 3,
+    "mode": "more"
+  },
+  "items": [
+    {
+      "visible": true,
+      "pinned": true,
+      "publishDate": "2026-05-01",
+      "title": "全新智能 POS 系統正式上市",
+      "subtitle": "產品訊息",
+      "text": "全新升級的 POS 系統，介面更直覺。",
+      "image": "",
+      "url": "",
+      "extraImages": "",
+      "extraLinks": ""
+    },
+    {
+      "visible": true,
+      "pinned": false,
+      "publishDate": "2026-05-10",
+      "title": "耗材專區優惠活動開跑",
+      "subtitle": "活動訊息",
+      "text": "多款耗材優惠中，歡迎洽詢。",
+      "image": "",
+      "url": "",
+      "extraImages": "",
+      "extraLinks": ""
+    },
+    {
+      "visible": true,
+      "pinned": false,
+      "publishDate": "2026-05-15",
+      "title": "線上支援服務升級",
+      "subtitle": "公司訊息",
+      "text": "提供更快速、更專業的售後支援。",
+      "image": "",
+      "url": "",
+      "extraImages": "",
+      "extraLinks": ""
+    }
+  ]
+}

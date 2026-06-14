@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV JSON 測試站｜愛家居</title>
+  <style>
+    body { margin: 0; font-family: Arial, "Microsoft JhengHei", sans-serif; background: #f7f5f1; color: #222; }
+    header { background: #3d3128; color: #fff; padding: 24px; }
+    main { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    h2 { margin: 0 0 12px; font-size: 20px; }
+    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }
+    .box { background: #fff; border: 1px solid #ded6cc; border-radius: 8px; padding: 16px; }
+    .label { color: #756b62; font-size: 13px; margin-bottom: 6px; }
+    .value { font-size: 18px; font-weight: 700; word-break: break-word; }
+    .source { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 10px; border-radius: 999px; background: #e6f4ea; color: #176b36; font-weight: 700; }
+    [data-data-source="data.js"] .source { background: #fff3cd; color: #8a5a00; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 6px 0; }
+    .error { color: #b42318; white-space: pre-wrap; }
+    a { color: #7a4b22; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DEV JSON 測試站｜愛家居</h1>
+    <div>此頁只驗證 JSON 讀取與 ihome 公開資料，不修改正式 ihome.html。</div>
+  </header>
+  <main>
+    <section class="meta">
+      <div class="box"><div class="label">資料來源</div><div class="value source" id="dataSource">讀取中</div></div>
+      <div class="box"><div class="label">頁面類型</div><div class="value" id="pageType">ihome</div></div>
+      <div class="box"><div class="label">版本號</div><div class="value" id="siteVersion"></div></div>
+      <div class="box"><div class="label">讀取時間</div><div class="value" id="loadedAt"></div></div>
+    </section>
+
+    <section class="box">
+      <h2>愛家居摘要</h2>
+      <p><strong>品牌：</strong><span id="ihomeTitle"></span></p>
+      <p><strong>電話：</strong><span id="ihomePhone"></span></p>
+      <p><strong>作品數：</strong><span id="ihomeCasesCount"></span></p>
+      <p class="error" id="jsonError"></p>
+    </section>
+
+    <section class="box">
+      <h2>共用主站資料摘要</h2>
+      <p><strong>網站標題：</strong><span id="siteTitle"></span></p>
+      <p><strong>誠創電話：</strong><span id="contactPhone"></span></p>
+      <p><strong>誠創 LINE：</strong><span id="contactLine"></span></p>
+    </section>
+
+    <section class="meta">
+      <div class="box"><div class="label">最新消息數</div><div class="value" id="newsCount">0</div></div>
+      <div class="box"><div class="label">關係企業數</div><div class="value" id="partnersCount">0</div></div>
+      <div class="box"><div class="label">FAQ 數</div><div class="value" id="faqCount">0</div></div>
+      <div class="box"><div class="label">表單設定數</div><div class="value" id="formsCount">0</div></div>
+    </section>
+
+    <section class="grid">
+      <div class="box"><h2>最新消息</h2><ul id="newsList"></ul></div>
+      <div class="box"><h2>關係企業</h2><ul id="partnersList"></ul></div>
+      <div class="box"><h2>FAQ</h2><ul id="faqList"></ul></div>
+      <div class="box"><h2>表單設定</h2><ul id="formsList"></ul></div>
+    </section>
+
+    <section class="box" style="margin-top:16px;">
+      <h2>測試說明</h2>
+      <p>正常情況應顯示資料來源為 JSON。若任一 JSON 讀取失敗，會 fallback 到 <code>assets/js/data.js</code> 的 <code>window.DEFAULT_DATA</code> 並顯示 data.js。</p>
+      <p><a href="dev-index.html">返回 DEV 誠創科技測試頁</a></p>
+    </section>
+  </main>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/dev-json-loader.js"></script>
+  <script>
+    window.ChengChuangDevJsonLoader.start({ pageType: "ihome" });
+  </script>
+</body>
+</html>
