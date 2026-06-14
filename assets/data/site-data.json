@@ -1,8 +1,11 @@
 {
-  "_meta": {
-    "version": "001_current_official",
-    "publishedAt": "",
-    "publishedBy": "",
-    "note": "由後台發布系統自動生成，請勿手動修改"
-  }
+    "_meta": {
+          "version": "001_current_official",
+          "publishedAt": "",
+          "publishedBy": "",
+          "note": "由後台發布系統自動生成，請勿手動修改"
+    },
+    "formConfig": {
+          "googleScriptUrl": "https://script.google.com/macros/s/AKfycbzpa46PH7rg6JH7Sn1bSv8A5BzFIyGa6i-9yrskqRlOKrjJgk7DRovRKdVyzQiu3wCJRA/exec"
+    }
 }
