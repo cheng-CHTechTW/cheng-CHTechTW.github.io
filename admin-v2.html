@@ -8,6 +8,344 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/admin-v2.css">
+<style>
+#firebase-setup-page{display:none;min-height:100vh;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);align-items:center;justify-content:center;padding:16px}
+.setup-card{background:#fff;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:100%;max-width:560px;padding:40px}
+.setup-header{text-align:center;margin-bottom:28px}
+.setup-icon{width:56px;height:56px;background:#2563eb;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 12px}
+.setup-card h2{font-size:20px;font-weight:700;margin:0 0 6px}
+.setup-sub{font-size:13px;color:#64748b;margin:0}
+.setup-steps{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#0369a1;line-height:1.8}
+.setup-steps strong{display:block;font-weight:700;margin-bottom:4px;color:#0c4a6e}
+.setup-field{margin-bottom:14px}
+.setup-field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:#1e293b}
+.setup-field input{width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:'Courier New',monospace;color:#1e293b;transition:border-color .2s}
+.setup-field input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
+.setup-actions{display:flex;gap:10px;margin-top:20px}
+.btn-setup-save{flex:1;padding:11px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-setup-save:hover{background:#1d4ed8}
+.btn-setup-paste{padding:11px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#475569;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.setup-msg{font-size:13px;margin-top:10px;text-align:center;min-height:20px}
+.setup-msg.ok{color:#16a34a}.setup-msg.err{color:#dc2626}
+.setup-json-area{width:100%;min-height:120px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-family:'Courier New',monospace;font-size:12px;color:#1e293b;resize:vertical;margin-bottom:8px}
+.setup-json-area:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
+.setup-tab-btns{display:flex;gap:8px;margin-bottom:16px}
+.setup-tab-btn{flex:1;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#64748b;font-size:13px;font-weight:600;cursor:pointer}
+.setup-tab-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.setup-tab-pane{display:none}.setup-tab-pane.active{display:block}
+</style>
+</head>
+<body>
+
+<div id="firebase-setup-page">
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="setup-icon">🔥</div>
+      <h2>Firebase 設定</h2>
+      <p class="setup-sub">首次使用請輸入 Firebase 專案資訊</p>
+    </div>
+    <div class="setup-steps">
+      <strong>📋 如何取得設定？</strong>
+      1. 前往 <a href="https://console.firebase.google.com" target="_blank" style="color:#0369a1">console.firebase.google.com</a><br>
+      2. 選擇您的專案 → ⚙️ 專案設定<br>
+      3. 向下捲到「您的應用程式」→ 選擇 Web 應用程式<br>
+      4. 複製 firebaseConfig 物件或貼上完整 JSON / SDK 設定碼
+    </div>
+    <div class="setup-tab-btns">
+      <button class="setup-tab-btn active" onclick="switchSetupTab('json')">📋 貼上 JSON（快速）</button>
+      <button class="setup-tab-btn" onclick="switchSetupTab('fields')">✍️ 逐欄輸入</button>
+    </div>
+    <div id="setup-tab-json" class="setup-tab-pane active">
+      <div class="setup-field">
+        <label>貼上 firebaseConfig JSON 或 SDK 設定碼</label>
+        <textarea id="setup-json-input" class="setup-json-area" placeholder='貼上格式：&#10;{&#10;  "apiKey": "AIza...",&#10;  "authDomain": "xxx.firebaseapp.com",&#10;  "projectId": "xxx",&#10;  "storageBucket": "xxx.appspot.com",&#10;  "messagingSenderId": "123...",&#10;  "appId": "1:123..."&#10;}'></textarea>
+      </div>
+      <div class="setup-actions">
+        <button class="btn-setup-paste" onclick="pasteFromClipboard()">📋 從剪貼簿貼上</button>
+        <button class="btn-setup-save" onclick="saveFromJson()">✓ 儲存並進入後台</button>
+      </div>
+    </div>
+    <div id="setup-tab-fields" class="setup-tab-pane">
+      <div class="setup-field"><label>API Key <span style="color:#ef4444">*</span></label><input type="text" id="f-apiKey" placeholder="AIzaSy..."></div>
+      <div class="setup-field"><label>Auth Domain <span style="color:#ef4444">*</span></label><input type="text" id="f-authDomain" placeholder="your-project.firebaseapp.com"></div>
+      <div class="setup-field"><label>Project ID <span style="color:#ef4444">*</span></label><input type="text" id="f-projectId" placeholder="your-project-id"></div>
+      <div class="setup-field"><label>Storage Bucket</label><input type="text" id="f-storageBucket" placeholder="your-project.appspot.com"></div>
+      <div class="setup-field"><label>Messaging Sender ID</label><input type="text" id="f-messagingSenderId" placeholder="123456789"></div>
+      <div class="setup-field"><label>App ID <span style="color:#ef4444">*</span></label><input type="text" id="f-appId" placeholder="1:123456789:web:abc..."></div>
+      <div class="setup-actions"><button class="btn-setup-save" onclick="saveFromFields()">✓ 儲存並進入後台</button></div>
+    </div>
+    <div id="setup-msg" class="setup-msg"></div>
+  </div>
+</div>
+
+<div id="login-page" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🏢</div>
+      <div class="brand">誠創科技 CMS V2</div>
+      <div class="sub">後台管理系統</div>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label">帳號 Email</label>
+        <input class="form-control" type="email" id="login-email" placeholder="your@email.com" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密碼</label>
+        <input class="form-control" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary w-full btn-lg" type="submit" id="login-btn">登入後台</button>
+    </form>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="showSetupPage()" style="background:none;border:none;color:#94a3b8;font-size:12px;cursor:pointer;text-decoration:underline">⚙ 重新設定 Firebase Config</button>
+    </div>
+  </div>
+</div>
+
+<div id="admin-layout" style="display:none">
+  <aside id="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text"><div class="brand">誠創科技 CMS</div><div class="sub">管理後台 V2</div></div>
+    </div>
+    <div class="site-switcher">
+      <label>管理站台</label>
+      <select id="site-select">
+        <option value="chtech">🏭 誠創科技官網</option>
+        <option value="ihome">🏠 愛家居官網</option>
+      </select>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">主要功能</div>
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span> 儀表板</div>
+      <div class="nav-item" data-page="siteInfo"><span class="nav-icon">🏢</span> 公司資料</div>
+      <div class="nav-item" data-page="hero"><span class="nav-icon">🌐</span> 形象網站</div>
+      <div class="nav-item" data-page="images"><span class="nav-icon">🖼</span> 圖片管理</div>
+      <div class="nav-item" data-page="news"><span class="nav-icon">📰</span> 最新消息</div>
+      <div class="nav-item" data-page="faq"><span class="nav-icon">❓</span> FAQ管理</div>
+      <div class="nav-item" data-page="form"><span class="nav-icon">📝</span> 表單設定</div>
+      <div class="nav-item" data-page="submissions"><span class="nav-icon">📩</span> 表單紀錄</div>
+      <div class="nav-section-title">系統管理</div>
+      <div class="nav-item" data-page="accounts"><span class="nav-icon">👥</span> 帳號權限</div>
+      <div class="nav-item" data-page="billing"><span class="nav-icon">💳</span> 帳務到期</div>
+      <div class="nav-item" data-page="settings"><span class="nav-icon">⚙</span> 系統設定</div>
+      <div class="nav-item" data-page="init"><span class="nav-icon">🚀</span> 初始化 CMS</div>
+      <div class="nav-section-title">未開通功能</div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 銷售看帳</div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 線上點餐</div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 外送平台</div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 電子發票</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-initial">A</div>
+        <div class="sidebar-user-info"><div class="name" id="sidebar-user-name">載入中...</div><div class="role">管理員</div></div>
+      </div>
+      <button class="btn-logout" id="logout-btn">🚪 登出</button>
+    </div>
+  </aside>
+
+  <div id="admin-main">
+    <header id="admin-topbar">
+      <button class="topbar-menu-btn" id="topbar-menu-btn">☰</button>
+      <div class="topbar-breadcrumb">誠創科技 CMS &rsaquo; <span class="current">儀表板</span></div>
+      <div class="topbar-actions">
+        <button class="topbar-bell" id="topbar-bell">🔔</button>
+        <span style="font-size:13px;color:var(--c-text-2)" id="topbar-site-label">誠創科技</span>
+      </div>
+    </header>
+    <main id="admin-content">
+
+      <section id="page-dashboard" class="section-page active">
+        <div class="page-header"><div><div class="page-title">儀表板</div><div class="page-desc">站台：<strong id="dash-site-name">誠創科技</strong></div></div></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon blue">📰</div><div><div class="stat-label">最新消息</div><div class="stat-value" id="stat-news">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">❓</div><div><div class="stat-label">FAQ 項目</div><div class="stat-value" id="stat-faq">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon yellow">📩</div><div><div class="stat-label">表單紀錄</div><div class="stat-value" id="stat-subs">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon purple">🏢</div><div><div class="stat-label">管理站台</div><div class="stat-value">2</div></div></div>
+        </div>
+        <div class="card"><div class="card-header"><span class="card-title">📩 最新表單紀錄</span><button class="btn btn-sm btn-outline" onclick="navigateTo('submissions')">查看全部</button></div>
+          <div class="card-body" style="padding:0"><div class="table-wrap"><table><thead><tr><th>姓名</th><th>電話</th><th>送出時間</th><th>狀態</th></tr></thead>
+          <tbody id="latest-submissions"><tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px">載入中...</td></tr></tbody></table></div></div></div>
+      </section>
+
+      <section id="page-siteInfo" class="section-page">
+        <div class="page-header"><div><div class="page-title">🏢 公司資料</div><div class="page-desc">修改後前台自動更新</div></div><button class="btn btn-primary" id="save-siteinfo-btn">儲存</button></div>
+        <div class="card"><div class="card-body">
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">公司名稱（中文）</label><input class="form-control" id="si-companyName"></div><div class="form-group"><label class="form-label">公司名稱（英文）</label><input class="form-control" id="si-companyNameEn"></div></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">電話</label><input class="form-control" id="si-phone"></div><div class="form-group"><label class="form-label">Email</label><input class="form-control" type="email" id="si-email"></div></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">地址</label><input class="form-control" id="si-address"></div><div class="form-group"><label class="form-label">統一編號</label><input class="form-control" id="si-taxId"></div></div>
+          <div class="form-group"><label class="form-label">關於我們</label><textarea class="form-control" id="si-about" rows="3"></textarea></div>
+          <div class="form-group"><label class="form-label">頁尾版權文字</label><input class="form-control" id="si-footerCopy"></div>
+          <div style="height:1px;background:var(--c-border);margin:20px 0"></div>
+          <div class="form-row col-3"><div class="form-group"><label class="form-label">LINE 連結</label><input class="form-control" id="si-lineUrl"></div><div class="form-group"><label class="form-label">Facebook</label><input class="form-control" id="si-fbUrl"></div><div class="form-group"><label class="form-label">Instagram</label><input class="form-control" id="si-igUrl"></div></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">SEO 標題</label><input class="form-control" id="si-seoTitle"></div><div class="form-group"><label class="form-label">SEO 描述</label><input class="form-control" id="si-seoDescription"></div></div>
+        </div></div>
+      </section>
+
+      <section id="page-hero" class="section-page"><div class="page-header"><div><div class="page-title">🌐 形象網站設定</div></div></div><div class="card"><div class="card-body"><p class="text-muted">Banner 設定（開發中）</p></div></div></section>
+
+      <section id="page-images" class="section-page">
+        <div class="page-header"><div><div class="page-title">🖼 圖片管理</div><div class="page-desc">圖片存放於 GitHub，請依規格命名後上傳</div></div></div>
+        <div class="card"><div class="card-body"><table><thead><tr><th>類型</th><th>路徑</th><th>尺寸</th><th>命名範例</th></tr></thead><tbody>
+          <tr><td>Logo</td><td>/assets/sites/{siteId}/logo/</td><td>1200x1200</td><td>logo-primary.webp</td></tr>
+          <tr><td>Banner</td><td>/assets/sites/{siteId}/banner/</td><td>1920x1080</td><td>banner-home-01.webp</td></tr>
+          <tr><td>OG 分享圖</td><td>/assets/sites/{siteId}/og/</td><td>1200x630</td><td>og-image.webp</td></tr>
+          <tr><td>LINE QR</td><td>/assets/sites/{siteId}/qrcode/</td><td>800x800</td><td>line-qr.webp</td></tr>
+          <tr><td>服務圖</td><td>/assets/sites/{siteId}/service/</td><td>1200x675</td><td>service-01.webp</td></tr>
+          <tr><td>合作夥伴</td><td>/assets/sites/chtech/partner/</td><td>1200x675</td><td>partner-01.webp</td></tr>
+          <tr><td>最新消息</td><td>/assets/sites/{siteId}/news/</td><td>1200x630</td><td>news-01.webp</td></tr>
+        </tbody></table></div></div>
+      </section>
+
+      <section id="page-news" class="section-page">
+        <div class="page-header"><div><div class="page-title">📰 最新消息</div></div><button class="btn btn-primary" id="add-news-btn">＋ 新增消息</button></div>
+        <div class="card"><div class="card-body" style="padding:0"><div class="table-wrap"><table><thead><tr><th>日期</th><th>分類</th><th>標題</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody id="news-table-body"><tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner"></div></td></tr></tbody></table></div></div></div>
+      </section>
+
+      <section id="page-faq" class="section-page">
+        <div class="page-header"><div><div class="page-title">❓ FAQ 管理</div></div><button class="btn btn-primary" id="add-faq-btn">＋ 新增 FAQ</button></div>
+        <div class="card"><div class="card-body" id="faq-list-admin"><div class="page-loading"><div class="spinner"></div></div></div></div>
+      </section>
+
+      <section id="page-form" class="section-page">
+        <div class="page-header"><div><div class="page-title">📝 表單設定</div><div class="page-desc">前台依此自動產生表單</div></div><button class="btn btn-primary" id="add-field-btn">＋ 新增欄位</button></div>
+        <div class="card"><div class="card-body" id="form-fields-list"><div class="page-loading"><div class="spinner"></div></div></div></div>
+      </section>
+
+      <section id="page-submissions" class="section-page">
+        <div class="page-header"><div><div class="page-title">📩 表單紀錄</div></div></div>
+        <div class="card"><div class="card-body" style="padding:0"><div class="table-wrap"><table><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>Email</th><th>操作</th></tr></thead>
+        <tbody id="subs-table-body"><tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner"></div></td></tr></tbody></table></div></div></div>
+      </section>
+
+      <section id="page-accounts" class="section-page"><div class="page-header"><div><div class="page-title">👥 帳號權限</div></div></div><div class="card"><div class="card-body"><p class="text-muted">帳號管理（開發中）</p></div></div></section>
+
+      <section id="page-billing" class="section-page">
+        <div class="page-header"><div><div class="page-title">💳 帳務到期</div></div><button class="btn btn-primary" id="save-billing-btn">儲存</button></div>
+        <div class="card"><div class="card-body">
+          <div class="flex items-center gap-3 mb-4"><span class="text-base font-bold">目前狀態：</span><span class="badge badge-success" id="billing-status-badge">正常</span></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">建站時間</label><input class="form-control" type="date" id="billing-createdAt" disabled></div><div class="form-group"><label class="form-label">開通時間</label><input class="form-control" type="date" id="billing-activatedAt" disabled></div></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">到期時間</label><input class="form-control" type="date" id="billing-expiredAt"></div><div class="form-group"><label class="form-label">下次繳費時間</label><input class="form-control" type="date" id="billing-nextBillingAt"></div></div>
+          <div class="form-row col-2"><div class="form-group"><label class="form-label">提醒天數</label><input class="form-control" type="number" id="billing-reminderDays"></div><div class="form-group"><label class="form-label">緩衝天數</label><input class="form-control" type="number" id="billing-bufferDays"></div></div>
+          <div class="form-group"><label class="form-label">狀態</label>
+            <select class="form-control" id="billing-status"><option value="active">✅ active — 正常</option><option value="expiring">⚠️ expiring — 即將到期</option><option value="overdue">❌ overdue — 已逾期</option><option value="suspended">🚫 suspended — 已停用</option></select>
+          </div>
+        </div></div>
+      </section>
+
+      <section id="page-settings" class="section-page">
+        <div class="page-header"><div><div class="page-title">⚙ 系統設定</div><div class="page-desc">Firebase 連線設定</div></div></div>
+        <div class="card"><div class="card-body">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><span style="font-weight:700">Firebase 連線狀態：</span><span id="fb-status-badge" class="badge badge-gray">檢查中...</span></div>
+          <div class="form-group"><label class="form-label">目前設定（apiKey 已隱藏）</label><pre id="fb-current-config" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:12px;color:#475569;overflow-x:auto;white-space:pre-wrap">載入中...</pre></div>
+          <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="showSetupPage()">🔄 重新設定 Firebase Config</button>
+            <button class="btn btn-danger" onclick="resetFirebaseConfig()">🗑 清除設定並重新輸入</button>
+          </div>
+        </div></div>
+      </section>
+
+      <section id="page-init" class="section-page">
+        <div class="page-header"><div><div class="page-title">🚀 初始化 CMS 預設資料</div><div class="page-desc">建立 chtech / ihome 預設資料（已存在的資料不覆蓋）</div></div></div>
+        <div class="card"><div class="card-body">
+          <ul style="list-style:disc;padding-left:20px;font-size:14px;line-height:2;color:var(--c-text-2)">
+            <li>sites/chtech — 公司資料、Banner、服務項目、最新消息、FAQ、出貨流程、表單設定、帳務</li>
+            <li>sites/ihome — 公司資料、Banner、服務項目、最新消息、FAQ、表單設定、帳務</li>
+          </ul>
+          <div style="margin-top:20px"><button class="btn btn-primary btn-lg" id="init-cms-btn">🚀 一鍵初始化</button></div>
+          <div id="init-log" style="display:none;margin-top:16px;background:var(--c-sidebar);color:#a3e635;padding:16px;border-radius:var(--radius-sm);font-family:monospace;font-size:13px;max-height:300px;overflow-y:auto;line-height:1.8"></div>
+        </div></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+function switchSetupTab(tab){
+  document.querySelectorAll('.setup-tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='json')||(i===1&&tab==='fields')));
+  document.getElementById('setup-tab-json').classList.toggle('active',tab==='json');
+  document.getElementById('setup-tab-fields').classList.toggle('active',tab==='fields');
+}
+function parseFirebaseConfig(text){
+  try{const j=JSON.parse(text.trim());if(j.apiKey)return j;}catch(e){}
+  const p={apiKey:/apiKey\s*:\s*["']([^"']+)["']/,authDomain:/authDomain\s*:\s*["']([^"']+)["']/,projectId:/projectId\s*:\s*["']([^"']+)["']/,storageBucket:/storageBucket\s*:\s*["']([^"']+)["']/,messagingSenderId:/messagingSenderId\s*:\s*["']([^"']+)["']/,appId:/appId\s*:\s*["']([^"']+)["']/};
+  const r={};let n=0;for(const[k,re]of Object.entries(p)){const m=text.match(re);if(m){r[k]=m[1];n++;}}
+  return n>=3?r:null;
+}
+function showSetupMsg(msg,type){const el=document.getElementById('setup-msg');el.textContent=msg;el.className='setup-msg '+(type||'');}
+async function saveAndReload(cfg){
+  if(!cfg||!cfg.apiKey||cfg.apiKey.includes('YOUR_')){showSetupMsg('❌ 找不到有效的 apiKey，請確認格式正確','err');return;}
+  localStorage.setItem('cms_firebase_config',JSON.stringify(cfg));
+  showSetupMsg('✅ 設定已儲存，正在重新載入...','ok');
+  setTimeout(()=>location.reload(),800);
+}
+async function saveFromJson(){
+  const text=document.getElementById('setup-json-input').value.trim();
+  if(!text){showSetupMsg('❌ 請先貼上 Firebase Config','err');return;}
+  const cfg=parseFirebaseConfig(text);
+  if(!cfg){showSetupMsg('❌ 無法解析設定，請確認格式','err');return;}
+  await saveAndReload(cfg);
+}
+async function saveFromFields(){
+  const cfg={apiKey:document.getElementById('f-apiKey').value.trim(),authDomain:document.getElementById('f-authDomain').value.trim(),projectId:document.getElementById('f-projectId').value.trim(),storageBucket:document.getElementById('f-storageBucket').value.trim(),messagingSenderId:document.getElementById('f-messagingSenderId').value.trim(),appId:document.getElementById('f-appId').value.trim()};
+  if(!cfg.apiKey||!cfg.projectId||!cfg.appId){showSetupMsg('❌ 請至少填入 API Key、Project ID、App ID','err');return;}
+  await saveAndReload(cfg);
+}
+async function pasteFromClipboard(){
+  try{const text=await navigator.clipboard.readText();document.getElementById('setup-json-input').value=text;showSetupMsg('✓ 已從剪貼簿貼上','ok');}
+  catch(e){showSetupMsg('❌ 無法讀取剪貼簿，請手動貼上','err');}
+}
+function showSetupPage(){
+  document.getElementById('firebase-setup-page').style.display='flex';
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('admin-layout').style.display='none';
+  try{const s=localStorage.getItem('cms_firebase_config');if(s)document.getElementById('setup-json-input').value=JSON.stringify(JSON.parse(s),null,2);}catch(e){}
+}
+function resetFirebaseConfig(){
+  if(!confirm('確定要清除 Firebase 設定嗎？'))return;
+  localStorage.removeItem('cms_firebase_config');location.reload();
+}
+function navigateTo(page){window._navigateTo&&window._navigateTo(page);}
+(function init(){
+  const s=localStorage.getItem('cms_firebase_config');
+  let ok=false;
+  if(s){try{const c=JSON.parse(s);ok=c&&c.apiKey&&!c.apiKey.includes('YOUR_')&&c.projectId&&!c.projectId.includes('YOUR_');}catch(e){}}
+  if(!ok){document.getElementById('firebase-setup-page').style.display='flex';}
+  else{document.getElementById('login-page').style.display='flex';}
+})();
+</script>
+
+<script type="module">
+const s=localStorage.getItem('cms_firebase_config');
+let ok=false;
+if(s){try{const c=JSON.parse(s);ok=c&&c.apiKey&&!c.apiKey.includes('YOUR_');}catch(e){}}
+if(ok){
+  const mod=await import('./assets/js/admin-cms.js');
+  window._navigateTo=mod.navigateTo;
+  const cfgEl=document.getElementById('fb-current-config');
+  const badgeEl=document.getElementById('fb-status-badge');
+  if(cfgEl){try{const c=JSON.parse(s);const safe={...c,apiKey:c.apiKey.substring(0,8)+'...'};cfgEl.textContent=JSON.stringify(safe,null,2);}catch(e){}}
+  if(badgeEl){badgeEl.textContent='✅ 已設定';badgeEl.className='badge badge-success';}
+}
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>誠創科技 CMS 後台管理 V2</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/admin-v2.css">
 </head>
 <body>
 
