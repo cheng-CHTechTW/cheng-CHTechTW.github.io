@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>誠創科技 CMS 後台管理 V2</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/admin-v2.css">
+</head>
+<body>
+
+<!-- 登入頁 -->
+<div id="login-page" style="display:flex">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🏢</div>
+      <div class="brand">誠創科技 CMS V2</div>
+      <div class="sub">後台管理系統</div>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label">帳號 Email</label>
+        <input class="form-control" type="email" id="login-email" placeholder="your@email.com" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">密碼</label>
+        <input class="form-control" type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary w-full btn-lg" type="submit" id="login-btn">登入後台</button>
+    </form>
+  </div>
+</div>
+
+<!-- 後台主介面 -->
+<div id="admin-layout" style="display:none">
+
+  <!-- Sidebar -->
+  <aside id="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏢</div>
+      <div class="sidebar-logo-text">
+        <div class="brand">誠創科技 CMS</div>
+        <div class="sub">管理後台 V2</div>
+      </div>
+    </div>
+
+    <div class="site-switcher">
+      <label>管理站台</label>
+      <select id="site-select">
+        <option value="chtech">🏣 誠創科技官網</option>
+        <option value="ihome">🏠 愛家居官網</option>
+      </select>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">主要功能</div>
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span> 儀表板</div>
+      <div class="nav-item" data-page="siteInfo"><span class="nav-icon">🏢</span> 公司資料</div>
+      <div class="nav-item" data-page="hero"><span class="nav-icon">🌐</span> 形象網站</div>
+      <div class="nav-item" data-page="images"><span class="nav-icon">🖼</span> 圖片管理</div>
+      <div class="nav-item" data-page="news"><span class="nav-icon">📰</span> 最新消息<span class="nav-badge" id="badge-subs" style="display:none">0</span></div>
+      <div class="nav-item" data-page="faq"><span class="nav-icon">❓</span> FAQ管理</div>
+      <div class="nav-item" data-page="form"><span class="nav-icon">📝</span> 表單設定</div>
+      <div class="nav-item" data-page="submissions"><span class="nav-icon">📩</span> 表單紀錄</div>
+
+      <div class="nav-section-title">系統管理</div>
+      <div class="nav-item" data-page="accounts"><span class="nav-icon">👥</span> 帳號權限</div>
+      <div class="nav-item" data-page="billing"><span class="nav-icon">💳</span> 帳務到期</div>
+      <div class="nav-item" data-page="settings"><span class="nav-icon">⚙</span> 系統設定</div>
+      <div class="nav-item" data-page="init"><span class="nav-icon">🚀</span> 初始化 CMS</div>
+
+      <div class="nav-section-title">未開通功能</div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 销售看帳<span class="lock-icon">🔒</span></div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 線上點餐<span class="lock-icon">🔒</span></div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 外送平台<span class="lock-icon">🔒</span></div>
+      <div class="nav-item locked"><span class="nav-icon">🔒</span> 電子發票<span class="lock-icon">🔒</span></div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-initial">A</div>
+        <div class="sidebar-user-info">
+          <div class="name" id="sidebar-user-name">載入中...</div>
+          <div class="role" id="sidebar-user-role">管理員</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="logout-btn">🚪 登出</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div id="admin-main">
+    <header id="admin-topbar">
+      <button class="topbar-menu-btn" id="topbar-menu-btn">☰</button>
+      <div class="topbar-breadcrumb">
+        誠創科技 CMS &rsaquo; <span class="current">儀表板</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-bell" id="topbar-bell" title="通知">🔔</button>
+        <span style="font-size:13px;color:var(--c-text-2)" id="topbar-site-label">誠創科技</span>
+      </div>
+    </header>
+
+    <main id="admin-content">
+
+      <!-- 儀表板 -->
+      <section id="page-dashboard" class="section-page active">
+        <div class="page-header">
+          <div><div class="page-title">儀表板</div>
+            <div class="page-desc">站台：<strong id="dash-site-name">誠創科技</strong></div></div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon blue">📰</div><div><div class="stat-label">最新消息</div><div class="stat-value" id="stat-news">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">❓</div><div><div class="stat-label">FAQ 項目</div><div class="stat-value" id="stat-faq">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon yellow">📩</div><div><div class="stat-label">表單紀錄</div><div class="stat-value" id="stat-subs">-</div></div></div>
+          <div class="stat-card"><div class="stat-icon purple">🏢</div><div><div class="stat-label">管理站台</div><div class="stat-value">2</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📩 最新表單紀錄</span>
+            <button class="btn btn-sm btn-outline" onclick="navigateTo('submissions')">查看全部</button></div>
+          <div class="card-body" style="padding:0"><div class="table-wrap">
+            <table><thead><tr><th>姓名</th><th>電話</th><th>送出時間</th><th>狀態</th></tr></thead>
+            <tbody id="latest-submissions"><tr><td colspan="4" class="text-muted" style="text-align:center;padding:20px">載入中...</td></tr></tbody></table>
+          </div></div>
+        </div>
+      </section>
+
+      <!-- 公司資料 -->
+      <section id="page-siteInfo" class="section-page">
+        <div class="page-header">
+          <div><div class="page-title">🏢 公司資料</div><div class="page-desc">修改後前台自動更新</div></div>
+          <button class="btn btn-primary" id="save-siteinfo-btn">儲存</button>
+        </div>
+        <div class="card"><div class="card-body">
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">公司名稱（中文）</label><input class="form-control" id="si-companyName"></div>
+            <div class="form-group"><label class="form-label">公司名稱（英文）</label><input class="form-control" id="si-companyNameEn"></div>
+          </div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">電話</label><input class="form-control" id="si-phone"></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-control" type="email" id="si-email"></div>
+          </div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">地址</label><input class="form-control" id="si-address"></div>
+            <div class="form-group"><label class="form-label">統一編號</label><input class="form-control" id="si-taxId"></div>
+          </div>
+          <div class="form-group"><label class="form-label">關於我們</label><textarea class="form-control" id="si-about" rows="3"></textarea></div>
+          <div class="form-group"><label class="form-label">頁尾版權文字</label><input class="form-control" id="si-footerCopy"></div>
+          <div style="height:1px;background:var(--c-border);margin:20px 0"></div>
+          <div class="form-row col-3">
+            <div class="form-group"><label class="form-label">LINE 連結</label><input class="form-control" id="si-lineUrl" placeholder="https://line.me/..."></div>
+            <div class="form-group"><label class="form-label">Facebook</label><input class="form-control" id="si-fbUrl"></div>
+            <div class="form-group"><label class="form-label">Instagram</label><input class="form-control" id="si-igUrl"></div>
+          </div>
+          <div style="height:1px;background:var(--c-border);margin:20px 0"></div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">SEO 標題</label><input class="form-control" id="si-seoTitle"></div>
+            <div class="form-group"><label class="form-label">SEO 描述</label><input class="form-control" id="si-seoDescription"></div>
+          </div>
+        </div></div>
+      </section>
+
+      <!-- 形象網站 -->
+      <section id="page-hero" class="section-page">
+        <div class="page-header"><div><div class="page-title">🌐 形象網站設定</div></div></div>
+        <div class="card"><div class="card-body"><p class="text-muted">Banner 設定（開發中）</p></div></div>
+      </section>
+
+      <!-- 圖片管理 -->
+      <section id="page-images" class="section-page">
+        <div class="page-header"><div><div class="page-title">🖼 圖片管理</div><div class="page-desc">圖片存放於 GitHub，請依規格命名後上傳</div></div></div>
+        <div class="card"><div class="card-body">
+          <table><thead><tr><th>類型</th><th>路徑</th><th>尺寸</th><th>命名範例</th></tr></thead><tbody>
+            <tr><td>Logo</td><td>/assets/sites/{siteId}/logo/</td><td>1200x1200</td><td>logo-primary.webp</td></tr>
+            <tr><td>Banner</td><td>/assets/sites/{siteId}/banner/</td><td>1920x1080</td><td>banner-home-01.webp</td></tr>
+            <tr><td>OG 分享圖</td><td>/assets/sites/{siteId}/og/</td><td>1200x630</td><td>og-image.webp</td></tr>
+            <tr><td>LINE QR</td><td>/assets/sites/{siteId}/qrcode/</td><td>800x800</td><td>line-qr.webp</td></tr>
+            <tr><td>服務圖</td><td>/assets/sites/{siteId}/service/</td><td>1200x675</td><td>service-01.webp</td></tr>
+            <tr><td>合作夥伴</td><td>/assets/sites/chtech/partner/</td><td>1200x675</td><td>partner-01.webp</td></tr>
+            <tr><td>最新消息</td><td>/assets/sites/{siteId}/news/</td><td>1200x630</td><td>news-01.webp</td></tr>
+          </tbody></table>
+        </div></div>
+      </section>
+
+      <!-- 最新消息 -->
+      <section id="page-news" class="section-page">
+        <div class="page-header"><div><div class="page-title">📰 最新消息</div></div>
+          <button class="btn btn-primary" id="add-news-btn">+ 新增消息</button></div>
+        <div class="card"><div class="card-body" style="padding:0"><div class="table-wrap">
+          <table><thead><tr><th>日期</th><th>分類</th><th>標題</th><th>狀態</th><th>操作</th></tr></thead>
+          <tbody id="news-table-body"><tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner"></div></td></tr></tbody></table>
+        </div></div></div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="page-faq" class="section-page">
+        <div class="page-header"><div><div class="page-title">❓ FAQ 管理</div></div>
+          <button class="btn btn-primary" id="add-faq-btn">+ 新增 FAQ</button></div>
+        <div class="card"><div class="card-body" id="faq-list-admin"><div class="page-loading"><div class="spinner"></div></div></div></div>
+      </section>
+
+      <!-- 表單設定 -->
+      <section id="page-form" class="section-page">
+        <div class="page-header"><div><div class="page-title">📝 表單設定</div>
+            <div class="page-desc">前台依此設定自動產生表單</div></div>
+          <button class="btn btn-primary" id="add-field-btn">+ 新增欄位</button></div>
+        <div class="card"><div class="card-body" id="form-fields-list"><div class="page-loading"><div class="spinner"></div></div></div></div>
+      </section>
+
+      <!-- 表單紀錄 -->
+      <section id="page-submissions" class="section-page">
+        <div class="page-header"><div><div class="page-title">📩 表單紀錄</div></div></div>
+        <div class="card"><div class="card-body" style="padding:0"><div class="table-wrap">
+          <table><thead><tr><th>送出時間</th><th>姓名</th><th>電話</th><th>Email</th><th>操作</th></tr></thead>
+          <tbody id="subs-table-body"><tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner"></div></td></tr></tbody></table>
+        </div></div></div>
+      </section>
+
+      <!-- 帳號權限 -->
+      <section id="page-accounts" class="section-page">
+        <div class="page-header"><div><div class="page-title">👥 帳號權限</div></div></div>
+        <div class="card"><div class="card-body"><p class="text-muted">帳號管理功能（開發中）</p></div></div>
+      </section>
+
+      <!-- 帳務到期 -->
+      <section id="page-billing" class="section-page">
+        <div class="page-header"><div><div class="page-title">💳 帳務到期</div></div>
+          <button class="btn btn-primary" id="save-billing-btn">儲存</button></div>
+        <div class="card"><div class="card-body">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-base font-bold">目前狀態：</span>
+            <span class="badge badge-success" id="billing-status-badge">正常</span>
+          </div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">建站時間</label><input class="form-control" type="date" id="billing-createdAt" disabled></div>
+            <div class="form-group"><label class="form-label">開通時間</label><input class="form-control" type="date" id="billing-activatedAt" disabled></div>
+          </div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">到期時間</label><input class="form-control" type="date" id="billing-expiredAt"></div>
+            <div class="form-group"><label class="form-label">下次繳費時間</label><input class="form-control" type="date" id="billing-nextBillingAt"></div>
+          </div>
+          <div class="form-row col-2">
+            <div class="form-group"><label class="form-label">提醒天數</label><input class="form-control" type="number" id="billing-reminderDays" min="1" max="60"></div>
+            <div class="form-group"><label class="form-label">緩衝天數</label><input class="form-control" type="number" id="billing-bufferDays" min="0" max="30"></div>
+          </div>
+          <div class="form-group"><label class="form-label">狀態</label>
+            <select class="form-control" id="billing-status">
+              <option value="active">✅ active — 正常</option>
+              <option value="expiring">⚠️ expiring — 即將到期</option>
+              <option value="overdue">❌ overdue — 已逾期</option>
+              <option value="suspended">🚫 suspended — 已停用</option>
+            </select>
+          </div>
+        </div></div>
+      </section>
+
+      <!-- 系統設定 -->
+      <section id="page-settings" class="section-page">
+        <div class="page-header"><div><div class="page-title">⚙ 系統設定</div></div></div>
+        <div class="card"><div class="card-body"><p class="text-muted">系統設定功能（開發中）</p></div></div>
+      </section>
+
+      <!-- 初始化 -->
+      <section id="page-init" class="section-page">
+        <div class="page-header"><div><div class="page-title">🚀 初始化 CMS 預設資料</div>
+            <div class="page-desc">建立 chtech / ihome 預設資料（已存在的資料不覆蓋）</div></div></div>
+        <div class="card"><div class="card-body">
+          <p style="margin-bottom:16px">點擊後會自動建立以下預設資料：</p>
+          <ul style="list-style:disc;padding-left:20px;font-size:14px;line-height:2;color:var(--c-text-2)">
+            <li>sites/chtech — 公司資料、Banner、服務項目、最新消息、FAQ、出貨流程、表單設定、帳務</li>
+            <li>sites/ihome — 公司資料、Banner、服務項目、最新消息、FAQ、表單設定、帳務</li>
+          </ul>
+          <div style="margin-top:20px">
+            <button class="btn btn-primary btn-lg" id="init-cms-btn">🚀 一鍵初始化</button>
+          </div>
+          <div id="init-log" style="display:none;margin-top:16px;background:var(--c-sidebar);color:#a3e635;padding:16px;border-radius:var(--radius-sm);font-family:monospace;font-size:13px;max-height:300px;overflow-y:auto;line-height:1.8"></div>
+        </div></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toast 容器 -->
+<div id="toast-container"></div>
+
+<script type="module" src="assets/js/admin-cms.js"></script>
+<script>
+function navigateTo(page){
+  import('./assets/js/admin-cms.js').then(m=>m.navigateTo(page)).catch(()=>{});
+}
+</script>
+</body>
+</html>
