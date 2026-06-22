@@ -97,8 +97,8 @@ window.DEFAULT_DATA = {
 "socialVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true,"line":true},
 "socialIconVisibility":{"facebook":true,"instagram":true,"youtube":true,"email":true},
 "formConfig": {
-    "googleScriptUrl": "",
-    "sheetUrl": "",
+    "googleScriptUrl": "https://script.google.com/macros/s/AKfycbyRe74VSuMhyNzTcOmAB4lSN_1kz-YS5BXMFi-4_IFcGH1GNlCyUC5NCnBEVCcVl5W9Xw/exec",
+    "sheetUrl": "https://docs.google.com/spreadsheets/d/1qvfqX_C8f9OhCfg1zGMheLEoSVZaokz7kyVSjnne8II/edit?gid=0#gid=0",
     "notifyEmail": "chengchuang1012@gmail.com"
   },
   "hero": {
