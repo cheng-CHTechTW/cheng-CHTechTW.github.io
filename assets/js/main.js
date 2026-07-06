@@ -423,7 +423,7 @@ setTimeout(()=>{try{ccV16Enhance()}catch(e){}},500);
 function ccV17FloatingFollow(){
   const d=getData();
   const a=d.appearanceConfig||{};
-  const lineUrl=a.lineJoinUrl||(d.contact&&d.contact.lineUrl)||"https://line.me/ti/p/@905dqqqw";
+  const lineUrl=a.lineJoinUrl||(d.contact&&d.contact.lineUrl)||"https://lin.ee/RbGc5o5";
   const phone=(d.contact&&d.contact.phone)||"";
   let wrap=document.getElementById("ccMobileFloat");
   if(!wrap){
@@ -573,7 +573,7 @@ setTimeout(() => {
   function getLineUrl(d){
     return (d.contact && d.contact.lineUrl) ||
            (d.appearanceConfig && d.appearanceConfig.lineJoinUrl) ||
-           "https://line.me/R/ti/p/@905dqqqw";
+           "https://lin.ee/RbGc5o5";
   }
   function getPhoneUrl(d){
     const p=(d.contact && d.contact.phone) || "(02)-6623-7091";
