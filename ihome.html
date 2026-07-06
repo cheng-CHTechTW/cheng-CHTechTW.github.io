@@ -2601,7 +2601,7 @@
           </div>
 
           <div class="line-qr-card" id="lineQrCardEl">
-            <img class="line-qr-img" id="lineQrImgEl" src="assets/images/line-qr.png">
+            <img class="line-qr-img" id="lineQrImgEl" src="assets/sites/ihome/qrcode/ihomelineqr.webp">
             <div class="line-qr-text">
               <h4 style="font-size: 17px; margin-bottom: 4px;">掃描 QR Code 加 LINE</h4>
               <p style="font-size: 12.5px; line-height: 1.5; margin-bottom: 10px; color: var(--text-secondary);">隨時傳送現場照片或平面圖，與設計師即時線上討論規劃。</p>
@@ -3214,7 +3214,7 @@
         if (customQr) {
           document.getElementById("lineQrImgEl").src = resolveAssetPath(customQr);
         } else {
-          var stdQr = (appData.appearanceConfig && appData.appearanceConfig.footerLineQrImage) || "assets/images/line-qr.png";
+          var stdQr = (appData.appearanceConfig && appData.appearanceConfig.footerLineQrImage) || "assets/sites/ihome/qrcode/ihomelineqr.webp";
           document.getElementById("lineQrImgEl").src = resolveAssetPath(stdQr);
         }
 
