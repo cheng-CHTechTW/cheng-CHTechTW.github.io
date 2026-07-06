@@ -8,7 +8,7 @@ window.DEFAULT_DATA = {
     "username": "admin",
     "password": "123456"
   },
-  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v29","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://line.me/ti/p/@905dqqqw"},
+  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v29","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://lin.ee/RbGc5o5"},
   "editEntry": {
     "show": true,
     "icon": "✎",
@@ -389,7 +389,7 @@ window.DEFAULT_DATA = {
       "image": "assets/images/ihome/S__16375813_0.jpg",
       "companyName": "愛家居系統櫥櫃",
       "phone": "0955-149-470",
-      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
+      "lineUrl": "https://lin.ee/RbGc5o5",
       "facebookUrl": "",
       "websiteUrl": "ihome.html",
       "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
@@ -546,7 +546,7 @@ window.DEFAULT_DATA = {
       "email": "micmmm83@gmail.com",
       "address": "新北市新莊區中原路261號",
       "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
-      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
+      "lineUrl": "https://lin.ee/RbGc5o5",
       "lineQr": "assets/images/line-qr.png",
       "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
     }
