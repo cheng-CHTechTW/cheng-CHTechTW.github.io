@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CH CMS V2 管理後台</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#263148;--bg4:#304060;
+  --blue:#3b82f6;--blue2:#60a5fa;--blue-bg:rgba(59,130,246,.12);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --border:#334155;--border2:rgba(51,65,85,.5);
+  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#a78bfa;
+  --green-bg:rgba(34,197,94,.1);--red-bg:rgba(239,68,68,.1);
+  --yellow-bg:rgba(245,158,11,.1);
+  --radius:8px;--radius-lg:12px;
+  --topbar-h:54px;--sidebar-w:220px;--bottombar-h:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;height:100dvh;overflow:hidden;font-size:14px}
+
+/* ─── 登入 ─────────────────────────────── */
+#loginWrap{position:fixed;inset:0;background:linear-gradient(135deg,#060c1a,#0f172a 50%,#111827);display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-card{width:360px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:36px 32px}
+.login-brand{text-align:center;margin-bottom:24px}
+.login-brand .cms-name{font-size:22px;font-weight:700;letter-spacing:1px}
+.login-brand .cms-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.login-card input{width:100%;padding:10px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;margin-bottom:10px;outline:none;transition:border-color .15s}
+.login-card input:focus{border-color:var(--blue)}
+.btn-login{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
+.btn-login:hover{background:var(--blue2);color:#0f172a}
+.btn-login:disabled{opacity:.5;cursor:not-allowed}
+.login-err{color:var(--red);font-size:12px;margin-top:6px;min-height:16px;text-align:center}
+
+/* ─── 改密碼 modal ────────────────────── */
+#changePwModal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:999}
+#changePwModal.show{display:flex}
+.cpw-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:32px;width:340px;text-align:center}
+.cpw-box h3{font-size:17px;font-weight:700;margin-bottom:6px;color:var(--yellow)}
+.cpw-box p{font-size:12px;color:var(--text2);margin-bottom:20px}
+.cpw-box input{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;margin-bottom:10px;outline:none}
+.cpw-err{color:var(--red);font-size:12px;min-height:16px;margin-bottom:8px}
+.btn-cpw{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer}
+
+/* ─── 主介面 ────────────────────────────── */
+#app{display:none;height:100dvh;flex-direction:column}
+#app.show{display:flex}
+
+/* 頂部工具列 */
+.topbar{height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;position:relative}
+.topbar-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:.15s;white-space:nowrap}
+.topbar-btn:hover{border-color:var(--blue);color:var(--blue2)}
+.topbar-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.topbar-btn.primary:hover{background:var(--blue2);color:#0f172a}
+.topbar-btn.danger{border-color:rgba(239,68,68,.4);color:var(--red)}
+.topbar-btn.danger:hover{background:var(--red-bg)}
+.topbar-site-badge{background:var(--blue-bg);border:1px solid rgba(59,130,246,.3);color:var(--blue2);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.topbar-spacer{flex:1}
+.topbar-user{font-size:12px;color:var(--text2);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.topbar-user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+/* 主體區（sidebar + content）*/
+.main-area{flex:1;display:flex;overflow:hidden}
+
+/* 左側目錄 */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:transform .25s}
+.sidebar-header{padding:14px 16px 8px;flex-shrink:0}
+.sidebar-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.site-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.site-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);border:1px solid transparent;transition:.15s}
+.site-item:hover{background:var(--bg3);color:var(--text)}
+.site-item.active{background:var(--blue-bg);border-color:rgba(59,130,246,.3);color:var(--blue2);font-weight:600}
+.site-item .site-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.site-item.active .site-dot{background:var(--green)}
+.sidebar-nav{flex:1;overflow-y:auto;padding:0 8px 8px}
+.nav-section{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;padding:10px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:.15s;border:1px solid transparent}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--blue-bg);border-color:rgba(59,130,246,.3);color:var(--blue2);font-weight:600}
+.nav-item .nav-ico{width:18px;text-align:center;flex-shrink:0;font-size:15px}
+
+/* 內容區 */
+.content-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.content-inner{padding:20px;max-width:820px;width:100%;margin:0 auto;flex:1}
+
+/* 底部 (手機) */
+.bottombar{height:var(--bottombar-h);background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;padding:6px 8px;gap:4px;flex-shrink:0}
+.bot-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;border-radius:var(--radius);cursor:pointer;font-size:10px;color:var(--text2);border:1px solid transparent;background:transparent;transition:.15s;white-space:nowrap}
+.bot-btn:hover{color:var(--text)}
+.bot-btn.active{color:var(--blue2)}
+.bot-ico{font-size:18px}
+@media(min-width:640px){.bottombar{display:none}}
+
+/* 頁面標題 */
+.page-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.page-desc{font-size:12px;color:var(--text2);margin-bottom:18px}
+
+/* 卡片 */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.card-body{padding:18px}
+
+/* 表單 */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.form-grid.full{grid-template-columns:1fr}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;color:var(--text2);font-weight:500;display:flex;align-items:center;gap:5px}
+.form-label .required{color:var(--red);font-size:11px}
+.form-label .hint{font-size:10px;color:var(--text3);font-weight:400}
+.form-control{padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;outline:none;transition:border-color .15s;width:100%}
+.form-control:focus{border-color:var(--blue)}
+.form-control[readonly]{opacity:.6;cursor:default}
+textarea.form-control{resize:vertical;min-height:80px;line-height:1.6}
+select.form-control{cursor:pointer}
+.form-hint{font-size:11px;color:var(--text3);line-height:1.5}
+.form-sep{height:1px;background:var(--border2);margin:16px 0}
+
+/* 按鈕 */
+.btn{padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue2);color:#0f172a}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue2)}
+.btn-danger{background:var(--red-bg);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-success{background:var(--green-bg);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+/* 徽章 */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.badge-err{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.badge-info{background:var(--blue-bg);color:var(--blue2);border:1px solid rgba(59,130,246,.3)}
+.badge-off{background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
+
+/* 表格 */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg);text-align:left;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border2);font-size:13px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+
+/* 圖片預覽 */
+.img-preview{width:72px;height:72px;object-fit:contain;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:4px}
+
+/* 狀態訊息 */
+.msg{font-size:12px;min-height:18px;transition:opacity .3s}
+.msg.ok{color:var(--green)}.msg.err{color:var(--red)}.msg.warn{color:var(--yellow)}
+
+/* 網站列表卡片 */
+.site-card{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:.15s;margin-bottom:10px}
+.site-card:hover{border-color:var(--blue);background:var(--blue-bg)}
+.site-card.active{border-color:var(--blue);background:var(--blue-bg)}
+.site-card-icon{width:42px;height:42px;background:var(--bg4);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.site-card-info{flex:1}
+.site-card-name{font-size:15px;font-weight:700}
+.site-card-url{font-size:11px;color:var(--text2);margin-top:2px}
+.site-card-meta{font-size:11px;color:var(--text3);margin-top:3px;display:flex;gap:8px;align-items:center}
+
+/* 帳號卡片 */
+.user-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px}
+.user-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue-bg);border:1px solid rgba(59,130,246,.3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.user-email{font-size:12px;color:var(--text2);margin-top:2px}
+.user-meta{font-size:11px;color:var(--text3);margin-top:3px}
+.user-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.btn-xs{padding:4px 10px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-xs-info{background:var(--blue-bg);color:var(--blue2);border:1px solid rgba(59,130,246,.3)}
+.btn-xs-warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid rgba(245,158,11,.3)}
+.btn-xs-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.btn-xs-ok{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+
+/* LOG */
+.log-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:12px;align-items:flex-start}
+.log-type{color:var(--blue2);flex-shrink:0;min-width:100px}
+.log-detail{flex:1;color:var(--text2)}
+.log-who{color:var(--text3);flex-shrink:0;font-size:11px}
+.log-time{color:var(--text3);flex-shrink:0;font-size:10px;min-width:80px;text-align:right}
+
+/* GitHub 狀態 */
+.gh-row{display:flex;gap:10px;padding:6px 0;font-size:13px;align-items:flex-start}
+.gh-key{color:var(--text2);min-width:80px;flex-shrink:0}
+.gh-val{color:var(--text);flex:1}
+
+/* 空白狀態 */
+.empty{text-align:center;padding:40px 20px;color:var(--text2)}
+.empty-ico{font-size:36px;margin-bottom:10px}
+.empty-msg{font-size:14px}
+
+/* 手機版 sidebar 遮罩 */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50}
+@media(max-width:639px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:60;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.show{display:block}
+  .content-inner{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- 改密碼 Modal -->
+<div id="changePwModal">
+  <div class="cpw-box">
+    <h3>🔑 首次登入請更改密碼</h3>
+    <p>請設定您的專屬密碼，預設密碼 123456 無法繼續使用</p>
+    <input type="password" id="cpwNew" placeholder="新密碼（至少 6 個字元）">
+    <input type="password" id="cpwConfirm" placeholder="確認新密碼">
+    <div class="cpw-err" id="cpwErr"></div>
+    <button class="btn-cpw" onclick="submitChangePw()">確認更改密碼</button>
+  </div>
+</div>
+
+<!-- 登入 -->
+<div id="loginWrap">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="cms-name">🏢 CH CMS V2</div>
+      <div class="cms-sub">多網站形象網站管理系統</div>
+    </div>
+    <input type="email" id="loginEmail" placeholder="帳號 Email" autocomplete="username">
+    <input type="password" id="loginPw" placeholder="密碼" autocomplete="current-password">
+    <button class="btn-login" id="loginBtn" onclick="doLogin()">登入</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- 主介面 -->
+<div id="app">
+
+  <!-- 頂部工具列 -->
+  <div class="topbar">
+    <button class="topbar-btn" onclick="toggleSidebar()" title="目錄">☰</button>
+    <span id="topSiteBadge" class="topbar-site-badge" style="display:none">選擇網站</span>
+    <div class="topbar-spacer"></div>
+    <button class="topbar-btn" id="btnPreview" onclick="previewSite()" style="display:none">↗ 預覽</button>
+    <button class="topbar-btn primary" id="btnSave" onclick="triggerSave()" style="display:none">💾 儲存</button>
+    <button class="topbar-btn primary" id="btnPublish" onclick="publishSite()" style="display:none">🚀 發布</button>
+    <div class="topbar-user">
+      <span class="topbar-user-dot"></span>
+      <span id="topUserName">載入中</span>
+    </div>
+    <button class="topbar-btn danger" onclick="doLogout()">登出</button>
+  </div>
+
+  <!-- 主體 -->
+  <div class="main-area">
+
+    <!-- 側欄 -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">管理網站</div>
+        <div class="site-list" id="siteList"></div>
+        <div class="sidebar-title">目錄</div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <div class="nav-section">概覽</div>
+        <div class="nav-item active" data-page="sites" onclick="navTo('sites',this)"><span class="nav-ico">🏠</span>網站列表</div>
+
+        <div class="nav-section" id="siteNavSection" style="display:none">目前網站</div>
+        <div class="nav-item" data-page="company" onclick="navTo('company',this)" id="navCompany" style="display:none"><span class="nav-ico">🏢</span>公司基本資料</div>
+        <div class="nav-item" data-page="media" onclick="navTo('media',this)" id="navMedia" style="display:none"><span class="nav-ico">🖼</span>圖片管理</div>
+        <div class="nav-item" data-page="forms" onclick="navTo('forms',this)" id="navForms" style="display:none"><span class="nav-ico">📩</span>表單回覆</div>
+        <div class="nav-item" data-page="github" onclick="navTo('github',this)" id="navGitHub" style="display:none"><span class="nav-ico">📡</span>GitHub 狀態</div>
+
+        <div class="nav-section" id="adminNavSection" style="display:none">管理</div>
+        <div class="nav-item" data-page="users" onclick="navTo('users',this)" id="navUsers" style="display:none"><span class="nav-ico">👥</span>帳號管理</div>
+        <div class="nav-item" data-page="logs" onclick="navTo('logs',this)" id="navLogs" style="display:none"><span class="nav-ico">📋</span>操作紀錄</div>
+      </nav>
+    </div>
+
+    <!-- 內容 -->
+    <div class="content-area">
+      <div class="content-inner">
+
+        <!-- 網站列表 -->
+        <div id="page-sites" class="page active">
+          <div class="page-title">網站列表</div>
+          <div class="page-desc" id="sitesDesc">請選擇要管理的網站</div>
+          <div id="siteCards"></div>
+          <div id="addSiteRow" style="display:none;margin-top:6px">
+            <button class="btn btn-outline" onclick="showAddSite()">＋ 新增網站</button>
+          </div>
+        </div>
+
+        <!-- 公司基本資料（SSOT）-->
+        <div id="page-company" class="page" style="display:none">
+          <div class="page-title">🏢 公司基本資料</div>
+          <div class="page-desc">此頁面是唯一來源 — 所有 LINE 連結、公司名稱、Footer 全部讀取這裡，不需要個別設定</div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">基本資訊</span></div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">公司名稱 <span class="required">*</span></label><input class="form-control" id="cp-name" placeholder="誠創科技"></div>
+                <div class="form-group"><label class="form-label">品牌名稱</label><input class="form-control" id="cp-brand" placeholder="品牌簡稱"></div>
+              </div>
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">電話</label><input class="form-control" id="cp-phone" placeholder="04-1234-5678"></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="cp-email" type="email"></div>
+              </div>
+              <div class="form-grid full">
+                <div class="form-group"><label class="form-label">地址</label><input class="form-control" id="cp-address"></div>
+              </div>
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">版權文字</label><input class="form-control" id="cp-copyright" placeholder="© 2024 公司名稱"></div>
+                <div class="form-group"><label class="form-label">頁尾文字</label><input class="form-control" id="cp-footer"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📱 LINE 設定</span>
+              <span class="badge badge-info">全站統一來源</span>
+            </div>
+            <div class="card-body">
+              <div style="background:var(--yellow-bg);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--yellow)">
+                ⚠️ 此處設定後，網站右側懸浮按鈕、底部 LINE 連結、QR Code 頁面全部自動同步，無需個別設定
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">LINE URL <span class="required">*</span></label>
+                  <input class="form-control" id="cp-lineUrl" placeholder="https://lin.ee/xxx 或 https://line.me/ti/p/@xxx">
+                  <span class="form-hint">所有 LINE 按鈕均讀取此 URL</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">LINE ID</label>
+                  <input class="form-control" id="cp-lineId" placeholder="@xxxxxxx">
+                </div>
+              </div>
+              <div class="form-grid full">
+                <div class="form-group">
+                  <label class="form-label">LINE QR 圖片 <span class="hint">（上傳到圖片管理後貼入路徑）</span></label>
+                  <div style="display:flex;gap:8px;align-items:flex-start">
+                    <input class="form-control" id="cp-lineQr" placeholder="sites/ihome/qrcode/ihomelineqr.webp">
+                    <button class="btn btn-outline" style="white-space:nowrap" onclick="pickMediaForField('cp-lineQr','qrcode')">選圖</button>
+                  </div>
+                  <div id="lineQrPreview" style="margin-top:6px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">🔗 社群媒體</span></div>
+            <div class="card-body">
+              <div class="form-grid three">
+                <div class="form-group"><label class="form-label">Facebook</label><input class="form-control" id="cp-fb" placeholder="https://facebook.com/..."></div>
+                <div class="form-group"><label class="form-label">Instagram</label><input class="form-control" id="cp-ig" placeholder="https://instagram.com/..."></div>
+                <div class="form-group"><label class="form-label">YouTube</label><input class="form-control" id="cp-yt" placeholder="https://youtube.com/..."></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><span class="card-title">🔍 SEO 設定</span></div>
+            <div class="card-body">
+              <div class="form-grid full">
+                <div class="form-group">
+                  <label class="form-label">SEO 標題 <span class="hint">（建議 50-60 字元）</span></label>
+                  <input class="form-control" id="cp-seoTitle">
+                </div>
+              </div>
+              <div class="form-grid full">
+                <div class="form-group">
+                  <label class="form-label">SEO 描述 <span class="hint">（建議 120-160 字元）</span></label>
+                  <textarea class="form-control" id="cp-seoDesc" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🖼 Logo / Favicon</span>
+              <button class="btn btn-outline" style="font-size:11px;padding:4px 10px" onclick="navTo('media',null)">前往圖片管理</button>
+            </div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Logo 圖片</label>
+                  <div style="display:flex;gap:8px;align-items:flex-start">
+                    <input class="form-control" id="cp-logo" placeholder="sites/chtech/logo/logo.webp">
+                    <button class="btn btn-outline" style="white-space:nowrap" onclick="pickMediaForField('cp-logo','logo')">選圖</button>
+                  </div>
+                  <img id="logoPreview" class="img-preview" style="margin-top:6px;display:none">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Favicon</label>
+                  <div style="display:flex;gap:8px;align-items:flex-start">
+                    <input class="form-control" id="cp-favicon" placeholder="sites/chtech/favicon.ico">
+                    <button class="btn btn-outline" style="white-space:nowrap" onclick="pickMediaForField('cp-favicon','favicon')">選圖</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <span class="msg" id="cpMsg"></span>
+            <button class="btn btn-primary" onclick="saveCompanyProfile()">💾 儲存公司資料</button>
+          </div>
+        </div>
+
+        <!-- 圖片管理 -->
+        <div id="page-media" class="page" style="display:none">
+          <div class="page-title">🖼 圖片管理</div>
+          <div class="page-desc">上傳圖片到 Cloudflare R2，取得永久 CDN URL</div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">上傳新圖片</span>
+            </div>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">分類</label>
+                  <select class="form-control" id="uploadCategory">
+                    <option value="logo">Logo</option>
+                    <option value="banner">Banner</option>
+                    <option value="qrcode">QR Code</option>
+                    <option value="og">OG Image</option>
+                    <option value="service">服務圖</option>
+                    <option value="case">案例圖</option>
+                    <option value="news">消息圖</option>
+                    <option value="general">其他</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">選擇檔案</label>
+                  <input type="file" id="uploadFile" class="form-control" accept="image/*">
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="uploadMedia()">⬆ 上傳</button>
+              <span class="msg" id="uploadMsg" style="margin-left:10px"></span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">圖片庫</span>
+              <select class="form-control" style="width:auto;font-size:12px;padding:4px 8px" id="mediaFilterCat" onchange="loadMedia()">
+                <option value="">全部分類</option>
+                <option value="logo">Logo</option>
+                <option value="qrcode">QR Code</option>
+                <option value="banner">Banner</option>
+                <option value="service">服務圖</option>
+              </select>
+            </div>
+            <div class="card-body">
+              <div id="mediaGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 表單回覆 -->
+        <div id="page-forms" class="page" style="display:none">
+          <div class="page-title">📩 表單回覆</div>
+          <div class="page-desc">網站訪客送出的表單紀錄</div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">表單紀錄</span>
+              <button class="btn btn-outline" style="font-size:11px;padding:4px 10px" onclick="exportForms()">📊 匯出 Excel</button>
+            </div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>時間</th><th>類型</th><th>姓名</th><th>電話</th><th>Email</th><th>操作</th></tr></thead>
+              <tbody id="formsTbody"><tr><td colspan="6" class="empty"><div class="empty-ico">📩</div><div class="empty-msg">載入中...</div></td></tr></tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- GitHub 狀態 -->
+        <div id="page-github" class="page" style="display:none">
+          <div class="page-title">📡 GitHub 部署狀態</div>
+          <div class="page-desc">確認最新版本是否已部署到網站</div>
+          <div class="card">
+            <div class="card-body" id="ghStatusContent">
+              <div class="empty"><div class="empty-ico">📡</div><div class="empty-msg">載入中...</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">說明</span></div>
+            <div class="card-body" style="font-size:13px;color:var(--text2);line-height:2">
+              ・儲存公司資料後自動觸發 GitHub 同步<br>
+              ・圖片上傳後需等待約 30-60 秒全球生效<br>
+              ・顯示「✅ 已同步」代表最新版本已上線
+            </div>
+          </div>
+        </div>
+
+        <!-- 帳號管理 (super_admin) -->
+        <div id="page-users" class="page" style="display:none">
+          <div class="page-title">👥 帳號管理</div>
+          <div class="page-desc">工程最高權限可管理所有後台帳號</div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">帳號列表</span>
+              <button class="btn btn-primary" style="font-size:12px;padding:5px 12px" onclick="showAddUser()">＋ 新增帳號</button>
+            </div>
+            <div class="card-body" id="userList">
+              <div class="empty"><div class="empty-msg">載入中...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作紀錄 -->
+        <div id="page-logs" class="page" style="display:none">
+          <div class="page-title">📋 操作紀錄</div>
+          <div class="page-desc">所有重要操作都有記錄</div>
+          <div class="card">
+            <div class="card-body" id="logList">
+              <div class="empty"><div class="empty-msg">載入中...</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部（手機）-->
+  <div class="bottombar">
+    <button class="bot-btn" onclick="navTo('sites',null)"><span class="bot-ico">🏠</span>網站</button>
+    <button class="bot-btn" onclick="navTo('company',null)"><span class="bot-ico">🏢</span>公司</button>
+    <button class="bot-btn" onclick="navTo('media',null)"><span class="bot-ico">🖼</span>圖片</button>
+    <button class="bot-btn" onclick="navTo('github',null)"><span class="bot-ico">📡</span>狀態</button>
+    <button class="bot-btn" onclick="navTo('logs',null)"><span class="bot-ico">📋</span>紀錄</button>
+  </div>
+
+</div>
+
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<script>
+const API = window.CMS_API_URL || '/api';
+let token = localStorage.getItem('cms_token');
+let currentUser = null;
+let currentSite = null;
+
+// ── 登入 ──────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+
+  if (!email || !pw) { err.textContent = '請輸入帳號密碼'; return; }
+  btn.disabled = true; btn.textContent = '登入中...';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw }),
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || '登入失敗'; return; }
+
+    token = data.token;
+    currentUser = data.user;
+    localStorage.setItem('cms_token', token);
+
+    if (currentUser.mustChangePw) {
+      document.getElementById('changePwModal').classList.add('show');
+    } else {
+      enterApp();
+    }
+  } catch {
+    err.textContent = '連線失敗，請確認網路';
+  } finally {
+    btn.disabled = false; btn.textContent = '登入';
+  }
+}
+
+async function submitChangePw() {
+  const nw  = document.getElementById('cpwNew').value;
+  const cf  = document.getElementById('cpwConfirm').value;
+  const err = document.getElementById('cpwErr');
+  if (nw.length < 6) { err.textContent = '密碼至少需要 6 個字元'; return; }
+  if (nw !== cf)     { err.textContent = '兩次輸入不一致'; return; }
+
+  const res = await apiFetch('/auth/change-password', 'PUT', { newPassword: nw });
+  if (res.ok) {
+    document.getElementById('changePwModal').classList.remove('show');
+    enterApp();
+  } else {
+    err.textContent = res.data?.error || '更新失敗';
+  }
+}
+
+function doLogout() {
+  if (!confirm('確定登出？')) return;
+  token = null; currentUser = null; currentSite = null;
+  localStorage.removeItem('cms_token');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginPw').value = '';
+}
+
+// ── 進入後台 ──────────────────────────────────────────────
+function enterApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('topUserName').textContent = currentUser.displayName;
+
+  // super_admin 才顯示帳號/LOG 管理
+  if (currentUser.role === 'super_admin') {
+    document.getElementById('navUsers').style.display = '';
+    document.getElementById('navLogs').style.display = '';
+    document.getElementById('adminNavSection').style.display = '';
+    document.getElementById('addSiteRow').style.display = '';
+    document.getElementById('sitesDesc').textContent = `目前登入：${currentUser.displayName}｜工程最高權限`;
+  } else {
+    document.getElementById('sitesDesc').textContent = `目前登入：${currentUser.displayName}`;
+  }
+
+  loadSiteList();
+}
+
+// ── 網站清單 ─────────────────────────────────────────────
+async function loadSiteList() {
+  const SITE_INFO = {
+    chtech: { icon: '🏭', name: '誠創科技', url: 'https://chuang-c.com', path: '' },
+    ihome:  { icon: '🏠', name: '愛家居系統櫥櫃', url: 'https://chuang-c.com', path: '/ihome.html' },
+  };
+
+  const accessible = currentUser.role === 'super_admin'
+    ? ['chtech', 'ihome']
+    : (currentUser.sites || []);
+
+  // 側欄網站選擇
+  const siteList = document.getElementById('siteList');
+  siteList.innerHTML = accessible.map(id => {
+    const s = SITE_INFO[id] || { icon: '🌐', name: id, url: '', path: '' };
+    return `<div class="site-item ${currentSite?.id===id?'active':''}" onclick="selectSite('${id}')">
+      <span class="site-dot"></span>${s.icon} ${s.name}
+    </div>`;
+  }).join('');
+
+  // 網站卡片列表
+  const cards = document.getElementById('siteCards');
+  cards.innerHTML = accessible.map(id => {
+    const s = SITE_INFO[id] || { icon: '🌐', name: id, url: '', path: '' };
+    return `<div class="site-card ${currentSite?.id===id?'active':''}" onclick="selectSite('${id}')">
+      <div class="site-card-icon">${s.icon}</div>
+      <div class="site-card-info">
+        <div class="site-card-name">${s.name}</div>
+        <div class="site-card-url">${s.url}${s.path}</div>
+        <div class="site-card-meta">
+          <span id="badge-${id}" class="badge badge-off">未載入</span>
+        </div>
+      </div>
+      <div style="color:var(--text3);font-size:20px">›</div>
+    </div>`;
+  }).join('');
+}
+
+async function selectSite(siteId) {
+  const SITE_INFO = {
+    chtech: { id:'chtech', icon:'🏭', name:'誠創科技', url:'https://chuang-c.com', path:'' },
+    ihome:  { id:'ihome',  icon:'🏠', name:'愛家居系統櫥櫃', url:'https://chuang-c.com', path:'/ihome.html' },
+  };
+  currentSite = SITE_INFO[siteId] || { id: siteId, icon:'🌐', name:siteId, url:'', path:'' };
+
+  // 更新頂部標示
+  const badge = document.getElementById('topSiteBadge');
+  badge.textContent = `${currentSite.icon} ${currentSite.name}`;
+  badge.style.display = '';
+  document.getElementById('btnPreview').style.display = '';
+  document.getElementById('btnPublish').style.display = '';
+
+  // 顯示網站相關目錄
+  ['siteNavSection','navCompany','navMedia','navForms','navGitHub'].forEach(id => {
+    document.getElementById(id).style.display = '';
+  });
+
+  // 更新側欄選中狀態
+  document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll(`.site-item`).forEach(el => {
+    if (el.textContent.includes(currentSite.name)) el.classList.add('active');
+  });
+
+  navTo('company', null);
+  loadGitHubStatus();
+}
+
+// ── 導航 ────────────────────────────────────────────────
+function navTo(pageId, el) {
+  // 隱藏所有頁面
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById(`page-${pageId}`).style.display = 'block';
+
+  // 更新側欄 active
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    document.querySelector(`[data-page="${pageId}"]`)?.classList.add('active');
+  }
+
+  // 顯示/隱藏儲存按鈕
+  document.getElementById('btnSave').style.display =
+    ['company'].includes(pageId) ? '' : 'none';
+
+  // 關閉手機側欄
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+
+  // 頁面載入
+  if (pageId === 'company' && currentSite) loadCompanyProfile();
+  if (pageId === 'media' && currentSite) loadMedia();
+  if (pageId === 'forms' && currentSite) loadForms();
+  if (pageId === 'github' && currentSite) loadGitHubStatus();
+  if (pageId === 'users') loadUsers();
+  if (pageId === 'logs') loadLogs();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function triggerSave() {
+  const current = document.querySelector('.page[style*="block"]')?.id;
+  if (current === 'page-company') saveCompanyProfile();
+}
+
+function previewSite() {
+  if (!currentSite) return;
+  window.open(currentSite.url + currentSite.path, '_blank');
+}
+
+async function publishSite() {
+  if (!currentSite) return;
+  if (!confirm(`確定發布 ${currentSite.name} 到線上？`)) return;
+  const res = await apiFetch(`/github/${currentSite.id}/trigger`, 'POST');
+  if (res.ok) {
+    setMsg('publishMsg', '🚀 發布已觸發，約 30-60 秒後生效', 'ok');
+    loadGitHubStatus();
+  }
+}
+
+// ── 公司資料 ─────────────────────────────────────────────
+async function loadCompanyProfile() {
+  if (!currentSite) return;
+  const res = await apiFetch(`/company/${currentSite.id}`);
+  if (!res.ok) return;
+  const d = res.data.data;
+
+  document.getElementById('cp-name').value    = d.company_name || '';
+  document.getElementById('cp-brand').value   = d.brand_name || '';
+  document.getElementById('cp-phone').value   = d.phone || '';
+  document.getElementById('cp-email').value   = d.email || '';
+  document.getElementById('cp-address').value = d.address || '';
+  document.getElementById('cp-copyright').value = d.copyright || '';
+  document.getElementById('cp-footer').value  = d.footer_text || '';
+  document.getElementById('cp-lineUrl').value = d.line_url || '';
+  document.getElementById('cp-lineId').value  = d.line_id || '';
+  document.getElementById('cp-lineQr').value  = d.line_qr_r2key || '';
+  document.getElementById('cp-fb').value      = d.fb_url || '';
+  document.getElementById('cp-ig').value      = d.ig_url || '';
+  document.getElementById('cp-yt').value      = d.youtube_url || '';
+  document.getElementById('cp-seoTitle').value = d.seo_title || '';
+  document.getElementById('cp-seoDesc').value  = d.seo_description || '';
+  document.getElementById('cp-logo').value    = d.logo_r2key || '';
+  document.getElementById('cp-favicon').value = d.favicon_r2key || '';
+
+  // QR 預覽
+  updateQrPreview(d.line_qr_url || (d.line_qr_r2key ? `${window.CMS_R2_URL||''}/${d.line_qr_r2key}` : ''));
+  // Logo 預覽
+  const logoEl = document.getElementById('logoPreview');
+  if (d.logo_url) { logoEl.src = d.logo_url; logoEl.style.display = ''; }
+}
+
+function updateQrPreview(url) {
+  const el = document.getElementById('lineQrPreview');
+  if (url) {
+    el.innerHTML = `<img src="${url}" style="width:80px;height:80px;object-fit:contain;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:4px" onerror="this.style.display='none'">`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+document.addEventListener('input', e => {
+  if (e.target.id === 'cp-lineQr') {
+    const url = e.target.value;
+    updateQrPreview(url ? `${window.CMS_R2_URL||''}/${url}` : '');
+  }
+  if (e.target.id === 'cp-logo') {
+    const el = document.getElementById('logoPreview');
+    if (e.target.value) { el.src = `${window.CMS_R2_URL||''}/${e.target.value}`; el.style.display = ''; }
+    else el.style.display = 'none';
+  }
+});
+
+async function saveCompanyProfile() {
+  if (!currentSite) return;
+  const body = {
+    company_name:    document.getElementById('cp-name').value.trim(),
+    brand_name:      document.getElementById('cp-brand').value.trim(),
+    phone:           document.getElementById('cp-phone').value.trim(),
+    email:           document.getElementById('cp-email').value.trim(),
+    address:         document.getElementById('cp-address').value.trim(),
+    copyright:       document.getElementById('cp-copyright').value.trim(),
+    footer_text:     document.getElementById('cp-footer').value.trim(),
+    line_url:        document.getElementById('cp-lineUrl').value.trim(),
+    line_id:         document.getElementById('cp-lineId').value.trim(),
+    line_qr_r2key:   document.getElementById('cp-lineQr').value.trim(),
+    fb_url:          document.getElementById('cp-fb').value.trim(),
+    ig_url:          document.getElementById('cp-ig').value.trim(),
+    youtube_url:     document.getElementById('cp-yt').value.trim(),
+    seo_title:       document.getElementById('cp-seoTitle').value.trim(),
+    seo_description: document.getElementById('cp-seoDesc').value.trim(),
+    logo_r2key:      document.getElementById('cp-logo').value.trim(),
+    favicon_r2key:   document.getElementById('cp-favicon').value.trim(),
+  };
+
+  const res = await apiFetch(`/company/${currentSite.id}`, 'PUT', body);
+  const msg = document.getElementById('cpMsg');
+  if (res.ok) {
+    setMsg('cpMsg', '✓ 已儲存，所有 LINE 連結已同步更新', 'ok');
+    loadGitHubStatus();
+  } else {
+    setMsg('cpMsg', '✗ ' + (res.data?.error || '儲存失敗'), 'err');
+  }
+}
+
+// ── 圖片管理 ─────────────────────────────────────────────
+async function uploadMedia() {
+  if (!currentSite) return;
+  const file = document.getElementById('uploadFile').files[0];
+  const cat  = document.getElementById('uploadCategory').value;
+  if (!file) { setMsg('uploadMsg', '請選擇檔案', 'err'); return; }
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('category', cat);
+
+  setMsg('uploadMsg', '上傳中...', 'warn');
+  const res = await fetch(`${API}/media/${currentSite.id}/upload`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: fd,
+  });
+  const data = await res.json();
+  if (res.ok) {
+    setMsg('uploadMsg', `✓ 上傳成功：${data.data.url}`, 'ok');
+    loadMedia();
+  } else {
+    setMsg('uploadMsg', '✗ ' + (data.error || '上傳失敗'), 'err');
+  }
+}
+
+async function loadMedia() {
+  if (!currentSite) return;
+  const cat = document.getElementById('mediaFilterCat')?.value || '';
+  const path = cat ? `/media/${currentSite.id}?category=${cat}` : `/media/${currentSite.id}`;
+  const res = await apiFetch(path);
+  if (!res.ok) return;
+
+  const grid = document.getElementById('mediaGrid');
+  const items = res.data.data || [];
+  if (!items.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-ico">🖼</div><div class="empty-msg">尚無圖片</div></div>';
+    return;
+  }
+  grid.innerHTML = items.map(a => `
+    <div style="position:relative;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg3)">
+      <img src="${a.url}" style="width:100%;aspect-ratio:1;object-fit:contain;padding:4px;cursor:pointer"
+           onclick="copyToClipboard('${a.r2_key}')" title="點擊複製路徑">
+      <div style="padding:6px 8px;font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.filename}</div>
+      <div style="padding:0 8px 6px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;color:var(--text3)">${a.category}</span>
+        <button class="btn-xs btn-xs-danger" onclick="deleteMedia('${a.id}')">刪</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteMedia(id) {
+  if (!confirm('確定刪除此圖片？')) return;
+  const res = await apiFetch(`/media/${currentSite.id}/${id}`, 'DELETE');
+  if (res.ok) loadMedia();
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`路徑已複製：\n${text}\n\n貼到公司資料的對應欄位即可`);
+  });
+}
+
+function pickMediaForField(fieldId, category) {
+  document.getElementById('uploadCategory').value = category;
+  navTo('media', null);
+  alert('請上傳圖片後，點擊圖片複製路徑，再返回公司資料頁面貼入');
+}
+
+// ── 表單回覆 ─────────────────────────────────────────────
+async function loadForms() {
+  if (!currentSite) return;
+  const res = await apiFetch(`/forms/${currentSite.id}`);
+  const tbody = document.getElementById('formsTbody');
+  if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="empty">載入失敗</td></tr>'; return; }
+
+  const items = res.data.data || [];
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text2)">暫無表單回覆</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(f => {
+    const d = typeof f.data === 'string' ? JSON.parse(f.data) : f.data;
+    return `<tr>
+      <td>${new Date(f.created_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+      <td><span class="badge badge-info">${f.form_type}</span></td>
+      <td>${d.name||d['姓名']||'-'}</td>
+      <td>${d.phone||d['電話']||'-'}</td>
+      <td>${d.email||d['Email']||'-'}</td>
+      <td><button class="btn-xs btn-xs-info" onclick="viewForm(${JSON.stringify(d).replace(/"/g,'&quot;')})">查看</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function viewForm(data) {
+  const rows = Object.entries(data).map(([k,v]) => `<tr><td style="font-weight:600;padding:5px 8px;color:var(--text2)">${k}</td><td style="padding:5px 8px">${v}</td></tr>`).join('');
+  alert('表單內容：\n' + Object.entries(data).map(([k,v])=>`${k}: ${v}`).join('\n'));
+}
+
+async function exportForms() {
+  if (!currentSite) return;
+  const res = await apiFetch(`/forms/${currentSite.id}?export=true`);
+  if (!res.ok) return;
+  const items = res.data.data || [];
+  if (!items.length) { alert('沒有可匯出的資料'); return; }
+
+  const rows = items.map(f => {
+    const d = typeof f.data === 'string' ? JSON.parse(f.data) : f.data;
+    return { '時間': f.created_at, '類型': f.form_type, ...d };
+  });
+
+  if (typeof XLSX !== 'undefined') {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '表單回覆');
+    XLSX.writeFile(wb, `${currentSite.id}_forms_${new Date().toISOString().slice(0,10)}.xlsx`);
+  } else {
+    // CSV fallback
+    const keys = Object.keys(rows[0]);
+    const csv = [keys.join(','), ...rows.map(r => keys.map(k => `"${r[k]||''}"`).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+    a.download = `${currentSite.id}_forms.csv`;
+    a.click();
+  }
+}
+
+// ── GitHub 狀態 ───────────────────────────────────────────
+async function loadGitHubStatus() {
+  if (!currentSite) return;
+  const el = document.getElementById('ghStatusContent');
+  if (!el) return;
+  el.innerHTML = '<div class="empty"><div class="empty-msg">查詢中...</div></div>';
+
+  const res = await apiFetch(`/github/${currentSite.id}/status`);
+  if (!res.ok) { el.innerHTML = '<div class="empty"><div class="empty-msg">無法取得狀態</div></div>'; return; }
+
+  const d = res.data.data;
+  const age = d.minutesAgo;
+  const statusBadge = d.synced
+    ? '<span class="badge badge-ok">✅ 已同步</span>'
+    : age === null ? '<span class="badge badge-off">未知</span>'
+    : `<span class="badge badge-warn">⏱ ${age < 60 ? age+'分鐘前' : Math.round(age/60)+'小時前'}</span>`;
+
+  el.innerHTML = `
+    <div class="gh-row"><span class="gh-key">最新版本</span><span class="gh-val"><code style="color:var(--blue2)">${d.commit?.sha||'-'}</code> ${statusBadge}</span></div>
+    <div class="gh-row"><span class="gh-key">更新說明</span><span class="gh-val" style="color:var(--text2)">${d.commit?.message||'-'}</span></div>
+    <div class="gh-row"><span class="gh-key">部署時間</span><span class="gh-val" style="color:var(--text3)">${d.commit?.time ? new Date(d.commit.time).toLocaleString('zh-TW'):'未知'}</span></div>
+    <div class="gh-row"><span class="gh-key">倉庫</span><span class="gh-val" style="color:var(--text3);font-size:12px">${d.repo||'-'}</span></div>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button class="btn btn-primary" onclick="publishSite()">🚀 立即發布</button>
+      <button class="btn btn-outline" onclick="loadGitHubStatus()">🔄 重新整理</button>
+    </div>`;
+
+  // 更新網站卡片上的徽章
+  const badge = document.getElementById(`badge-${currentSite.id}`);
+  if (badge) {
+    badge.className = d.synced ? 'badge badge-ok' : 'badge badge-warn';
+    badge.textContent = d.synced ? '✅ 已同步' : (age !== null ? `${age}分鐘前` : '未知');
+  }
+}
+
+// ── 帳號管理 ─────────────────────────────────────────────
+async function loadUsers() {
+  const res = await apiFetch('/users');
+  const el  = document.getElementById('userList');
+  if (!res.ok) { el.innerHTML = '<div class="empty"><div class="empty-msg">載入失敗</div></div>'; return; }
+
+  const users = res.data.data || [];
+  el.innerHTML = users.map(u => `
+    <div class="user-card">
+      <div class="user-avatar">${u.role==='super_admin'?'👑':'👤'}</div>
+      <div class="user-info">
+        <div class="user-name">
+          ${u.display_name}
+          <span class="badge ${u.enabled?'badge-ok':'badge-off'}">${u.enabled?'啟用':'停用'}</span>
+          ${u.must_change_pw?'<span class="badge badge-warn">需改密碼</span>':''}
+          ${u.role==='super_admin'?'<span class="badge badge-info">工程最高</span>':''}
+        </div>
+        <div class="user-email">${u.email}</div>
+        <div class="user-meta">管理網站：${u.sites?.join(', ')||'無'}</div>
+      </div>
+      <div class="user-actions">
+        <button class="btn-xs btn-xs-warn" onclick="resetPw('${u.id}','${u.email}')">🔑 重設密碼</button>
+        ${u.role!=='super_admin'?`
+        <button class="btn-xs ${u.enabled?'btn-xs-danger':'btn-xs-ok'}"
+                onclick="toggleUser('${u.id}',${!u.enabled})">
+          ${u.enabled?'🚫 停用':'✅ 啟用'}
+        </button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function resetPw(userId, email) {
+  if (!confirm(`確定重設 ${email} 的密碼為 123456？\n下次登入需強制更改。`)) return;
+  const res = await apiFetch(`/users/${userId}/reset-password`, 'PUT', {});
+  if (res.ok) { alert(res.data.message); loadUsers(); }
+  else alert(res.data?.error || '重設失敗');
+}
+
+async function toggleUser(userId, enabled) {
+  if (!confirm(`確定${enabled?'啟用':'停用'}此帳號？`)) return;
+  const res = await apiFetch(`/users/${userId}/toggle`, 'PUT', { enabled });
+  if (res.ok) loadUsers();
+}
+
+function showAddUser() {
+  const email = prompt('新帳號 Email：');
+  if (!email) return;
+  const name  = prompt('顯示名稱：');
+  if (!name) return;
+  const sites = prompt('可管理網站（逗號分隔，如 chtech,ihome）：') || '';
+  apiFetch('/users', 'POST', {
+    email, displayName: name,
+    sites: sites.split(',').map(s=>s.trim()).filter(Boolean),
+    mustChangePw: true,
+  }).then(res => {
+    if (res.ok) { alert(res.data.message); loadUsers(); }
+    else alert(res.data?.error || '建立失敗');
+  });
+}
+
+// ── 操作 LOG ─────────────────────────────────────────────
+async function loadLogs() {
+  const siteParam = currentSite ? `?site=${currentSite.id}` : '';
+  const res = await apiFetch(`/logs${siteParam}`);
+  const el  = document.getElementById('logList');
+  if (!res.ok) { el.innerHTML = '<div class="empty"><div class="empty-msg">載入失敗</div></div>'; return; }
+
+  const logs = res.data.data || [];
+  if (!logs.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><div class="empty-msg">尚無紀錄</div></div>';
+    return;
+  }
+  el.innerHTML = logs.map(l => `
+    <div class="log-row">
+      <span class="log-type">${l.action}</span>
+      <span class="log-detail">${l.detail ? JSON.stringify(JSON.parse(l.detail||'{}')).slice(0,80) : '-'}</span>
+      <span class="log-who">${l.user_email||''}</span>
+      <span class="log-time">${new Date(l.created_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+    </div>`).join('');
+}
+
+// ── API 工具 ──────────────────────────────────────────────
+async function apiFetch(path, method = 'GET', body) {
+  try {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    };
+    if (body && method !== 'GET') opts.body = JSON.stringify(body);
+    const res = await fetch(`${API}${path}`, opts);
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  } catch (e) {
+    return { ok: false, status: 0, data: { error: '網路錯誤' } };
+  }
+}
+
+function setMsg(id, text, type, duration = 3000) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = `msg ${type}`;
+  if (duration) setTimeout(() => { el.textContent = ''; }, duration);
+}
+
+// ── 自動登入 ──────────────────────────────────────────────
+(async function autoLogin() {
+  if (!token) return;
+  try {
+    const res = await fetch(`${API}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = data.user;
+      enterApp();
+    } else {
+      localStorage.removeItem('cms_token');
+    }
+  } catch {}
+})();
+
+// Enter 鍵登入
+document.getElementById('loginPw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
