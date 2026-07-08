@@ -8,7 +8,7 @@ window.DEFAULT_DATA = {
     "username": "admin",
     "password": "123456"
   },
-  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v29","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://lin.ee/RbGc5o5"},
+  "appearanceConfig":{"siteFaviconShape":"square","versionLabel":"006_v33","showVersion":true,"desktopLogoHeight":56,"mobileLogoHeight":64,"adminLoginLogoHeight":58,"footerLineQrShow":true,"footerLineQrLabel":"官方 LINE","footerLineQrImage":"assets/images/line-qr.png","footerLineQrSize":150,"lineJoinUrl":"https://lin.ee/RbGc5o5"},
   "editEntry": {
     "show": true,
     "icon": "✎",
