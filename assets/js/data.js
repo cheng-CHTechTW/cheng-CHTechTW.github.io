@@ -389,7 +389,7 @@ window.DEFAULT_DATA = {
       "image": "assets/images/ihome/S__16375813_0.jpg",
       "companyName": "愛家居系統櫥櫃",
       "phone": "0955-149-470",
-      "lineUrl": "https://lin.ee/RbGc5o5",
+      "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
       "facebookUrl": "",
       "websiteUrl": "ihome.html",
       "description": "專注客製化空間設計與收納最佳化，為您打造美觀與實用兼具的理想居家空間。營業地址：新北市新莊區中原路261號。"
