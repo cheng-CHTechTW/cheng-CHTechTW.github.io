@@ -547,7 +547,7 @@ window.DEFAULT_DATA = {
       "address": "新北市新莊區中原路261號",
       "hours": "週一至週五 09:00 - 18:00 (敬請預約)",
       "lineUrl": "https://line.me/ti/p/srXWyJcOCT",
-      "lineQr": "assets/images/ihomelineqr.png",
+      "lineQr": "assets/images/ihomelineqr.webp",
       "googleMapIframe": "https://maps.google.com/maps?q=新北市新莊區中原路261號&t=&z=16&ie=UTF8&iwloc=&output=embed"
     }
   },
