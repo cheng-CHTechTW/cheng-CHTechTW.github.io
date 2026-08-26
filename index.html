@@ -1,183 +1,100 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>誠創科技｜科技，成為經營的好幫手</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>誠創科技｜智慧 POS 解決方案</title>
+  <!-- Favicon / Shortcut Icon -->
+  <link rel="shortcut icon" href="assets/images/logo.png" type="image/png">
+  <!-- Open Graph / Share URL Preview Settings -->
+  <meta property="og:title" content="誠創科技｜智慧 POS 與電子發票整合專家">
+  <meta property="og:description" content="提供最專業的智慧 POS 收銀系統、電子發票加值服務、多元支付整合及客製化開發一條龍解決方案，助您的店鋪營運更高效！">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="index.html">
+  <meta property="og:image" content="assets/images/hero-bg.jpg">
+  <meta property="og:site_name" content="誠創科技"><script>
+(function(){
+  var basePath = "/";
+  var path = window.location.pathname;
+  var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+  if (match) {
+    basePath = match[1] + "/";
+  } else {
+    var lastSlash = path.lastIndexOf("/");
+    if (lastSlash !== -1) {
+      basePath = path.substring(0, lastSlash + 1);
+    }
+  }
+  var ver = "006_v33";
+  try {
+    var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
+    if (local && local.siteVersion) { ver = local.siteVersion; }
+  } catch(e) {}
+  document.write('<link rel="stylesheet" href="' + basePath + 'assets/css/style.css?v=' + ver + '">');
+})();
+</script></head><body>
+<header class="header"><div class="container nav"><a class="logo" data-scroll="home"><img data-img="logo" src="assets/images/logo.png"></a><button id="searchToggleBtn" class="search-toggle-btn" type="button">🔍</button><button class="mobile-toggle" id="mobileToggle">☰</button><nav class="menu" id="menu"></nav></div></header><div id="menuOverlay" class="mobile-overlay"></div>
+<a id="adminEditEntry" class="admin-edit-entry" href="admin.html" title="網站後台">✎</a>
+<div class="floatbar"><a data-line target="_blank">LINE</a><a data-phone>電話</a><button data-open-form>表單</button><button data-scroll="home">TOP</button></div>
+<section id="home" class="hero section-anchor"><div class="hero-overlay"></div><div class="container hero-content"><div class="hero-text"><p class="eyebrow" data-text="hero.eyebrow"></p><h1 data-text="hero.title"></h1><p class="hero-desc" data-text="hero.subtitle"></p><div class="hero-points" id="heroPoints"></div><div class="hero-actions"><button class="btn primary" data-scroll="services">了解更多 →</button><button class="btn outline" data-open-form>聯絡我們</button></div></div></div></section>
+<main>
+<section id="services" class="section section-anchor services"><div class="container"><div class="section-title"><span>我們的服務</span><h2 data-text="servicesTitle"></h2><p data-text="servicesSubtitle"></p></div><div class="service-grid" id="serviceGrid"></div></div></section>
+<section id="industries" class="section section-anchor industry-section"><div class="container"><div class="section-title light-title"><h2 data-text="industriesTitle"></h2></div><div class="industry-grid" id="industryGrid"></div><div class="center-btn"><button class="btn outline-blue" data-scroll="solutions">查看更多方案 →</button></div></div></section>
+<section id="solutions" class="section section-anchor solution-dark"><div class="container"><div class="section-title light-title"><h2 data-text="solutionsTitle"></h2></div><div class="solution-grid" id="solutionGrid"></div></div></section>
+<section id="stats" class="stats section-anchor"><div class="container stats-grid" id="statsGrid"></div></section>
+<section id="shipping" class="section section-anchor shipping"><div class="container"><div class="section-title"><h2 data-text="shippingTitle"></h2></div><div class="shipping-grid" id="shippingGrid"></div></div></section>
+<section id="posDetail" class="section section-anchor detail"></section><section id="hardwareDetail" class="section section-anchor detail alt"></section><section id="invoiceDetail" class="section section-anchor detail"></section><section id="paymentDetail" class="section section-anchor detail alt"></section><section id="customDetail" class="section section-anchor detail"></section>
+<section id="about" class="section section-anchor about"><div class="container about-box"><span>About</span><h2 data-text="about.title"></h2><p data-text="about.text"></p></div></section>
+<section id="cases" class="section section-anchor cases"><div class="container"><div class="section-title"><h2 data-text="casesTitle"></h2></div><div class="case-grid" id="caseGrid"></div><div class="center-btn" id="caseMoreWrap"></div></div></section>
+<section id="partners" class="section section-anchor partners"><div class="container"><div class="section-title"><span>Partners</span><h2 data-text="partnersTitle"></h2><p>整合相關企業資源，提供更完整的一條龍服務。</p></div><div class="partner-grid" id="partnerGrid"></div><div class="center-btn" id="partnerMoreWrap"></div></div></section>
+<section id="news" class="section section-anchor news"><div class="container"><div class="section-title"><h2 data-text="newsTitle"></h2><p>掌握誠創科技最新服務與活動資訊</p></div><div class="news-grid" id="newsGrid"></div><div class="center-btn" id="newsMoreWrap"></div></div></section>
+<section id="faq" class="section section-anchor faq"><div class="container"><div class="section-title"><h2 data-text="faqTitle"></h2></div><div class="faq-grid" id="faqGrid"></div><div class="center-btn" id="faqMoreWrap"></div></div></section>
+</main>
+<footer id="contact" class="footer section-anchor"><div class="container footer-grid responsive-footer"><div class="footer-col footer-company" data-footer-block="company"><img data-img="logo" class="footer-logo" src="assets/images/logo.png"><p>專業 POS 系統整合團隊，協助店家提升營運效率。</p><div class="social" data-footer-block="social"><a data-social="facebookUrl">f</a><a data-social="instagramUrl">◎</a><a data-social="youtubeUrl">▶</a><a data-open-form>✉</a></div></div><div class="footer-col footer-contact" data-footer-block="contact"><h4>聯絡資訊</h4><div class="contact-lines" id="footerContactLines"></div></div><div class="footer-col" data-footer-block="services"><h4>服務項目</h4><a data-scroll="posDetail">POS 收銀系統</a><a data-scroll="invoiceDetail">電子發票系統</a><a data-scroll="paymentDetail">多元支付整合</a><a data-scroll="hardwareDetail">週邊設備</a><a data-scroll="customDetail">客製化開發</a></div><div class="footer-col" data-footer-block="quickLinks"><h4>快速連結</h4><a data-scroll="about">關於我們</a><a data-scroll="news">最新消息</a><a data-scroll="industries">解決方案</a><a data-scroll="cases">成功案例</a><a data-scroll="partners">關係企業</a><a data-scroll="faq">常見問題</a></div><div class="footer-col qr-box" data-footer-block="qr"><div class="fake-qr">LINE<br>QR</div><p>官方 LINE<br><strong data-field="lineId"></strong></p></div></div><div class="copy">Copyright © 2026 誠創科技 All Rights Reserved.</div></footer>
+<div class="modal" id="contentModal"><div class="modal-bg" data-close-content></div><div class="modal-box wide"><button class="close" data-close-content>×</button><h2 id="contentModalTitle"></h2><div id="contentModalBody"></div></div></div>
+<div class="modal" id="leadModal"><div class="modal-bg" data-close-form></div><div class="modal-box"><button class="close" data-close-form>×</button><h2>聯絡誠創科技</h2><p>請留下需求，我們會盡快與您聯繫。</p><form id="leadForm"><label>姓名 / 店名<input name="name" required></label><label>電話<input name="phone" required></label><label>Email<input name="email" type="email"></label><label>LINE ID<input name="lineId"></label><label>營業地區<input name="businessArea"></label><label>門店狀態<select name="storeStatus" required><option value="">請選擇</option><option>營業中</option><option>籌備中</option><option>即將開幕</option><option>展店中</option><option>更換系統</option><option>設備汰換</option><option>其他</option></select></label><label>需求項目<select name="service" required><option value="">請選擇</option><option>POS 系統</option><option>電子發票</option><option>多元支付</option><option>週邊設備</option><option>客製化開發</option><option>線上支援</option></select></label><label>需求內容<textarea name="message" rows="4"></textarea></label><input type="hidden" name="notifyEmail" id="notifyEmail"><input type="hidden" name="source" value="誠創科技官網"><input type="hidden" name="pageUrl" id="pageUrl"><button type="submit" class="btn primary full">送出表單</button><p id="formStatus"></p></form></div></div>
 
-    <!-- 頂部導覽列 -->
-    <header class="site-header">
-        <div class="container nav-container">
-            <div class="logo-area animate-item">
-                <span class="logo-icon">🐘</span>
-                <div class="logo-text">
-                    <strong>誠創</strong> ｜ 科技 ｜ 設計
-                    <small>CHENG CHUANG TECHNOLOGY - DESIGN</small>
-                </div>
-            </div>
-            <nav class="main-nav">
-                <a href="#home" class="nav-link active">首頁</a>
-                <a href="#services" class="nav-link">服務項目</a>
-                <a href="#solutions" class="nav-link">解決方案</a>
-                <a href="#about" class="nav-link">關於我們</a>
-            </nav>
-        </div>
-    </header>
-
-    <!-- 主視覺區塊 -->
-    <main>
-        <section id="home" class="hero-section">
-            <div class="container">
-                <!-- 中間大象 Logo 與進場依序浮出動畫 -->
-                <div class="elephant-badge animate-sequence" style="animation-delay: 0.1s;">
-                    <div class="badge-inner">🐘</div>
-                </div>
-
-                <div class="hero-content animate-sequence" style="animation-delay: 0.2s;">
-                    <h2>讓科技，成為經營的好幫手</h2>
-                    <p>從 POS 系統、電子發票到網站與客製化開發，提供適合店家的整合服務。</p>
-                </div>
-
-                <!-- 了解服務與查看方案按鈕 -->
-                <div class="hero-actions animate-sequence" style="animation-delay: 0.3s;">
-                    <button class="btn btn-primary" data-action="explore">了解服務</button>
-                    <button class="btn btn-outline" data-action="solutions">查看解決方案</button>
-                </div>
-
-                <!-- 三大指定 ICON (客服 | 鈴鐺 | 公司資訊) -->
-                <div class="features-icon-bar animate-sequence" style="animation-delay: 0.4s;">
-                    <a href="#service" class="icon-box" title="客服支援">
-                        <span class="ico">🎧</span>
-                        <span>專業整合</span>
-                    </a>
-                    <a href="#bell" class="icon-box" title="最新通知">
-                        <span class="ico">🔔</span>
-                        <span>遠端支援</span>
-                    </a>
-                    <a href="#company" class="icon-box" title="公司資訊">
-                        <span class="ico">🏢</span>
-                        <span>持續服務</span>
-                    </a>
-                </div>
-
-                <!-- 四格服務項目方框 (具備懸停浮起特效) -->
-                <div class="services-grid">
-                    <div class="service-card animate-sequence" style="animation-delay: 0.5s;" data-field="pos">
-                        <div class="card-icon">💻</div>
-                        <h3>POS 系統</h3>
-                        <p>收銀 / 會員 / 庫存整合</p>
-                    </div>
-                    <div class="service-card animate-sequence" style="animation-delay: 0.6s;" data-field="invoice">
-                        <div class="card-icon">📄</div>
-                        <h3>電子發票</h3>
-                        <p>開立發票 / 銷項管理</p>
-                    </div>
-                    <div class="service-card animate-sequence" style="animation-delay: 0.7s;" data-field="cloud">
-                        <div class="card-icon">☁️</div>
-                        <h3>雲端串接</h3>
-                        <p>跨平台串接 / API 整合</p>
-                    </div>
-                    <div class="service-card animate-sequence" style="animation-delay: 0.8s;" data-field="system">
-                        <div class="card-icon">🔧</div>
-                        <h3>系統開發</h3>
-                        <p>客製系統 / 流程自動化</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- 頁尾 (最底部放置不明顯後台登入觸發點) -->
-    <footer class="site-footer">
-        <div class="container footer-content">
-            <p>Copyright © 2026 誠創科技工作室 All Rights Reserved.</p>
-            <!-- 不明顯位置的後台登入觸發點 -->
-            <span id="adminSecretTrigger" class="secret-trigger" title="系統管理">⚙️</span>
-        </div>
-    </footer>
-
-    <!-- 後台登入彈窗 -->
-    <div id="loginModal" class="modal hidden">
-        <div class="modal-card">
-            <h3>後台管理系統登入</h3>
-            <form id="loginForm">
-                <input type="text" id="adminUser" placeholder="管理員帳號" required>
-                <input type="password" id="adminPass" placeholder="管理員密碼" required>
-                <div class="modal-btns">
-                    <button type="submit" class="btn btn-primary">登入</button>
-                    <button type="button" id="closeLogin" class="btn btn-outline">取消</button>
-                </div>
-            </form>
-        </div>
+<!-- Search Overlay (Ihome Style Expand Blur) -->
+<div id="searchOverlay" class="search-overlay">
+  <button id="searchCloseBtn" class="search-close-btn">&times;</button>
+  <div class="search-overlay-content">
+    <h2 class="search-overlay-title">搜尋誠創科技</h2>
+    <div class="search-field-wrapper">
+      <input type="text" id="searchInput" class="search-overlay-input" placeholder="輸入關鍵字，例如 POS、電子發票、客製化...">
+      <button id="searchBtn" class="search-overlay-submit-btn" type="button">🔍</button>
     </div>
-
-    <!-- 後台管理主介面 -->
-    <div id="adminPanel" class="admin-panel hidden">
-        <div class="admin-sidebar">
-            <h2>管理後台</h2>
-            <button class="tab-btn active" data-tab="tab-dashboard">我的主頁 (儀表板)</button>
-            <button class="tab-btn" data-tab="tab-home">主頁編輯</button>
-            <button class="tab-btn" data-tab="tab-footer">底頁編輯</button>
-            <button class="tab-btn" data-tab="tab-accounts">帳號權限管理</button>
-            <button id="logoutBtn" class="btn btn-outline" style="margin-top: auto;">登出後台</button>
-        </div>
-        <div class="admin-main">
-            <!-- 儀表板頁籤 -->
-            <div id="tab-dashboard" class="tab-content active">
-                <h3>儀表板 (Dashboard)</h3>
-                <p>歡迎進入誠創科技後台系統，請從左側選單選擇要編輯的頁籤。</p>
-            </div>
-            <!-- 主頁編輯頁籤 -->
-            <div id="tab-home" class="tab-content">
-                <h3>主頁面設定與規格</h3>
-                <div class="meta-box">
-                    <p><strong>檔案名稱：</strong> index.html</p>
-                    <p><strong>副檔名：</strong> .html</p>
-                    <p><strong>檔案位置：</strong> /root/project/frontend/</p>
-                    <p><strong>頁面程式代號：</strong> PAGE_HOME_MAIN_01</p>
-                    <p><strong>API 預留欄位：</strong> <code class="api-tag">/api/v1/home/content</code></p>
-                </div>
-                <div class="form-group">
-                    <label>主頁底圖 / 背景圖片 (SVG)：</label>
-                    <input type="text" id="inputBgImg" value="assets/images/hero-bg.svg">
-                    <div class="spec-info" id="specDisplay">
-                        檔案規格：SVG 向量圖 | 尺寸：1920x1080px | 檔名：hero-bg.svg | 資料夾：/assets/images/
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label><input type="checkbox" id="chkServiceBox" checked> 顯示服務項目方框</label>
-                    <label><input type="checkbox" id="chkLogoAnim" checked> 啟用大象 Logo 浮動動畫</label>
-                </div>
-            </div>
-            <!-- 底頁編輯頁籤 -->
-            <div id="tab-footer" class="tab-content">
-                <h3>底頁 (Footer) 設定與規格</h3>
-                <div class="meta-box">
-                    <p><strong>檔案名稱：</strong> footer.html</p>
-                    <p><strong>副檔名：</strong> .html</p>
-                    <p><strong>檔案位置：</strong> /root/project/components/</p>
-                    <p><strong>頁面程式代號：</strong> PAGE_FOOTER_01</p>
-                    <p><strong>API 預留欄位：</strong> <code class="api-tag">/api/v1/footer/info</code></p>
-                </div>
-                <div class="form-group">
-                    <label>版權文字修改：</label>
-                    <input type="text" value="Copyright © 2026 誠創科技工作室 All Rights Reserved.">
-                </div>
-            </div>
-            <!-- 帳號管理頁籤 -->
-            <div id="tab-accounts" class="tab-content">
-                <h3>管理員帳號權限</h3>
-                <table class="admin-table">
-                    <tr><th>帳號</th><th>狀態</th><th>操作</th></tr>
-                    <tr><td>admin</td><td><span style="color:green;">啟用中</span></td><td><button class="btn btn-outline" style="padding: 2px 8px;">停用</button></td></tr>
-                </table>
-            </div>
-        </div>
+    <div class="search-suggestions">
+      <span>熱門推薦：</span>
+      <span class="suggestion-tag" onclick="fillSearch('POS')">POS</span>
+      <span class="suggestion-tag" onclick="fillSearch('發票')">發票</span>
+      <span class="suggestion-tag" onclick="fillSearch('餐飲')">餐飲</span>
+      <span class="suggestion-tag" onclick="fillSearch('零售')">零售</span>
     </div>
+    <div id="searchOverlayResults" class="search-overlay-results"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var basePath = "/";
+  var path = window.location.pathname;
+  var match = path.match(/^(.*?)\/(?:index\.html|ihome\.html|admin\.html)(?:\/|$)/i);
+  if (match) {
+    basePath = match[1] + "/";
+  } else {
+    var lastSlash = path.lastIndexOf("/");
+    if (lastSlash !== -1) {
+      basePath = path.substring(0, lastSlash + 1);
+    }
+  }
+  var ver = "006_v33";
+  try {
+    var local = JSON.parse(localStorage.getItem("cc_full_site_data") || "{}");
+    if (local && local.siteVersion) { ver = local.siteVersion; }
+  } catch(e) {}
+  document.write('<script src="' + basePath + 'assets/js/data.js?v=' + ver + '"><\/script>');
+  document.write('<script src="' + basePath + 'assets/js/main.js?v=' + ver + '"><\/script>');
+})();
+</script>
+<div id="ccMobileFloat" class="cc-mobile-float" aria-label="快速聯絡">
+  <a id="ccFloatLine" href="#" target="_blank" rel="noopener">LINE</a>
+  <a id="ccFloatPhone" href="#">電話</a>
+  <button id="ccFloatForm" type="button">表單</button>
+  <button id="ccFloatTop" type="button">TOP</button>
+</div>
 
-    <script src="script.js"></script>
-</body>
-</html>
+</body></html>
