@@ -647,3 +647,19 @@ button.is-syncing>svg{display:none}
   .inquiry-email-add{grid-template-columns:1fr}
   .inquiry-email-actions{align-items:stretch;flex-direction:column}
 }
+
+/* V75 Email接收設定 */
+.inquiry-email-list{display:grid!important;gap:10px!important}
+.inquiry-email-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border:1px solid #e2dcd5;border-radius:14px;background:#faf9f7;
+}
+.inquiry-email-main{display:grid;gap:3px;min-width:0}
+.inquiry-email-main b{font-size:13px;overflow-wrap:anywhere}
+.inquiry-email-main small{font-size:10px;color:#8a837c}
+.inquiry-email-row-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.mini-switch{display:flex;align-items:center;gap:5px;font-size:10px;color:#6e6862}
+@media(max-width:600px){
+  .inquiry-email-row{align-items:flex-start;flex-direction:column}
+  .inquiry-email-row-actions{width:100%;justify-content:space-between}
+}

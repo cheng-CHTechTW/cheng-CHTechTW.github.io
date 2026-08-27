@@ -215,8 +215,9 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
 
 
 
+
   // ==========================================================
-  // V73 客戶表單多 Email 收件者
+  // V75 Email接收設定（獨立 Google 試算表頁籤）
   // ==========================================================
   let inquiryRecipients=[];
 
@@ -225,11 +226,21 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
   const renderInquiryRecipients=()=>{
     const box=$('#inquiryEmailList');
     if(!box)return;
+
     box.innerHTML=inquiryRecipients.length
-      ? inquiryRecipients.map((email,i)=>`
-          <div class="inquiry-email-chip">
-            <span>${gsSafe(email)}</span>
-            <button type="button" data-remove-inquiry-email="${i}" aria-label="移除 ${gsSafe(email)}">×</button>
+      ? inquiryRecipients.map((item,i)=>`
+          <div class="inquiry-email-row">
+            <div class="inquiry-email-main">
+              <b>${gsSafe(item.email)}</b>
+              <small>${item.enabled!==false?'啟用':'停用'}｜${item.receiveInquiry!==false?'接收客戶表單':'不接收客戶表單'}</small>
+            </div>
+            <div class="inquiry-email-row-actions">
+              <label class="mini-switch">
+                <input type="checkbox" data-recipient-enabled="${i}" ${item.enabled!==false?'checked':''}>
+                <span>啟用</span>
+              </label>
+              <button type="button" class="icon-btn danger" data-remove-inquiry-email="${i}" aria-label="移除">×</button>
+            </div>
           </div>`).join('')
       : '<div class="inquiry-email-empty">目前沒有接收 Email</div>';
   };
@@ -237,14 +248,21 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
   const loadInquiryRecipients=async()=>{
     const status=$('#inquiryEmailStatus');
     if(!status)return;
+
     status.textContent='讀取中…';
+
     try{
-      const result=await authGet('companyInfo',sessionToken);
-      const rows=Array.isArray(result.data)?result.data:[];
-      const row=rows.find(x=>String(x.key||'')==='inquiry_email');
-      const fallback=rows.find(x=>String(x.key||'')==='email');
-      const raw=String(row?.value||fallback?.value||'');
-      inquiryRecipients=[...new Set(raw.split(/[;,\n\r]+/).map(v=>v.trim().toLowerCase()).filter(validInquiryEmail))];
+      const rows=await gsGet('inquiryRecipients');
+      inquiryRecipients=(Array.isArray(rows)?rows:[])
+        .map(item=>({
+          id:item.id||'',
+          email:String(item.email||'').trim().toLowerCase(),
+          receiveInquiry:item.receiveInquiry!==false,
+          enabled:item.enabled!==false,
+          createdAt:item.createdAt||''
+        }))
+        .filter(item=>validInquiryEmail(item.email));
+
       renderInquiryRecipients();
       status.textContent=`已讀取 ${inquiryRecipients.length} 位接收者`;
     }catch(err){
@@ -255,25 +273,55 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
   const addInquiryRecipient=()=>{
     const input=$('#inquiryEmailInput');
     if(!input)return;
+
     const email=input.value.trim().toLowerCase();
-    if(!validInquiryEmail(email)){alert('請輸入正確的 Email。');return;}
-    if(inquiryRecipients.includes(email)){alert('此 Email 已在接收名單。');return;}
-    inquiryRecipients.push(email);
+    if(!validInquiryEmail(email)){
+      alert('請輸入正確的 Email。');
+      return;
+    }
+    if(inquiryRecipients.some(item=>item.email===email)){
+      alert('此 Email 已在接收名單。');
+      return;
+    }
+
+    inquiryRecipients.push({
+      id:'',
+      email,
+      receiveInquiry:true,
+      enabled:true,
+      createdAt:''
+    });
+
     input.value='';
     renderInquiryRecipients();
     $('#inquiryEmailStatus').textContent='尚未儲存變更';
   };
 
   $('#addInquiryEmailBtn')?.addEventListener('click',addInquiryRecipient);
+
   $('#inquiryEmailInput')?.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){e.preventDefault();addInquiryRecipient();}
+    if(e.key==='Enter'){
+      e.preventDefault();
+      addInquiryRecipient();
+    }
+  });
+
+  document.addEventListener('change',e=>{
+    const input=e.target.closest('[data-recipient-enabled]');
+    if(!input)return;
+    const i=Number(input.dataset.recipientEnabled);
+    if(Number.isInteger(i)&&inquiryRecipients[i]){
+      inquiryRecipients[i].enabled=input.checked;
+      $('#inquiryEmailStatus').textContent='尚未儲存變更';
+    }
   });
 
   document.addEventListener('click',e=>{
     const btn=e.target.closest('[data-remove-inquiry-email]');
     if(!btn)return;
+
     const i=Number(btn.dataset.removeInquiryEmail);
-    if(Number.isInteger(i)){
+    if(Number.isInteger(i)&&inquiryRecipients[i]){
       inquiryRecipients.splice(i,1);
       renderInquiryRecipients();
       $('#inquiryEmailStatus').textContent='尚未儲存變更';
@@ -283,23 +331,19 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
   $('#saveInquiryEmailsBtn')?.addEventListener('click',async()=>{
     const btn=$('#saveInquiryEmailsBtn');
     const status=$('#inquiryEmailStatus');
+
     if(!inquiryRecipients.length){
-      alert('至少保留一個客戶表單接收 Email。');
+      alert('至少保留一個接收 Email。');
       return;
     }
+
     btn.disabled=true;
     status.textContent='儲存中…';
+
     try{
-      await authPost('saveCompanyInfo',{
-        token:sessionToken,
-        rows:[{
-          key:'inquiry_email',
-          label:'客戶表單接收Email（可多位）',
-          value:inquiryRecipients.join(','),
-          isPublic:false
-        }]
-      });
-      status.textContent=`已儲存 ${inquiryRecipients.length} 位接收者`;
+      await gsPost('saveInquiryRecipients',{recipients:inquiryRecipients});
+      status.textContent=`已儲存 ${inquiryRecipients.length} 位接收者至「Email接收設定」`;
+      await loadInquiryRecipients();
     }catch(err){
       status.textContent=`儲存失敗：${err.message}`;
     }finally{
@@ -309,7 +353,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
 
   document.addEventListener('click',e=>{
     if(e.target.closest('[data-page="company"],[data-open-page="company"]')){
-      setTimeout(loadInquiryRecipients,50);
+      setTimeout(loadInquiryRecipients,80);
     }
   });
 

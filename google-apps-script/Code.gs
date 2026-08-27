@@ -30,7 +30,8 @@ const TABS = {
   company: '公司資訊',
   admins: '管理人員',
   permissions: '管理權限',
-  authLog: '驗證紀錄'
+  authLog: '驗證紀錄',
+  recipients: 'Email接收設定'
 };
 
 const ADMIN_SESSION_SECONDS = 21600; // 6 小時
@@ -102,6 +103,11 @@ function doGet(e) {
       return json_({ ok: true, data: readCompanyInfo_() });
     }
 
+    if (action === 'inquiryRecipients') {
+      if (!hasPermission_(session.profile,'company')) return json_({ok:false,error:'forbidden'});
+      return json_({ ok: true, data: readInquiryRecipientsAdmin_() });
+    }
+
     return json_({ ok: false, error: 'unknown_action' });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
@@ -157,6 +163,7 @@ function doPost(e) {
     if (action === 'saveAdminUser') { if(!hasPermission_(session.profile,'admins')) return json_({ok:false,error:'forbidden'}); return json_(saveAdminUser_(data)); }
     if (action === 'deleteAdminUser') { if(!hasPermission_(session.profile,'admins')) return json_({ok:false,error:'forbidden'}); return json_(deleteAdminUser_(data)); }
     if (action === 'saveCompanyInfo') { if(!hasPermission_(session.profile,'company')) return json_({ok:false,error:'forbidden'}); return json_(saveCompanyInfo_(data)); }
+    if (action === 'saveInquiryRecipients') { if(!hasPermission_(session.profile,'company')) return json_({ok:false,error:'forbidden'}); return json_(saveInquiryRecipients_(data)); }
 
     return json_({ ok: false, error: 'unknown_action' });
   } catch (err) {
@@ -192,7 +199,11 @@ function ensureSheets_() {
   ensureSheet_(ss, TABS.authLog,
     ['驗證時間','帳號','驗證結果','備註']);
 
+  ensureSheet_(ss, TABS.recipients,
+    ['ID','Email','接收客戶表單','啟用','建立時間','更新時間']);
+
   ensureAdminEmailColumn_(ss);
+  seedInquiryRecipients_();
 }
 
 
@@ -1020,6 +1031,39 @@ function saveCompanyInfo_(data) {
  * ========================= */
 
 
+
+function seedInquiryRecipients_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(TABS.recipients);
+  if (!sh || sh.getLastRow() > 1) return;
+
+  const legacy = getCompanySetting_('inquiry_email') || getCompanySetting_('email') || 'service@chuang-c.com';
+  const raw = String(legacy || '').split(/[;,\n\r]+/);
+  const seen = {};
+  const emails = raw.map(function(v){ return String(v || '').trim().toLowerCase(); })
+    .filter(function(v){
+      if (!v || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || seen[v]) return false;
+      seen[v] = true;
+      return true;
+    });
+
+  if (!emails.length) return;
+
+  const now = new Date();
+  const rows = emails.map(function(email, index) {
+    return [
+      'MAIL-' + String(index + 1).padStart(3, '0'),
+      email,
+      true,
+      true,
+      now,
+      now
+    ];
+  });
+
+  sh.getRange(2,1,rows.length,6).setValues(rows);
+}
+
 function getCompanySetting_(code) {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.company);
   if (!sh || sh.getLastRow() <= 1) return '';
@@ -1034,8 +1078,9 @@ function getCompanySetting_(code) {
 }
 
 function sendInquiryEmail_(data, inquiryId, submittedAt) {
-  const to = getCompanySetting_('inquiry_email') || getCompanySetting_('email');
-  if (!to) return false;
+  const recipients = readActiveInquiryRecipients_();
+  if (!recipients.length) return false;
+  const to = recipients.map(function(item){ return item.email; }).join(',');
 
   const subject = `【誠創科技｜新客戶表單】${data.storeName || '未填店名'}｜${data.contactName || '未填聯絡人'}`;
 
@@ -1133,6 +1178,72 @@ function saveInquiry_(data) {
   }
 
   return { ok: true, id: id, emailSent: emailSent };
+}
+
+
+function readInquiryRecipientsAdmin_() {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.recipients);
+  if (!sh || sh.getLastRow() <= 1) return [];
+
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,6).getValues();
+  return rows.map(function(r) {
+    return {
+      id: String(r[0] || ''),
+      email: String(r[1] || '').trim().toLowerCase(),
+      receiveInquiry: normalizeBool_(r[2]),
+      enabled: normalizeBool_(r[3]),
+      createdAt: dateTimeText_(r[4]),
+      updatedAt: dateTimeText_(r[5])
+    };
+  }).filter(function(x){ return x.email; });
+}
+
+function readActiveInquiryRecipients_() {
+  const rows = readInquiryRecipientsAdmin_();
+  const seen = {};
+
+  return rows.filter(function(item) {
+    if (!item.email || !isValidEmail_(item.email) ||
+        !item.receiveInquiry || !item.enabled || seen[item.email]) {
+      return false;
+    }
+    seen[item.email] = true;
+    return true;
+  });
+}
+
+function saveInquiryRecipients_(data) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.recipients);
+  if (!sh) return { ok:false, error:'recipients_sheet_missing' };
+
+  const incoming = Array.isArray(data.recipients) ? data.recipients : [];
+  const seen = {};
+  const now = new Date();
+  const rows = [];
+
+  incoming.forEach(function(item, index) {
+    const email = String(item.email || '').trim().toLowerCase();
+    if (!isValidEmail_(email) || seen[email]) return;
+    seen[email] = true;
+
+    rows.push([
+      String(item.id || ('MAIL-' + String(index + 1).padStart(3,'0'))),
+      email,
+      item.receiveInquiry !== false,
+      item.enabled !== false,
+      item.createdAt || now,
+      now
+    ]);
+  });
+
+  if (!rows.length) return { ok:false, error:'at_least_one_recipient_required' };
+
+  if (sh.getLastRow() > 1) {
+    sh.getRange(2,1,sh.getLastRow()-1,6).clearContent();
+  }
+  sh.getRange(2,1,rows.length,6).setValues(rows);
+
+  return { ok:true, count:rows.length };
 }
 
 function readInquiries_() {
