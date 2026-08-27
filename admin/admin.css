@@ -575,3 +575,30 @@ button.is-syncing>svg{display:none}
   animation:v48Spin .75s linear infinite;
 }
 #gsFaqBadge:empty{display:none}
+
+/* V57 Google CMS open/closed counters */
+.google-toggle-counts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(90px,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.google-toggle-counts>div{
+  padding:12px 14px;
+  border:1px solid rgba(52,79,120,.12);
+  border-radius:14px;
+  background:#fff;
+}
+.google-toggle-counts small{
+  display:block;
+  color:#7f858b;
+  font-size:11px;
+  margin-bottom:4px;
+}
+.google-toggle-counts strong{
+  display:block;
+  font-size:22px;
+  color:#2d3238;
+}
+.google-toggle-counts>div:first-child strong{color:#477957}
+.google-toggle-counts>div:last-child strong{color:#a64f48}

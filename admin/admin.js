@@ -1294,7 +1294,21 @@
     lucide.createIcons();
   };
 
-  const v48SyncAll=async()=>{
+  
+  // V57：Google 最新消息／常見問題啟用與關閉數量
+  const v57UpdateToggleCounts = () => {
+    const newsOn = gsNews.filter(x => x.enabled === true).length;
+    const newsOff = gsNews.filter(x => x.enabled !== true).length;
+    const faqOn = gsFaq.filter(x => x.enabled === true).length;
+    const faqOff = gsFaq.filter(x => x.enabled !== true).length;
+
+    if($('#gsNewsEnabledCount')) $('#gsNewsEnabledCount').textContent = newsOn;
+    if($('#gsNewsDisabledCount')) $('#gsNewsDisabledCount').textContent = newsOff;
+    if($('#gsFaqEnabledCount')) $('#gsFaqEnabledCount').textContent = faqOn;
+    if($('#gsFaqDisabledCount')) $('#gsFaqDisabledCount').textContent = faqOff;
+  };
+
+const v48SyncAll=async()=>{
     v48ShowUrlState();
 
     if(!GS_ADMIN_URL){
