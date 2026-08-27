@@ -442,7 +442,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     if($('#dashUnread')) $('#dashUnread').textContent = unreadCount;
     if($('#dashNews')) $('#dashNews').textContent = C.announcements.length;
     if($('#dashIndustries')) $('#dashIndustries').textContent = C.industries.length;
-    if($('#newsCount')) $('#newsCount').textContent = C.announcements.length;
+    // V77：newsCount 改由 Google gsNews 同步資料統一更新。
     if($('#formUnreadBadge')) $('#formUnreadBadge').textContent = unreadCount;
     if($('#formUnreadBadge')) $('#formUnreadBadge').classList.toggle('has-unread', unreadCount > 0);
     const dashNewsList=$('#dashNewsList');
@@ -979,6 +979,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     $('#gsNewsList').innerHTML='<div class="gs-loading"><span class="inline-sync-spinner"></span>正在同步 Google 試算表最新消息...</div>';
     try{
       gsNews=await gsGet('adminNews');
+      v77UpdateNavCounts();
       $('#gsNewsList').innerHTML=gsNews.length?gsNews.map((x,i)=>`
         <div class="admin-row gs-data-row">
           <time>${gsSafe(x.date||'')}</time>
@@ -1002,6 +1003,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     try{
       gsFaq=await gsGet('adminFaq');
       setText('#gsFaqBadge',gsFaq.length);
+      v77UpdateNavCounts();
       $('#gsFaqList').innerHTML=gsFaq.length?gsFaq.map((x,i)=>`
         <div class="admin-row gs-data-row">
           <time>${x.order}</time>
@@ -1369,6 +1371,44 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     }
   });
 
+
+  // ==========================================================
+  // V77：左側目錄數量統一使用實際 Google / 管理員資料
+  // ==========================================================
+  const v77UpdateNavCounts = () => {
+    const newsTotal = Array.isArray(gsNews) ? gsNews.length : 0;
+    const faqTotal = Array.isArray(gsFaq) ? gsFaq.length : 0;
+    const inquiryRows = Array.isArray(gsInquiries) ? gsInquiries : [];
+    const unreadTotal = inquiryRows.filter(x =>
+      String(x.readStatus || '').trim() !== '已讀'
+    ).length;
+    const adminTotal = Array.isArray(v47Admins) ? v47Admins.length : 0;
+
+    const setBadge = (selector, value, hideWhenZero=false) => {
+      const el = $(selector);
+      if(!el) return;
+      el.textContent = String(value);
+      if(hideWhenZero){
+        el.hidden = value === 0;
+        el.style.display = value > 0 ? 'inline-flex' : 'none';
+      }else{
+        el.hidden = false;
+        el.style.display = '';
+      }
+    };
+
+    setBadge('#newsCount', newsTotal);
+    setBadge('#gsFaqBadge', faqTotal);
+    setBadge('#formUnreadBadge', unreadTotal, true);
+    setBadge('#adminCountBadge', adminTotal);
+
+    if($('#v47AdminCount')) $('#v47AdminCount').textContent = `${adminTotal} 位`;
+    if($('#googleNewsCount')) $('#googleNewsCount').textContent = `${newsTotal} 筆`;
+    if($('#googleFaqCount')) $('#googleFaqCount').textContent = `${faqTotal} 筆`;
+    if($('#googleInquiryCount')) $('#googleInquiryCount').textContent = `${inquiryRows.length} 筆`;
+  };
+
+
   // ==========================================================
   // V63 管理員管理：Google Sheets 安全 API（不回傳帳號／密碼）
   // ==========================================================
@@ -1383,6 +1423,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     try{
       v47Admins=await gsGet('adminUsers');
       v47RenderAdmins();
+      v77UpdateNavCounts();
     }catch(err){
       console.warn('管理員讀取失敗',err);
       const list=$('#v47AdminList');
@@ -1393,6 +1434,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
   const v47RenderAdmins=()=>{
     const list=$('#v47AdminList'); if(!list)return;
     if($('#v47AdminCount')) $('#v47AdminCount').textContent=`${v47Admins.length} 位`;
+    if($('#adminCountBadge')) $('#adminCountBadge').textContent=String(v47Admins.length);
     list.innerHTML=v47Admins.map((u,i)=>`
       <div class="admin-row gs-data-row">
         <time>${i+1}</time>
@@ -1604,6 +1646,7 @@ const v48SyncAll=async()=>{
       renderGsInquiries();
       syncGoogleInquiryDashboard();
       v58UpdateToggleCounts();
+      v77UpdateNavCounts();
 
       if($('#googleNewsCount'))$('#googleNewsCount').textContent=`${gsNews.length} 筆`;
       if($('#googleFaqCount'))$('#googleFaqCount').textContent=`${gsFaq.length} 筆`;
