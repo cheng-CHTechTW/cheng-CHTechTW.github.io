@@ -8,6 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="../chlogo.svg">
   <link rel="stylesheet" href="admin.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../assets/js/google-sheets-config.js"></script>
   <script src="../assets/js/content.js"></script>
 </head>
 <body>
@@ -68,6 +69,7 @@
       <nav id="adminNav" aria-label="後台功能目錄"><div class="nav-section-label">網站管理</div>
         <button class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>儀表板</span></button>
         <button class="nav-item" data-page="news"><i data-lucide="megaphone"></i><span>最新公告</span><em id="newsCount">0</em></button>
+        <button class="nav-item" data-page="faq-admin"><i data-lucide="circle-help"></i><span>常見問題</span><em id="gsFaqBadge">0</em></button>
         <button class="nav-item" data-page="home"><i data-lucide="house"></i><span>首頁內容</span></button>
         <button class="nav-item" data-page="services"><i data-lucide="briefcase-business"></i><span>服務項目</span></button>
         <button class="nav-item" data-page="products"><i data-lucide="package-search"></i><span>產品設備</span></button>
@@ -144,15 +146,12 @@
 
         <section class="admin-page" data-admin-page="news">
           <div class="page-intro">
-            <div><span>CONTENT</span><h1>最新公告管理</h1><p>新增、編輯與排序首頁及最新消息頁公告。</p></div>
-            <button class="primary" id="addNewsBtn"><i data-lucide="plus"></i>新增公告</button>
+            <div><span>GOOGLE SHEETS · NEWS</span><h1>最新消息</h1><p>直接管理 Google 試算表「最新消息」頁籤，啟用的內容會同步顯示到前台。</p></div>
+            <div class="page-actions"><button class="ghost" id="gsReloadNews"><i data-lucide="refresh-cw"></i>重新整理</button><button class="primary" id="gsAddNews"><i data-lucide="plus"></i>新增最新消息</button></div>
           </div>
           <article class="panel">
-            <div class="toolbar">
-              <div class="searchbox"><i data-lucide="search"></i><input id="newsSearch" placeholder="搜尋公告標題..."></div>
-              <span class="toolbar-hint">點選「編輯」後才可修改內容</span>
-            </div>
-            <div id="newsAdminList" class="admin-list"></div>
+            <div class="panel-head"><div><small>NEWS LIST</small><h3>最新消息列表</h3></div><span class="gs-live-badge"><i></i> Google Sheets</span></div>
+            <div id="gsNewsList" class="admin-list"></div>
           </article>
         </section>
 
@@ -204,47 +203,42 @@
         </section>
 
         <section class="admin-page" data-admin-page="forms">
-          <div class="page-intro"><div><span>INQUIRIES</span><h1>表單洽詢</h1><p>GitHub 靜態版目前沒有伺服器資料庫，因此此頁先保留管理介面。</p></div></div>
+          <div class="page-intro">
+            <div><span>GOOGLE SHEETS · INQUIRIES</span><h1>客戶表單</h1><p>直接讀取 Google 試算表「客戶表單」頁籤。</p></div>
+            <button class="ghost" id="gsReloadInquiries"><i data-lucide="refresh-cw"></i>重新整理</button>
+          </div>
+
           <div class="forms-summary-grid">
-            <article class="panel form-summary"><small>客戶總數</small><strong id="formsCustomerCount">0</strong><span>目前洽詢紀錄</span></article>
-            <article class="panel form-summary unread"><small>新提交未讀</small><strong id="formsUnreadCount">0</strong><span>等待查看</span></article>
-            <article class="panel form-summary"><small>篩選結果</small><strong id="formsFilteredCount">0</strong><span>符合目前條件</span></article>
+            <article class="panel form-summary"><small>表單總數</small><strong id="gsInquiryTotal">0</strong><span>Google 試算表</span></article>
+            <article class="panel form-summary unread"><small>未讀</small><strong id="gsInquiryUnread">0</strong><span>等待查看</span></article>
+            <article class="panel form-summary"><small>未處理</small><strong id="gsInquiryPending">0</strong><span>等待處理</span></article>
           </div>
 
           <article class="panel">
-            <div class="panel-head"><div><small>FILTER</small><h3>洽詢篩選</h3></div><button class="ghost" id="clearInquiryFilters"><i data-lucide="rotate-ccw"></i> 清除篩選</button></div>
+            <div class="panel-head"><div><small>FILTER</small><h3>表單篩選</h3></div><span class="gs-live-badge"><i></i> Google Sheets</span></div>
             <div class="inquiry-filter-grid">
-              <label>開始日期<input id="inquiryStartDate" type="date"></label>
-              <label>結束日期<input id="inquiryEndDate" type="date"></label>
-              <label>需求類別
-                <select id="inquiryCategory">
-                  <option value="">全部類別</option>
-                  <option value="POS 系統">POS 系統</option>
-                  <option value="電子發票">電子發票</option>
-                  <option value="多元支付">多元支付</option>
-                  <option value="網站設計">網站設計</option>
-                  <option value="客製化開發">客製化開發</option>
-                  <option value="雲端服務">雲端服務</option>
-                  <option value="設備與耗材">設備與耗材</option>
-                  <option value="其他需求">其他需求</option>
-                </select>
-              </label>
-              <label>讀取狀態
-                <select id="inquiryReadStatus">
-                  <option value="">全部狀態</option>
-                  <option value="unread">未讀</option>
-                  <option value="read">已讀</option>
-                </select>
-              </label>
-              <label class="inquiry-search-wide">關鍵字
-                <div class="searchbox inquiry-searchbox"><i data-lucide="search"></i><input id="inquiryKeyword" placeholder="姓名、店名、電話、Email、LINE、需求內容..."></div>
-              </label>
+              <label>開始日期<input id="gsInquiryStart" type="date"></label>
+              <label>結束日期<input id="gsInquiryEnd" type="date"></label>
+              <label>需求類別<select id="gsInquiryCategory"><option value="">全部類別</option></select></label>
+              <label>處理狀態<select id="gsInquiryStatus"><option value="">全部狀態</option><option>未處理</option><option>處理中</option><option>已完成</option></select></label>
+              <label class="inquiry-search-wide">關鍵字<div class="searchbox"><i data-lucide="search"></i><input id="gsInquiryKeyword" placeholder="姓名、電話、Email、LINE、需求內容"></div></label>
             </div>
           </article>
 
           <article class="panel">
-            <div class="panel-head"><div><small>INQUIRY LIST</small><h3>客戶洽詢列表</h3></div><span class="toolbar-hint">點選客戶列可查看完整填表資訊</span></div>
-            <div id="inquiryAdminList" class="admin-list"></div>
+            <div class="panel-head"><div><small>GOOGLE SHEETS DATA</small><h3>客戶填表紀錄</h3></div><span id="gsInquirySyncText" class="toolbar-hint">尚未同步</span></div>
+            <div id="gsInquiryList" class="admin-list"></div>
+          </article>
+        </section>
+
+        <section class="admin-page" data-admin-page="faq-admin">
+          <div class="page-intro">
+            <div><span>GOOGLE SHEETS · FAQ</span><h1>常見問題</h1><p>直接管理 Google 試算表「常見問題」頁籤，前台會同步讀取啟用項目。</p></div>
+            <div class="page-actions"><button class="ghost" id="gsReloadFaq"><i data-lucide="refresh-cw"></i>重新整理</button><button class="primary" id="gsAddFaq"><i data-lucide="plus"></i>新增常見問題</button></div>
+          </div>
+          <article class="panel">
+            <div class="panel-head"><div><small>FAQ LIST</small><h3>常見問題列表</h3></div><span class="gs-live-badge"><i></i> Google Sheets</span></div>
+            <div id="gsFaqList" class="admin-list"></div>
           </article>
         </section>
 
@@ -326,6 +320,16 @@
 
 <section class="admin-page" data-admin-page="system">
           <div class="page-intro"><div><span>SYSTEM</span><h1>系統設定</h1><p>管理靜態網站資料輸出與部署資訊。</p></div></div>
+          <article class="panel google-sheet-admin-card">
+            <div class="panel-head"><div><small>GOOGLE SHEETS</small><h3>Google 試算表串接</h3></div><span id="gsAdminStatus" class="status-off"><i></i> 尚未設定</span></div>
+            <p>同一份 Google 試算表使用三個頁籤：<b>最新消息</b>、<b>客戶表單</b>、<b>常見問題</b>。</p>
+            <div class="front-current-grid">
+              <div><span>最新消息</span><b>頁籤：最新消息</b></div>
+              <div><span>客戶表單</span><b>頁籤：客戶表單</b></div>
+              <div><span>常見問題</span><b>頁籤：常見問題</b></div>
+              <div><span>設定檔</span><b>assets/js/google-sheets-config.js</b></div>
+            </div>
+          </article>
           <div class="settings-grid">
             <article class="panel setting-card"><i data-lucide="database"></i><div><b>網站資料檔</b><span>assets/js/content.js</span></div><button class="ghost" id="exportBtn2">下載</button></article>
             <article class="panel setting-card"><i data-lucide="github"></i><div><b>部署方式</b><span>GitHub Pages / GitHub Actions</span></div></article>
@@ -447,5 +451,38 @@
   </div>
 
   <script src="admin.js"></script>
+
+  <div class="edit-modal" id="gsEditModal" aria-hidden="true">
+    <div class="edit-backdrop" data-gs-edit-close></div>
+    <div class="edit-dialog">
+      <button class="modal-x" type="button" data-gs-edit-close><i data-lucide="x"></i></button>
+      <div class="edit-head"><span>GOOGLE SHEETS</span><h3 id="gsEditTitle">編輯資料</h3></div>
+      <form id="gsEditForm">
+        <input type="hidden" id="gsEditType">
+        <input type="hidden" id="gsEditId">
+        <div id="gsEditFields"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" data-gs-edit-close>取消</button>
+          <button type="submit" class="primary">儲存到 Google 試算表</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="edit-modal" id="gsInquiryModal" aria-hidden="true">
+    <div class="edit-backdrop" data-gs-inquiry-close></div>
+    <div class="edit-dialog inquiry-detail-dialog">
+      <button class="modal-x" type="button" data-gs-inquiry-close><i data-lucide="x"></i></button>
+      <div class="edit-head"><span>GOOGLE SHEETS · INQUIRY</span><h3>客戶填表詳情</h3></div>
+      <div id="gsInquiryDetail"></div>
+      <div class="modal-actions">
+        <button type="button" class="ghost" data-gs-inquiry-close>關閉</button>
+        <button type="button" class="ghost" id="gsMarkRead">標記已讀</button>
+        <select id="gsProcessStatus" class="modal-status-select"><option>未處理</option><option>處理中</option><option>已完成</option></select>
+        <button type="button" class="primary" id="gsSaveInquiryStatus">儲存狀態</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

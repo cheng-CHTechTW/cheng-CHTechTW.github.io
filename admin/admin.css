@@ -119,3 +119,22 @@
 .permission-grid input{width:15px}
 @media(max-width:760px){.permission-grid{grid-template-columns:1fr 1fr}.admin-user-form-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.permission-grid{grid-template-columns:1fr}}
+
+/* V36 Google Sheets integration */
+.google-sheet-admin-card{margin-bottom:14px}
+.google-sheet-admin-card>p{font-size:11px;color:#777;line-height:1.7}
+.status-off{display:inline-flex;align-items:center;gap:6px;font-size:9px;color:#9b5c53}
+.status-off i{width:7px;height:7px;border-radius:50%;background:#b85a52}
+
+/* V37 Google Sheets direct admin */
+.gs-live-badge{display:inline-flex;align-items:center;gap:6px;font-size:9px;color:#487655;font-weight:800}
+.gs-live-badge i{width:7px;height:7px;border-radius:50%;background:#59a36c;box-shadow:0 0 0 4px rgba(89,163,108,.1)}
+.gs-loading,.gs-empty{padding:50px 18px;text-align:center;display:grid;place-items:center;gap:7px;color:#858585}
+.gs-empty svg{width:34px;color:#a5a5a5}.gs-empty b{font-size:12px;color:#555}.gs-empty span{max-width:580px;font-size:10px;line-height:1.7}
+.gs-data-row{grid-template-columns:70px minmax(0,1fr) 90px 90px}
+.gs-state{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:800}
+.gs-state.on{background:#eaf5ec;color:#4d7655}.gs-state.off{background:#f5e9e7;color:#955048}.gs-state.pending{background:#faf2df;color:#8a692c}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap}
+.modal-status-select{min-height:40px;border:1px solid #ddd6cf;border-radius:9px;padding:0 10px;background:#fff}
+#gsEditFields .wide{grid-column:1/-1}
+@media(max-width:680px){.gs-data-row{grid-template-columns:58px 1fr}.gs-data-row>span,.gs-data-row>.row-actions{grid-column:2}}

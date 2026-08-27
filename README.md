@@ -73,3 +73,16 @@ service@chuang-c.com
 - 後台請使用明確網址：`admin/index.html#dashboard`，避免本機或伺服器顯示資料夾索引。
 
 - 後台「查看前台 / 預覽網站」固定導向 `../index.html`，避免資料夾索引畫面。
+
+
+## Google 試算表串接（V36 / V27 基準）
+
+本版由 V27 回退後新增 Google Sheets 串接。
+
+同一份試算表使用：
+- 最新消息
+- 客戶表單
+- 常見問題
+
+設定方式請看：
+`google-apps-script/README.md`

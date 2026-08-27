@@ -1,4 +1,28 @@
 (() => {
+  const GS = window.GOOGLE_SHEETS_CONFIG || {};
+  const GS_URL = String(GS.webAppUrl || '').trim();
+
+  async function googleSheetsGet(action){
+    if(!GS_URL) return null;
+    const url = `${GS_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`;
+    const res = await fetch(url, { method:'GET', redirect:'follow' });
+    if(!res.ok) throw new Error(`Google Sheets API ${res.status}`);
+    return await res.json();
+  }
+
+  async function googleSheetsPost(action,data){
+    if(!GS_URL) throw new Error('GOOGLE_SHEETS_NOT_CONFIGURED');
+    const res = await fetch(GS_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action,data}),
+      redirect:'follow'
+    });
+    if(!res.ok) throw new Error(`Google Sheets API ${res.status}`);
+    return await res.json();
+  }
+
+
   const C = window.SITE_CONTENT;
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
@@ -108,42 +132,43 @@
   $('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
   document.addEventListener('click',e=>{const q=e.target.closest('.faq-q');if(!q)return;const item=q.closest('.faq-item');$$('.faq-item.open').filter(x=>x!==item).forEach(x=>{x.classList.remove('open');x.querySelector('.faq-q').setAttribute('aria-expanded','false')});item.classList.toggle('open');q.setAttribute('aria-expanded',item.classList.contains('open'))});
   $('#faqSearch').addEventListener('input',e=>{const v=e.target.value.trim().toLowerCase();$$('.faq-item').forEach(x=>x.style.display=!v||x.dataset.search.includes(v)?'':'none')});
-  $('#contactForm').addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(e.currentTarget);const sub=encodeURIComponent(`網站諮詢｜${fd.get('service')}｜${fd.get('name')}`);const body=encodeURIComponent(`姓名 / 店名：${fd.get('name')}
-電話：${fd.get('phone')}
-Email：${fd.get('email')}
-LINE ID：${fd.get('line')||''}
-需求項目：${fd.get('service')}
+  $('#contactForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const form=e.currentTarget;
+    const note=$('#formNote');
+    const submit=form.querySelector('[type="submit"]');
+    const fd=new FormData(form);
 
-需求內容：
-${fd.get('message')}`);location.href=`mailto:service@chuang-c.com?subject=${sub}&body=${body}`;$('#formNote').textContent='已準備 Email 內容，請在郵件軟體確認後寄出。'});
+    const payload={
+      name:String(fd.get('name')||'').trim(),
+      phone:String(fd.get('phone')||'').trim(),
+      email:String(fd.get('email')||'').trim(),
+      line:String(fd.get('line')||'').trim(),
+      service:String(fd.get('service')||'').trim(),
+      message:String(fd.get('message')||'').trim()
+    };
 
+    if(!GS_URL){
+      note.textContent='尚未設定 Google 試算表 API，請先設定 google-sheets-config.js。';
+      return;
+    }
 
-  const frontAdminModal=$('#frontAdminLogin');
-  const frontAdminTrigger=$('#adminLoginTrigger');
-  const frontAdminUser=$('#frontAdminUser');
-  const frontAdminPass=$('#frontAdminPass');
-  const frontAdminError=$('#frontAdminError');
+    submit.disabled=true;
+    const oldText=submit.textContent;
+    submit.textContent='送出中...';
+    note.textContent='';
 
-  const openFrontAdminLogin=()=>{
-    frontAdminModal.classList.add('open');
-    frontAdminModal.setAttribute('aria-hidden','false');
-    document.body.classList.add('front-admin-open');
-    frontAdminError.textContent='';
-    setTimeout(()=>frontAdminUser.focus(),60);
-    lucide.createIcons();
-  };
-  const closeFrontAdminLogin=()=>{
-    frontAdminModal.classList.remove('open');
-    frontAdminModal.setAttribute('aria-hidden','true');
-    document.body.classList.remove('front-admin-open');
-    frontAdminTrigger?.focus();
-  };
-
-  frontAdminTrigger?.addEventListener('click',openFrontAdminLogin);
-  document.addEventListener('click',e=>{
-    if(e.target.closest('[data-admin-login-close]')&&frontAdminModal.classList.contains('open')){
-      e.preventDefault();
-      closeFrontAdminLogin();
+    try{
+      const result=await googleSheetsPost('submitInquiry',payload);
+      if(!result || !result.ok) throw new Error(result?.error||'submit_failed');
+      note.textContent='已成功送出，我們會盡快與您聯繫。';
+      form.reset();
+    }catch(err){
+      console.error(err);
+      note.textContent='送出失敗，請稍後再試或使用電話、LINE 聯繫。';
+    }finally{
+      submit.disabled=false;
+      submit.textContent=oldText;
     }
   });
   document.addEventListener('keydown',e=>{
@@ -194,4 +219,58 @@ ${fd.get('message')}`);location.href=`mailto:service@chuang-c.com?subject=${sub}
 
   const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('visible');io.unobserve(x.target)}}),{threshold:.12}); $$('.reveal').forEach(x=>io.observe(x));
   window.addEventListener('load',()=>lucide.createIcons());
+
+
+  async function loadGoogleSheetPublicContent(){
+    if(!GS_URL) return;
+
+    try{
+      const newsResult=await googleSheetsGet('news');
+      if(newsResult?.ok && Array.isArray(newsResult.data) && newsResult.data.length){
+        C.announcements = newsResult.data;
+        if(typeof renderNews === 'function'){
+          try{ renderNews(C.announcements[0]); }catch(_){}
+        }
+        const newsList=$('#newsList');
+        if(newsList){
+          newsList.innerHTML=C.announcements.map((x,i)=>`
+            <div class="news-item reveal visible">
+              <span class="news-date">${x.date||''}</span>
+              <button class="news-title-btn" data-news-index="${i}">${x.title||''}</button>
+            </div>`).join('');
+        }
+        if(C.announcements[0]){
+          const parts=String(C.announcements[0].date||'').split('.');
+          if($('#tickerDate') && parts.length===2) $('#tickerDate').textContent=`${parts[0]} | ${parts[1]}`;
+          if($('#tickerText')) $('#tickerText').textContent=C.announcements[0].title||'';
+        }
+      }
+    }catch(err){
+      console.warn('Google Sheets news fallback to local content.js',err);
+    }
+
+    try{
+      const faqResult=await googleSheetsGet('faq');
+      if(faqResult?.ok && Array.isArray(faqResult.data) && faqResult.data.length){
+        C.faqs=faqResult.data;
+        const faqList=$('#faqList');
+        if(faqList){
+          faqList.innerHTML=C.faqs.map((x,i)=>`
+            <div class="faq-item" data-search="${((x.q||'')+(x.a||'')).toLowerCase()}">
+              <button class="faq-q" aria-expanded="false">
+                <span>Q${i+1}. ${x.q||''}</span>
+                <i data-lucide="chevron-down"></i>
+              </button>
+              <div class="faq-a">${x.a||''}</div>
+            </div>`).join('');
+          if(window.lucide) lucide.createIcons();
+        }
+      }
+    }catch(err){
+      console.warn('Google Sheets faq fallback to local content.js',err);
+    }
+  }
+
+  loadGoogleSheetPublicContent();
+
 })();

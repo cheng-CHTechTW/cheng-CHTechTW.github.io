@@ -7,6 +7,8 @@
   const UI_USER = 'admin';
   const UI_PASS = '1234';
 
+  const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
+
   const FRONT_SETTINGS = {
     heroTitle:'讓營運更簡單，讓成長更有力量',
     heroSubtitle:'整合 POS、電子發票、雲端服務、網站設計與客製系統。',
@@ -71,6 +73,7 @@
     loginView.hidden = true;
     adminView.hidden = false;
     renderAll();
+    setTimeout(loadGoogleAdminData,0);
     const currentUsername=sessionStorage.getItem('cc_admin_user')||'admin';
     const currentAdmin=ADMIN_USERS.find(x=>x.username===currentUsername)||ADMIN_USERS[0];
     $$('.nav-item[data-page]').forEach(btn=>{
@@ -117,7 +120,7 @@
   });
 
   const pageNames = {
-    dashboard:'儀表板', news:'最新公告', home:'首頁內容', services:'服務項目',
+    dashboard:'儀表板', news:'最新消息','faq-admin':'常見問題', home:'首頁內容', services:'服務項目',
     products:'產品設備', industries:'適用產業', forms:'表單洽詢', company:'公司資訊',
     links:'連結 / 快捷', appearance:'版面與色彩', admins:'管理員管理', system:'系統設定'
   };
@@ -381,7 +384,16 @@
     lucide.createIcons();
   };
 
+  const renderGoogleSheetsStatus = () => {
+    const el=$('#gsAdminStatus');
+    if(!el) return;
+    const ready=Boolean(String(GOOGLE_SHEETS_ADMIN_CONFIG.webAppUrl||'').trim());
+    el.className=ready?'status-on':'status-off';
+    el.innerHTML=`<i></i> ${ready?'已設定':'尚未設定'}`;
+  };
+
   const renderAll = () => {
+    renderGoogleSheetsStatus();
     syncFrontSettingsToAdmin();
     const now = new Date();
     $('#todayText').textContent = new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).format(now);
@@ -664,6 +676,306 @@
       else closeModal();
     }
   });
+
+
+  // ==========================================================
+  // Google Sheets direct administration
+  // ==========================================================
+  const GS_ADMIN = window.GOOGLE_SHEETS_CONFIG || {};
+  const GS_ADMIN_URL = String(GS_ADMIN.webAppUrl || '').trim();
+
+  let gsNews = [];
+  let gsFaq = [];
+  let gsInquiries = [];
+  let gsCurrentInquiry = null;
+
+  const gsGet = async action => {
+    if(!GS_ADMIN_URL) throw new Error('尚未設定 Google Apps Script Web App URL');
+    const res = await fetch(`${GS_ADMIN_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`,{
+      method:'GET',
+      redirect:'follow'
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    if(!data.ok) throw new Error(data.error||'API error');
+    return data.data||[];
+  };
+
+  const gsPost = async(action,data={})=>{
+    if(!GS_ADMIN_URL) throw new Error('尚未設定 Google Apps Script Web App URL');
+    const res=await fetch(GS_ADMIN_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action,data}),
+      redirect:'follow'
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result=await res.json();
+    if(!result.ok) throw new Error(result.error||'API error');
+    return result;
+  };
+
+  const gsSafe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  const gsApiMissing = target => {
+    const el=$(target);
+    if(el) el.innerHTML=`<div class="gs-empty"><i data-lucide="triangle-alert"></i><b>尚未設定 Google 試算表 API</b><span>請先完成 google-apps-script/README.md 的部署步驟，再把 Web App URL 貼到 assets/js/google-sheets-config.js。</span></div>`;
+    lucide.createIcons();
+  };
+
+  const loadGsNews=async()=>{
+    if(!$('#gsNewsList')) return;
+    if(!GS_ADMIN_URL){gsApiMissing('#gsNewsList');return;}
+    $('#gsNewsList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
+    try{
+      gsNews=await gsGet('adminNews');
+      $('#gsNewsList').innerHTML=gsNews.length?gsNews.map((x,i)=>`
+        <div class="admin-row gs-data-row">
+          <time>${gsSafe(x.date||'')}</time>
+          <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${x.enabled?'啟用':'停用'}</small></div>
+          <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'前台顯示':'已停用'}</span>
+          <div class="row-actions">
+            <button class="icon-btn" data-gs-edit-news="${i}" title="編輯">${icon('pencil')}</button>
+            <button class="icon-btn danger" data-gs-delete-news="${i}" title="刪除">${icon('trash-2')}</button>
+          </div>
+        </div>`).join(''):`<div class="gs-empty"><i data-lucide="newspaper"></i><b>目前沒有最新消息</b><span>按「新增最新消息」建立第一筆資料。</span></div>`;
+      lucide.createIcons();
+    }catch(err){
+      $('#gsNewsList').innerHTML=`<div class="gs-empty"><b>讀取失敗</b><span>${gsSafe(err.message)}</span></div>`;
+    }
+  };
+
+  const loadGsFaq=async()=>{
+    if(!$('#gsFaqList')) return;
+    if(!GS_ADMIN_URL){gsApiMissing('#gsFaqList');return;}
+    $('#gsFaqList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
+    try{
+      gsFaq=await gsGet('adminFaq');
+      setText('#gsFaqBadge',gsFaq.length);
+      $('#gsFaqList').innerHTML=gsFaq.length?gsFaq.map((x,i)=>`
+        <div class="admin-row gs-data-row">
+          <time>${x.order}</time>
+          <div class="row-copy"><b>${gsSafe(x.q)}</b><small>${gsSafe(x.a).slice(0,90)}${String(x.a).length>90?'…':''}</small></div>
+          <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'啟用':'停用'}</span>
+          <div class="row-actions">
+            <button class="icon-btn" data-gs-edit-faq="${i}" title="編輯">${icon('pencil')}</button>
+            <button class="icon-btn danger" data-gs-delete-faq="${i}" title="刪除">${icon('trash-2')}</button>
+          </div>
+        </div>`).join(''):`<div class="gs-empty"><i data-lucide="circle-help"></i><b>目前沒有常見問題</b></div>`;
+      lucide.createIcons();
+    }catch(err){
+      $('#gsFaqList').innerHTML=`<div class="gs-empty"><b>讀取失敗</b><span>${gsSafe(err.message)}</span></div>`;
+    }
+  };
+
+  const filteredGsInquiries=()=>{
+    const start=$('#gsInquiryStart')?.value||'';
+    const end=$('#gsInquiryEnd')?.value||'';
+    const cat=$('#gsInquiryCategory')?.value||'';
+    const status=$('#gsInquiryStatus')?.value||'';
+    const kw=($('#gsInquiryKeyword')?.value||'').trim().toLowerCase();
+    return gsInquiries.filter(x=>{
+      const d=String(x.submittedAt||'').slice(0,10);
+      if(start&&d<start)return false;
+      if(end&&d>end)return false;
+      if(cat&&x.service!==cat)return false;
+      if(status&&x.processStatus!==status)return false;
+      if(kw){
+        const hay=[x.id,x.name,x.phone,x.email,x.line,x.service,x.message,x.readStatus,x.processStatus].join(' ').toLowerCase();
+        if(!hay.includes(kw))return false;
+      }
+      return true;
+    });
+  };
+
+  const renderGsInquiries=()=>{
+    const list=$('#gsInquiryList');
+    if(!list)return;
+    const rows=filteredGsInquiries();
+    setText('#gsInquiryTotal',gsInquiries.length);
+    setText('#gsInquiryUnread',gsInquiries.filter(x=>x.readStatus!=='已讀').length);
+    setText('#gsInquiryPending',gsInquiries.filter(x=>x.processStatus!=='已完成').length);
+    setText('#gsInquirySyncText',`顯示 ${rows.length} / ${gsInquiries.length} 筆`);
+
+    const cat=$('#gsInquiryCategory');
+    if(cat){
+      const current=cat.value;
+      const cats=[...new Set(gsInquiries.map(x=>x.service).filter(Boolean))];
+      cat.innerHTML='<option value="">全部類別</option>'+cats.map(x=>`<option ${x===current?'selected':''}>${gsSafe(x)}</option>`).join('');
+    }
+
+    list.innerHTML=rows.length?rows.map((x,i)=>{
+      const originalIndex=gsInquiries.indexOf(x);
+      return `<button class="admin-row inquiry-row ${x.readStatus!=='已讀'?'is-unread':''}" type="button" data-gs-inquiry="${originalIndex}">
+        <time>${gsSafe(String(x.submittedAt||'').slice(5,16))}</time>
+        <div class="row-copy"><b>${gsSafe(x.name)} ${x.readStatus!=='已讀'?'<span class="unread-dot">未讀</span>':''}</b><small>${gsSafe(x.service)}｜${gsSafe(x.phone)}｜${gsSafe(x.processStatus)}</small></div>
+        <span class="gs-state ${x.processStatus==='已完成'?'on':'pending'}">${gsSafe(x.processStatus)}</span>
+        <div class="row-actions"><span class="inquiry-open-hint">查看詳情 ${icon('chevron-right')}</span></div>
+      </button>`;
+    }).join(''):`<div class="gs-empty"><i data-lucide="search-x"></i><b>沒有符合條件的表單</b></div>`;
+    lucide.createIcons();
+  };
+
+  const loadGsInquiries=async()=>{
+    if(!$('#gsInquiryList'))return;
+    if(!GS_ADMIN_URL){gsApiMissing('#gsInquiryList');return;}
+    $('#gsInquiryList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
+    try{
+      gsInquiries=await gsGet('inquiries');
+      renderGsInquiries();
+      const unread=gsInquiries.filter(x=>x.readStatus!=='已讀').length;
+      if($('#formUnreadBadge')){$('#formUnreadBadge').textContent=unread;$('#formUnreadBadge').classList.toggle('has-unread',unread>0);}
+      if($('#dashCustomers'))$('#dashCustomers').textContent=gsInquiries.length;
+      if($('#dashUnread'))$('#dashUnread').textContent=unread;
+    }catch(err){
+      $('#gsInquiryList').innerHTML=`<div class="gs-empty"><b>讀取失敗</b><span>${gsSafe(err.message)}</span></div>`;
+    }
+  };
+
+  const gsEditModal=$('#gsEditModal');
+  const openGsEdit=(type,item=null)=>{
+    $('#gsEditType').value=type;
+    $('#gsEditId').value=item?.id||'';
+    if(type==='news'){
+      $('#gsEditTitle').textContent=item?'編輯最新消息':'新增最新消息';
+      $('#gsEditFields').innerHTML=`
+        <div class="two-col">
+          <label>發布日期<input id="gsNewsFullDate" type="date" required value="${gsSafe(item?.fullDate||new Date().toISOString().slice(0,10))}"></label>
+          <label>月日<input id="gsNewsDate" required placeholder="08.27" value="${gsSafe(item?.date||'')}"></label>
+          <label class="wide">標題<input id="gsNewsTitle" required value="${gsSafe(item?.title||'')}"></label>
+          <label class="wide">內容<textarea id="gsNewsBody" rows="6" required>${gsSafe(item?.body||'')}</textarea></label>
+          <label>前台顯示<select id="gsNewsEnabled"><option value="true" ${item?.enabled!==false?'selected':''}>啟用</option><option value="false" ${item?.enabled===false?'selected':''}>停用</option></select></label>
+        </div>`;
+    }else{
+      $('#gsEditTitle').textContent=item?'編輯常見問題':'新增常見問題';
+      $('#gsEditFields').innerHTML=`
+        <div class="two-col">
+          <label>排序<input id="gsFaqOrder" type="number" min="0" value="${Number(item?.order||gsFaq.length+1)}"></label>
+          <label>前台顯示<select id="gsFaqEnabled"><option value="true" ${item?.enabled!==false?'selected':''}>啟用</option><option value="false" ${item?.enabled===false?'selected':''}>停用</option></select></label>
+          <label class="wide">問題<input id="gsFaqQ" required value="${gsSafe(item?.q||'')}"></label>
+          <label class="wide">答案<textarea id="gsFaqA" rows="6" required>${gsSafe(item?.a||'')}</textarea></label>
+        </div>`;
+    }
+    gsEditModal.classList.add('open');
+    gsEditModal.setAttribute('aria-hidden','false');
+  };
+  const closeGsEdit=()=>{gsEditModal?.classList.remove('open');gsEditModal?.setAttribute('aria-hidden','true');};
+
+  $('#gsEditForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const type=$('#gsEditType').value;
+    const id=$('#gsEditId').value;
+    const submit=e.currentTarget.querySelector('[type="submit"]');
+    submit.disabled=true;
+    try{
+      if(type==='news'){
+        const full=$('#gsNewsFullDate').value;
+        const p=full.split('-');
+        const payload={
+          id,
+          fullDate:full,
+          date:$('#gsNewsDate').value.trim()||(p.length===3?`${p[1]}.${p[2]}`:''),
+          title:$('#gsNewsTitle').value.trim(),
+          body:$('#gsNewsBody').value.trim(),
+          enabled:$('#gsNewsEnabled').value==='true'
+        };
+        await gsPost('saveNews',payload);
+        closeGsEdit(); await loadGsNews();
+      }else{
+        await gsPost('saveFaq',{
+          id,
+          order:Number($('#gsFaqOrder').value)||0,
+          q:$('#gsFaqQ').value.trim(),
+          a:$('#gsFaqA').value.trim(),
+          enabled:$('#gsFaqEnabled').value==='true'
+        });
+        closeGsEdit(); await loadGsFaq();
+      }
+    }catch(err){alert(`儲存失敗：${err.message}`)}
+    finally{submit.disabled=false;}
+  });
+
+  const gsInquiryModal=$('#gsInquiryModal');
+  const openGsInquiry=i=>{
+    const x=gsInquiries[i]; if(!x)return;
+    gsCurrentInquiry=x;
+    $('#gsProcessStatus').value=x.processStatus||'未處理';
+    $('#gsInquiryDetail').innerHTML=`
+      <div class="inquiry-detail-meta"><span class="detail-status ${x.readStatus==='已讀'?'is-read':''}">${gsSafe(x.readStatus)}</span><span>${gsSafe(x.submittedAt)}</span><code>${gsSafe(x.id)}</code></div>
+      <div class="inquiry-detail-grid">
+        <div><span>姓名 / 店名</span><b>${gsSafe(x.name)}</b></div>
+        <div><span>電話</span><b>${gsSafe(x.phone)}</b></div>
+        <div><span>Email</span><b>${gsSafe(x.email||'-')}</b></div>
+        <div><span>LINE ID</span><b>${gsSafe(x.line||'-')}</b></div>
+        <div><span>需求項目</span><b>${gsSafe(x.service)}</b></div>
+        <div><span>處理狀態</span><b>${gsSafe(x.processStatus)}</b></div>
+      </div>
+      <div class="inquiry-detail-message"><span>需求內容</span><p>${gsSafe(x.message||'-')}</p></div>`;
+    $('#gsMarkRead').disabled=x.readStatus==='已讀';
+    gsInquiryModal.classList.add('open');
+    gsInquiryModal.setAttribute('aria-hidden','false');
+  };
+  const closeGsInquiry=()=>{gsInquiryModal?.classList.remove('open');gsInquiryModal?.setAttribute('aria-hidden','true');gsCurrentInquiry=null;};
+
+  $('#gsMarkRead')?.addEventListener('click',async()=>{
+    if(!gsCurrentInquiry)return;
+    try{
+      await gsPost('updateInquiry',{id:gsCurrentInquiry.id,readStatus:'已讀'});
+      await loadGsInquiries();
+      const i=gsInquiries.findIndex(x=>x.id===gsCurrentInquiry.id);
+      if(i>=0)openGsInquiry(i); else closeGsInquiry();
+    }catch(err){alert(`更新失敗：${err.message}`)}
+  });
+
+  $('#gsSaveInquiryStatus')?.addEventListener('click',async()=>{
+    if(!gsCurrentInquiry)return;
+    try{
+      await gsPost('updateInquiry',{id:gsCurrentInquiry.id,readStatus:'已讀',processStatus:$('#gsProcessStatus').value});
+      closeGsInquiry(); await loadGsInquiries();
+    }catch(err){alert(`更新失敗：${err.message}`)}
+  });
+
+  $('#gsReloadNews')?.addEventListener('click',loadGsNews);
+  $('#gsReloadFaq')?.addEventListener('click',loadGsFaq);
+  $('#gsReloadInquiries')?.addEventListener('click',loadGsInquiries);
+  $('#gsAddNews')?.addEventListener('click',()=>openGsEdit('news'));
+  $('#gsAddFaq')?.addEventListener('click',()=>openGsEdit('faq'));
+
+  ['#gsInquiryStart','#gsInquiryEnd','#gsInquiryCategory','#gsInquiryStatus','#gsInquiryKeyword'].forEach(sel=>{
+    $(sel)?.addEventListener(sel==='#gsInquiryKeyword'?'input':'change',renderGsInquiries);
+  });
+
+  document.addEventListener('click',async e=>{
+    const en=e.target.closest('[data-gs-edit-news]');
+    if(en){openGsEdit('news',gsNews[Number(en.dataset.gsEditNews)]);return;}
+    const dn=e.target.closest('[data-gs-delete-news]');
+    if(dn){
+      const x=gsNews[Number(dn.dataset.gsDeleteNews)];
+      if(x&&confirm(`確定刪除「${x.title}」？`)){try{await gsPost('deleteNews',{id:x.id});await loadGsNews()}catch(err){alert(err.message)}}
+      return;
+    }
+    const ef=e.target.closest('[data-gs-edit-faq]');
+    if(ef){openGsEdit('faq',gsFaq[Number(ef.dataset.gsEditFaq)]);return;}
+    const df=e.target.closest('[data-gs-delete-faq]');
+    if(df){
+      const x=gsFaq[Number(df.dataset.gsDeleteFaq)];
+      if(x&&confirm(`確定刪除這個問題？`)){try{await gsPost('deleteFaq',{id:x.id});await loadGsFaq()}catch(err){alert(err.message)}}
+      return;
+    }
+    const iq=e.target.closest('[data-gs-inquiry]');
+    if(iq){openGsInquiry(Number(iq.dataset.gsInquiry));return;}
+    if(e.target.closest('[data-gs-edit-close]')){closeGsEdit();return;}
+    if(e.target.closest('[data-gs-inquiry-close]')){closeGsInquiry();return;}
+  });
+
+  const loadGoogleAdminData=()=>{
+    if(!GS_ADMIN_URL){
+      gsApiMissing('#gsNewsList');gsApiMissing('#gsFaqList');gsApiMissing('#gsInquiryList');
+      return;
+    }
+    loadGsNews();loadGsFaq();loadGsInquiries();
+  };
+
 
   const bootAdmin = () => {
     if (sessionStorage.getItem('cc_admin_preview') === '1') {
