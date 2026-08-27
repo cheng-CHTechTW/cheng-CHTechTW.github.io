@@ -475,6 +475,134 @@ function createInitialAdmin() {
   return seedEngineerAdmin_();
 }
 
+
+/**
+ * V69：重新建立 / 修復 engineer 工程師登入。
+ *
+ * 用途：
+ * - engineer 已存在但忘記/不確定一次性密碼
+ * - 管理人員列的啟用或權限代碼設定錯誤
+ * - setup() 因已有管理員而不會重新建立密碼
+ *
+ * 執行後：
+ * - 帳號固定 engineer
+ * - 姓名固定 系統工程師
+ * - 啟用 TRUE
+ * - 權限 ENGINEER
+ * - 重新產生 Salt + SHA-256
+ * - 新的 16 碼一次性密碼只顯示在 Apps Script 執行記錄
+ */
+function resetEngineerLogin() {
+  ensureSheets_();
+  seedPermissions_();
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(TABS.admins);
+  if (!sh) throw new Error('找不到管理人員頁籤');
+
+  const username = 'engineer';
+  const newPassword = Utilities.getUuid().replace(/-/g, '').slice(0,16);
+  const salt = Utilities.getUuid();
+  const passwordHash = passwordHash_(salt, newPassword);
+  const now = new Date();
+
+  let targetRow = 0;
+
+  if (sh.getLastRow() > 1) {
+    const rows = sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
+
+    for (let i = 0; i < rows.length; i++) {
+      const account = String(rows[i][2] || '').trim().toLowerCase();
+      const id = String(rows[i][0] || '').trim();
+
+      if (account === username || id === 'ADMIN-ENG-001') {
+        targetRow = i + 2;
+        break;
+      }
+    }
+  }
+
+  const values = [[
+    'ADMIN-ENG-001',
+    '系統工程師',
+    username,
+    salt,
+    passwordHash,
+    true,
+    'ENGINEER',
+    now
+  ]];
+
+  if (targetRow) {
+    sh.getRange(targetRow,1,1,8).setValues(values);
+  } else {
+    sh.appendRow(values[0]);
+    targetRow = sh.getLastRow();
+  }
+
+  // 確保 ENGINEER 權限列真的存在且全部啟用。
+  repairEngineerPermissions_();
+
+  // 清除舊 Session，避免舊狀態干擾。
+  CacheService.getScriptCache().removeAll([
+    'ADMIN_LOGIN_ATTEMPT_' + username
+  ]);
+
+  Logger.log('========================================');
+  Logger.log('V69 engineer 登入已重設成功');
+  Logger.log('帳號：engineer');
+  Logger.log('一次性新密碼：' + newPassword);
+  Logger.log('管理人員列：' + targetRow);
+  Logger.log('啟用：TRUE');
+  Logger.log('權限代碼：ENGINEER');
+  Logger.log('請使用這組新密碼登入。');
+  Logger.log('試算表不會保存明文密碼。');
+  Logger.log('========================================');
+
+  return {
+    ok: true,
+    username: username,
+    row: targetRow,
+    permissionCode: 'ENGINEER'
+  };
+}
+
+function repairEngineerPermissions_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(TABS.permissions);
+  if (!sh) throw new Error('找不到管理權限頁籤');
+
+  const now = new Date();
+  const values = [[
+    'ENGINEER',
+    '工程師管理',
+    true, true, true, true, true, true, true,
+    true, true, true, true, true, true,
+    now
+  ]];
+
+  let targetRow = 0;
+
+  if (sh.getLastRow() > 1) {
+    const rows = sh.getRange(2,1,sh.getLastRow()-1,16).getValues();
+    for (let i = 0; i < rows.length; i++) {
+      if (String(rows[i][0] || '').trim() === 'ENGINEER') {
+        targetRow = i + 2;
+        break;
+      }
+    }
+  }
+
+  if (targetRow) {
+    sh.getRange(targetRow,1,1,16).setValues(values);
+  } else {
+    sh.appendRow(values[0]);
+  }
+
+  return true;
+}
+
+
 function changeAdminPassword_(username, newPassword) {
   username = String(username || '').trim();
   newPassword = String(newPassword || '');
