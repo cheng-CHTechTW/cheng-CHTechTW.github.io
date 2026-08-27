@@ -1,0 +1,16 @@
+{
+  "name": "誠創科技",
+  "short_name": "誠創科技",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EF",
+  "theme_color": "#344F78",
+  "icons": [
+    {
+      "src": "/chlogo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
