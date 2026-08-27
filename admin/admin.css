@@ -141,3 +141,248 @@
 
 /* V39 Google Sheets content overview */
 .google-sheet-content-overview{margin-bottom:14px}
+
+
+/* ==========================================================
+   V44 Mobile Admin Navigation + Google Sheets Management
+   ========================================================== */
+.admin-mobile-bar,
+.admin-mobile-overlay,
+.admin-mobile-close-btn,
+.google-sheets-mobile-hint{
+  display:none;
+}
+
+@media (max-width: 900px){
+  body.admin-menu-open{
+    overflow:hidden;
+  }
+
+  .admin-mobile-bar{
+    position:sticky;
+    top:0;
+    z-index:1200;
+    height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 12px;
+    background:rgba(255,255,255,.96);
+    border-bottom:1px solid #e9e3dd;
+    backdrop-filter:blur(12px);
+  }
+
+  .admin-mobile-menu-btn,
+  .admin-mobile-refresh-btn,
+  .admin-mobile-close-btn{
+    width:40px;
+    height:40px;
+    min-width:40px;
+    border:1px solid #e5ded7;
+    border-radius:11px;
+    background:#fff;
+    color:#514b47;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+  }
+
+  .admin-mobile-menu-btn svg,
+  .admin-mobile-refresh-btn svg,
+  .admin-mobile-close-btn svg{
+    width:19px;
+    height:19px;
+  }
+
+  .admin-mobile-brand{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    font-size:12px;
+    font-weight:900;
+    color:#45413e;
+  }
+
+  .admin-mobile-brand img{
+    width:32px;
+    height:32px;
+    object-fit:contain;
+  }
+
+  .google-sheets-mobile-hint{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:8px 12px;
+    border-bottom:1px solid #eee7e1;
+    background:#faf8f5;
+    color:#766b62;
+    font-size:9px;
+    line-height:1.4;
+  }
+
+  .google-sheets-mobile-hint svg{
+    width:14px;
+    min-width:14px;
+    color:#54805f;
+  }
+
+  #adminSidebar,
+  .admin-sidebar,
+  aside.sidebar,
+  nav.sidebar{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    bottom:0!important;
+    width:min(82vw,310px)!important;
+    max-width:310px!important;
+    height:100dvh!important;
+    z-index:1600!important;
+    transform:translateX(-104%);
+    transition:transform .24s ease;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    box-shadow:18px 0 50px rgba(38,33,29,.18);
+  }
+
+  body.admin-menu-open #adminSidebar,
+  body.admin-menu-open .admin-sidebar,
+  body.admin-menu-open aside.sidebar,
+  body.admin-menu-open nav.sidebar{
+    transform:translateX(0);
+  }
+
+  .admin-mobile-close-btn{
+    display:grid;
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:5;
+  }
+
+  .admin-mobile-overlay{
+    position:fixed;
+    inset:0;
+    z-index:1500;
+    display:block;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    background:rgba(28,29,30,.48);
+    backdrop-filter:blur(3px);
+    transition:.22s ease;
+  }
+
+  body.admin-menu-open .admin-mobile-overlay{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+
+  .admin-main,
+  main.admin-main,
+  .main-content,
+  .admin-content{
+    width:100%!important;
+    margin-left:0!important;
+    min-width:0!important;
+  }
+
+  .admin-page{
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+
+  .page-intro{
+    align-items:flex-start!important;
+    gap:12px!important;
+  }
+
+  .page-intro .page-actions{
+    width:100%;
+  }
+
+  .page-intro .page-actions button{
+    flex:1 1 auto;
+  }
+
+  .panel{
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .admin-list{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .gs-data-row,
+  .inquiry-row{
+    min-width:0!important;
+    width:100%;
+  }
+
+  .inquiry-filter-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .front-current-grid,
+  .forms-summary-grid{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  .edit-dialog,
+  .inquiry-detail-dialog{
+    width:calc(100% - 20px)!important;
+    max-height:90dvh;
+    overflow-y:auto;
+    border-radius:16px!important;
+    padding:20px 16px!important;
+  }
+
+  .two-col,
+  .inquiry-detail-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width: 520px){
+  .front-current-grid,
+  .forms-summary-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  .admin-row.gs-data-row,
+  button.admin-row.inquiry-row{
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    gap:7px 10px!important;
+    align-items:start!important;
+  }
+
+  .admin-row.gs-data-row time,
+  button.admin-row.inquiry-row time{
+    grid-column:1;
+  }
+
+  .admin-row.gs-data-row .row-copy,
+  button.admin-row.inquiry-row .row-copy{
+    grid-column:1/-1;
+  }
+
+  .admin-row.gs-data-row .gs-state,
+  button.admin-row.inquiry-row .gs-state{
+    grid-column:1;
+  }
+
+  .admin-row.gs-data-row .row-actions,
+  button.admin-row.inquiry-row .row-actions{
+    grid-column:2;
+    grid-row:1/4;
+    align-self:center;
+  }
+}

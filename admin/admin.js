@@ -1039,4 +1039,77 @@
     }
   });
 
+
+
+  // ==========================================================
+  // V44 Mobile Admin Menu
+  // ==========================================================
+  const adminMobileMenuBtn = $('#adminMobileMenuBtn');
+  const adminMobileCloseBtn = $('#adminMobileCloseBtn');
+  const adminMobileOverlay = $('#adminMobileOverlay');
+  const adminMobileRefreshBtn = $('#adminMobileRefreshBtn');
+
+  const openAdminMobileMenu = () => {
+    document.body.classList.add('admin-menu-open');
+    adminMobileMenuBtn?.setAttribute('aria-expanded','true');
+  };
+
+  const closeAdminMobileMenu = () => {
+    document.body.classList.remove('admin-menu-open');
+    adminMobileMenuBtn?.setAttribute('aria-expanded','false');
+  };
+
+  adminMobileMenuBtn?.addEventListener('click', openAdminMobileMenu);
+  adminMobileCloseBtn?.addEventListener('click', closeAdminMobileMenu);
+  adminMobileOverlay?.addEventListener('click', closeAdminMobileMenu);
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && document.body.classList.contains('admin-menu-open')){
+      closeAdminMobileMenu();
+    }
+  });
+
+  // Close mobile menu automatically after selecting any admin page.
+  document.addEventListener('click', e => {
+    const nav = e.target.closest('[data-page],[data-admin-page-target],[data-nav]');
+    if(nav && window.matchMedia('(max-width: 900px)').matches){
+      setTimeout(closeAdminMobileMenu, 40);
+    }
+  });
+
+  const syncAllGoogleSheetsAdmin = async () => {
+    if(!GS_ADMIN_URL){
+      alert('尚未設定 Google Apps Script Web App URL。');
+      return;
+    }
+    if(adminMobileRefreshBtn){
+      adminMobileRefreshBtn.disabled = true;
+      adminMobileRefreshBtn.classList.add('is-loading');
+    }
+    try{
+      await Promise.all([
+        loadGsNews(),
+        loadGsFaq(),
+        loadGsInquiries()
+      ]);
+      syncGoogleInquiryDashboard();
+    }catch(err){
+      console.warn('Google Sheets full sync failed', err);
+    }finally{
+      if(adminMobileRefreshBtn){
+        adminMobileRefreshBtn.disabled = false;
+        adminMobileRefreshBtn.classList.remove('is-loading');
+      }
+    }
+  };
+
+  adminMobileRefreshBtn?.addEventListener('click', syncAllGoogleSheetsAdmin);
+
+  // On returning to the tab/app, refresh Google Sheets data automatically.
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible' && GS_ADMIN_URL){
+      syncAllGoogleSheetsAdmin();
+    }
+  });
+
 })();

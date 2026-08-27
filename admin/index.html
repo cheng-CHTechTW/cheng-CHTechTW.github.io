@@ -63,7 +63,11 @@
   </div>
 
   <div id="adminView" class="admin-app" hidden>
-    <aside class="sidebar">
+    <aside class="sidebar" id="adminSidebar">
+        <button class="admin-mobile-close-btn" id="adminMobileCloseBtn" type="button" aria-label="關閉後台目錄">
+          <i data-lucide="x"></i>
+        </button>
+
       <div class="side-brand">
         <img src="../chlogo.svg" alt="誠創科技">
         <div><b>誠創科技</b><small>Website Admin</small></div>
@@ -92,6 +96,24 @@
     </aside>
 
     <main class="admin-main">
+      <div class="admin-mobile-bar">
+        <button class="admin-mobile-menu-btn" id="adminMobileMenuBtn" type="button" aria-label="開啟後台目錄" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="admin-mobile-brand">
+          <img src="../chlogo.svg" alt="誠創科技">
+          <span>後台管理</span>
+        </div>
+        <button class="admin-mobile-refresh-btn" id="adminMobileRefreshBtn" type="button" aria-label="同步 Google 試算表">
+          <i data-lucide="refresh-cw"></i>
+        </button>
+      </div>
+      <div class="admin-mobile-overlay" id="adminMobileOverlay"></div>
+      <div class="google-sheets-mobile-hint">
+        <i data-lucide="database"></i>
+        <span>Google 試算表：最新消息・客戶表單・常見問題</span>
+      </div>
+
       <header class="admin-topbar">
         <button class="mobile-menu" id="mobileMenu"><i data-lucide="menu"></i></button>
         <div class="top-title">
