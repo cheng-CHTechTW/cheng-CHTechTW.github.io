@@ -615,3 +615,35 @@ button.is-syncing>svg{display:none}
   font-weight:600;
   color:#8a8f94;
 }
+
+.login-forgot-row{display:flex;justify-content:flex-end;margin-top:-4px}
+.login-forgot-btn{border:0;background:transparent;padding:4px 0;color:#80624c;font-size:11px;font-weight:800;cursor:pointer}
+.forgot-dialog{max-width:480px}.forgot-dialog form{display:grid;gap:14px}.forgot-message.is-success{color:#4f805d}
+.reset-password-page{min-height:100vh;margin:0;background:#f3f0eb;color:#2f3134}
+.reset-shell{min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}
+.reset-card{width:min(100%,520px);box-sizing:border-box;padding:42px 38px;border-radius:28px;background:#fff;box-shadow:0 24px 70px rgba(41,38,35,.12)}
+.reset-logo{width:84px;height:84px;object-fit:contain;display:block;margin:0 auto 22px}
+.reset-eyebrow{display:block;text-align:center;color:#8b674e;font-size:12px;font-weight:800;letter-spacing:.18em}
+.reset-card h1{margin:12px 0 8px;text-align:center;font-size:30px}.reset-intro{text-align:center;color:#777;line-height:1.7;margin-bottom:26px}
+.reset-card form{display:grid;gap:16px}.reset-card label{display:grid;gap:8px;font-size:12px;font-weight:800}
+.reset-card input{width:100%;box-sizing:border-box;padding:14px 15px;border:1px solid #ddd6cf;border-radius:12px;font-size:16px}
+.reset-message{min-height:20px;color:#a74f47;font-size:12px}.reset-submit,.reset-login-link{width:100%;box-sizing:border-box;min-height:48px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.reset-back{display:block;margin-top:20px;text-align:center;color:#777;font-size:12px}
+.reset-success{padding:18px;border:1px solid #d3e5d7;border-radius:14px;background:#f5faf6;text-align:center}
+@media(max-width:600px){.reset-shell{padding:14px}.reset-card{padding:32px 22px;border-radius:22px}}
+
+/* V73 inquiry multi-email manager */
+.inquiry-email-panel{margin-top:18px}
+.panel-note{margin:0 0 16px;color:#777;line-height:1.7;font-size:13px}
+.inquiry-email-list{display:flex;flex-wrap:wrap;gap:10px;min-height:48px;margin-bottom:14px}
+.inquiry-email-chip{display:inline-flex;align-items:center;gap:9px;padding:9px 10px 9px 13px;border:1px solid #ded8d1;border-radius:999px;background:#faf9f7;font-size:13px}
+.inquiry-email-chip button{width:25px;height:25px;border:0;border-radius:50%;background:#ece7e1;color:#8c5b52;font-size:18px;line-height:1;cursor:pointer}
+.inquiry-email-empty{color:#999;padding:12px 0;font-size:13px}
+.inquiry-email-add{display:grid;grid-template-columns:1fr auto;gap:10px}
+.inquiry-email-add input{min-width:0;padding:12px 14px;border:1px solid #ddd6cf;border-radius:12px;font-size:15px}
+.inquiry-email-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.inquiry-email-actions span{color:#777;font-size:12px}
+@media(max-width:600px){
+  .inquiry-email-add{grid-template-columns:1fr}
+  .inquiry-email-actions{align-items:stretch;flex-direction:column}
+}

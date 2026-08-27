@@ -60,6 +60,7 @@
             <a href="../index.html">返回網站</a>
           </div>
           <button class="primary login-submit" type="submit">登入後台 <i data-lucide="arrow-right"></i></button>
+          <div class="login-forgot-row"><button class="login-forgot-btn" id="forgotPasswordBtn" type="button">忘記密碼？</button></div>
           <p class="login-error" id="loginError"></p>
         </form>
 
@@ -334,6 +335,23 @@
             <label>服務時間<input id="companyHours" value="週一～週五 09:00～18:00"></label>
             <label>公司 LOGO<input id="companyLogo" value="chlogo.svg" readonly></label>
           </article>
+
+          <article class="panel inquiry-email-panel">
+            <div class="panel-head">
+              <div><small>INQUIRY EMAIL</small><h3>客戶表單 Email 接收者</h3></div>
+              <span class="gs-live-badge"><i></i> Google Sheets</span>
+            </div>
+            <p class="panel-note">客戶送出諮詢表單後，完整客戶資訊會同時寄送給下列所有收件者。此設定與管理人員忘記密碼 Email 分開。</p>
+            <div id="inquiryEmailList" class="inquiry-email-list"></div>
+            <div class="inquiry-email-add">
+              <input id="inquiryEmailInput" type="email" placeholder="輸入接收 Email">
+              <button id="addInquiryEmailBtn" type="button" class="ghost">＋ 新增收件者</button>
+            </div>
+            <div class="inquiry-email-actions">
+              <span id="inquiryEmailStatus">尚未讀取設定</span>
+              <button id="saveInquiryEmailsBtn" type="button" class="primary">儲存至 Google 試算表</button>
+            </div>
+          </article>
         </section>
 
         <section class="admin-page" data-admin-page="links">
@@ -575,6 +593,7 @@
         <div class="two-col">
           <label>顯示名稱<input id="v47AdminName" required></label>
           <label>登入帳號<input id="v47AdminUsername" autocomplete="off" placeholder="新增時必填；編輯時留空不變"></label>
+          <label>人員 Email<input id="v47AdminEmail" type="email" autocomplete="off" placeholder="忘記密碼重設使用" required></label>
           <label>登入密碼<input id="v47AdminPassword" type="password" autocomplete="new-password" placeholder="新增至少 8 碼；編輯時留空不變"></label>
           <label>狀態<select id="v47AdminEnabled"><option value="true">啟用</option><option value="false">停用</option></select></label>
           <div class="wide">
@@ -585,6 +604,27 @@
         <div class="modal-actions">
           <button type="button" class="ghost" data-v47-admin-close>取消</button>
           <button type="submit" class="primary">儲存管理員</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  
+  <div class="edit-modal" id="forgotPasswordModal" aria-hidden="true">
+    <div class="edit-backdrop" data-forgot-close></div>
+    <div class="edit-dialog forgot-dialog">
+      <button class="modal-x" type="button" data-forgot-close aria-label="關閉"><i data-lucide="x"></i></button>
+      <div class="edit-head">
+        <span>PASSWORD RECOVERY</span><h3>忘記密碼</h3>
+        <p>輸入管理人員帳號與人員 Email。資料相符時會寄出一次性重設連結。</p>
+      </div>
+      <form id="forgotPasswordForm">
+        <label>管理人員帳號<input id="forgotUsername" autocomplete="username" required></label>
+        <label>Email<input id="forgotEmail" type="email" autocomplete="email" required></label>
+        <div class="login-error forgot-message" id="forgotPasswordMessage"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" data-forgot-close>取消</button>
+          <button type="submit" class="primary" id="forgotSubmitBtn">傳送重設連結</button>
         </div>
       </form>
     </div>

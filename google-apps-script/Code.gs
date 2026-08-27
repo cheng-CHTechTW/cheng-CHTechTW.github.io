@@ -61,6 +61,10 @@ function doGet(e) {
       return json_({ ok: true, data: readFaq_(false) });
     }
 
+    if (action === 'passwordResetCheck') {
+      return json_(checkPasswordResetToken_(p.token));
+    }
+
     if (action === 'adminSession') {
       const session = requireSession_(p.token);
       if (!session.ok) return json_(session);
@@ -125,6 +129,14 @@ function doPost(e) {
       return json_(adminLogin_(data));
     }
 
+    if (action === 'adminForgotPassword') {
+      return json_(forgotPassword_(data));
+    }
+
+    if (action === 'adminResetPassword') {
+      return json_(resetPasswordByToken_(data));
+    }
+
     if (action === 'adminLogout') {
       invalidateSession_(token);
       return json_({ ok: true });
@@ -172,13 +184,24 @@ function ensureSheets_() {
     ['欄位代碼','欄位名稱','內容','公開','更新時間']);
 
   ensureSheet_(ss, TABS.admins,
-    ['管理員ID','姓名','帳號','密碼鹽值','密碼雜湊','啟用','權限代碼','更新時間']);
+    ['管理員ID','姓名','帳號','密碼鹽值','密碼雜湊','啟用','權限代碼','更新時間','Email']);
 
   ensureSheet_(ss, TABS.permissions,
     ['權限代碼','權限名稱','dashboard','news','faq-admin','home','services','products','industries','forms','company','links','appearance','admins','system','更新時間']);
 
   ensureSheet_(ss, TABS.authLog,
     ['驗證時間','帳號','驗證結果','備註']);
+
+  ensureAdminEmailColumn_(ss);
+}
+
+
+function ensureAdminEmailColumn_(ss) {
+  const sh = ss.getSheetByName(TABS.admins);
+  if (!sh) return;
+  if (String(sh.getRange(1,9).getDisplayValue() || '').trim() !== 'Email') {
+    sh.getRange(1,9).setValue('Email').setFontWeight('bold');
+  }
 }
 
 function ensureSheet_(ss, name, headers) {
@@ -204,6 +227,162 @@ function setup() {
 /* =========================
  * Admin authentication
  * ========================= */
+
+
+const PASSWORD_RESET_MINUTES = 30;
+const PASSWORD_RESET_PREFIX = 'PWD_RESET_';
+
+function isValidEmail_(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+}
+
+function forgotPassword_(data) {
+  const username = String(data.username || '').trim();
+  const email = String(data.email || '').trim().toLowerCase();
+
+  const generic = {
+    ok: true,
+    message: '如果帳號與 Email 資料相符，系統會寄出密碼重設信。'
+  };
+
+  if (!username || !isValidEmail_(email)) {
+    Utilities.sleep(300);
+    return generic;
+  }
+
+  const admin = findAdminByUsername_(username);
+  if (!admin || !admin.enabled || !admin.email ||
+      String(admin.email).trim().toLowerCase() !== email) {
+    logAuth_(username, false, 'forgot_password_mismatch');
+    Utilities.sleep(350);
+    return generic;
+  }
+
+  const token = Utilities.getUuid().replace(/-/g,'') +
+                Utilities.getUuid().replace(/-/g,'');
+  const tokenHash = simpleSha256_(token);
+  const expiresAt = Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000;
+
+  PropertiesService.getScriptProperties().setProperty(
+    PASSWORD_RESET_PREFIX + tokenHash,
+    JSON.stringify({
+      adminId: admin.id,
+      username: admin.username,
+      email: admin.email,
+      expiresAt: expiresAt
+    })
+  );
+
+  const resetUrl =
+    'https://chuang-c.com/admin/reset-password.html?token=' +
+    encodeURIComponent(token);
+
+  MailApp.sendEmail({
+    to: admin.email,
+    subject: '【誠創科技】後台管理密碼重設',
+    body: '請於 ' + PASSWORD_RESET_MINUTES + ' 分鐘內開啟以下連結重設密碼：\n' + resetUrl,
+    htmlBody:
+      '<div style="font-family:Arial,Microsoft JhengHei,sans-serif;max-width:640px;margin:auto;color:#333">' +
+      '<div style="background:#3f3d3a;color:#fff;padding:22px 26px"><b style="font-size:22px">後台密碼重設</b></div>' +
+      '<div style="padding:26px;background:#faf9f7">' +
+      '<p>' + escapeHtmlMail_(admin.name || admin.username) + ' 您好：</p>' +
+      '<p>請在 ' + PASSWORD_RESET_MINUTES + ' 分鐘內點選下方按鈕設定新密碼。</p>' +
+      '<p style="margin:26px 0"><a href="' + resetUrl + '" style="display:inline-block;background:#3f3d3a;color:#fff;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:700">重設後台密碼</a></p>' +
+      '<p style="font-size:12px;color:#777;word-break:break-all">' + resetUrl + '</p>' +
+      '<p style="font-size:12px;color:#9a5d55">若不是您提出申請，請忽略此信。</p>' +
+      '</div></div>',
+    name: '誠創科技網站後台'
+  });
+
+  logAuth_(username, true, 'password_reset_email_sent');
+  return generic;
+}
+
+function checkPasswordResetToken_(token) {
+  const record = readPasswordResetToken_(token);
+  if (!record.ok) return record;
+  return { ok:true, valid:true, expiresAt:record.payload.expiresAt };
+}
+
+function resetPasswordByToken_(data) {
+  const token = String(data.token || '').trim();
+  const password = String(data.password || '');
+  const confirmPassword = String(data.confirmPassword || '');
+
+  if (password.length < 8) return { ok:false, error:'password_too_short' };
+  if (password !== confirmPassword) return { ok:false, error:'password_confirmation_mismatch' };
+
+  const record = readPasswordResetToken_(token);
+  if (!record.ok) return record;
+
+  const payload = record.payload;
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.admins);
+  const row = findRowById_(sh, payload.adminId);
+  if (!row) return { ok:false, error:'admin_not_found' };
+
+  const currentEmail = String(sh.getRange(row,9).getDisplayValue() || '').trim().toLowerCase();
+  if (currentEmail !== String(payload.email || '').trim().toLowerCase()) {
+    deletePasswordResetToken_(token);
+    return { ok:false, error:'reset_identity_changed' };
+  }
+
+  const salt = Utilities.getUuid();
+  const hash = passwordHash_(salt,password);
+  sh.getRange(row,4).setValue(salt);
+  sh.getRange(row,5).setValue(hash);
+  sh.getRange(row,8).setValue(new Date());
+
+  deletePasswordResetToken_(token);
+  logAuth_(payload.username, true, 'password_reset_success');
+  return { ok:true, changed:true };
+}
+
+function readPasswordResetToken_(token) {
+  token = String(token || '').trim();
+  if (!token) return { ok:false, error:'invalid_reset_token' };
+
+  const props = PropertiesService.getScriptProperties();
+  const key = PASSWORD_RESET_PREFIX + simpleSha256_(token);
+  const raw = props.getProperty(key);
+  if (!raw) return { ok:false, error:'invalid_or_used_reset_token' };
+
+  try {
+    const payload = JSON.parse(raw);
+    if (!payload.expiresAt || Date.now() > Number(payload.expiresAt)) {
+      props.deleteProperty(key);
+      return { ok:false, error:'reset_token_expired' };
+    }
+    return { ok:true, payload:payload };
+  } catch (_) {
+    props.deleteProperty(key);
+    return { ok:false, error:'invalid_reset_token' };
+  }
+}
+
+function deletePasswordResetToken_(token) {
+  PropertiesService.getScriptProperties().deleteProperty(
+    PASSWORD_RESET_PREFIX + simpleSha256_(String(token || '').trim())
+  );
+}
+
+function simpleSha256_(text) {
+  const digest = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(text || ''),
+    Utilities.Charset.UTF_8
+  );
+  return digest.map(function(b) {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? '0' + v : v;
+  }).join('');
+}
+
+function escapeHtmlMail_(value) {
+  return String(value || '').replace(/[<>&"]/g, function(ch) {
+    return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[ch];
+  });
+}
+
 
 function adminLogin_(data) {
   const username = String(data.username || '').trim();
@@ -299,7 +478,7 @@ function findAdminByUsername_(username) {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.admins);
   if (!sh || sh.getLastRow() <= 1) return null;
 
-  const rows = sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,9).getValues();
   const target = String(username || '').trim().toLowerCase();
 
   for (let i = 0; i < rows.length; i++) {
@@ -314,7 +493,8 @@ function findAdminByUsername_(username) {
         salt: String(r[3] || ''),
         passwordHash: String(r[4] || ''),
         enabled: normalizeBool_(r[5]),
-        permissionCode: String(r[6] || 'ADMIN')
+        permissionCode: String(r[6] || 'ADMIN'),
+        email: String(r[8] || '').trim()
       };
     }
   }
@@ -394,6 +574,7 @@ function seedCompanyInfo_() {
     ['brand_name','品牌名稱','CH 誠創 科技·設計',true,now],
     ['website','官方網站','https://chuang-c.com/',true,now],
     ['email','公司信箱','service@chuang-c.com',true,now],
+    ['inquiry_email','主要接收Email','service@chuang-c.com',false,now],
     ['phone','聯絡電話','(02) 8623-7091',true,now],
     ['line_id','LINE ID','@905dqqgw',true,now],
     ['line_url','LINE 官方連結','https://lin.ee/N8TErfC',true,now],
@@ -454,7 +635,8 @@ function seedEngineerAdmin_() {
     hash,
     true,
     'ENGINEER',
-    new Date()
+    new Date(),
+    'service@chuang-c.com'
   ]);
 
   Logger.log('========================================');
@@ -507,9 +689,10 @@ function resetEngineerLogin() {
   const now = new Date();
 
   let targetRow = 0;
+  let targetEmail = 'service@chuang-c.com';
 
   if (sh.getLastRow() > 1) {
-    const rows = sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
+    const rows = sh.getRange(2,1,sh.getLastRow()-1,9).getValues();
 
     for (let i = 0; i < rows.length; i++) {
       const account = String(rows[i][2] || '').trim().toLowerCase();
@@ -517,6 +700,7 @@ function resetEngineerLogin() {
 
       if (account === username || id === 'ADMIN-ENG-001') {
         targetRow = i + 2;
+        targetEmail = String(rows[i][8] || '').trim() || targetEmail;
         break;
       }
     }
@@ -530,11 +714,12 @@ function resetEngineerLogin() {
     passwordHash,
     true,
     'ENGINEER',
-    now
+    now,
+    targetEmail
   ]];
 
   if (targetRow) {
-    sh.getRange(targetRow,1,1,8).setValues(values);
+    sh.getRange(targetRow,1,1,9).setValues(values);
   } else {
     sh.appendRow(values[0]);
     targetRow = sh.getLastRow();
@@ -669,7 +854,7 @@ function readAdminUsersSafe_() {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.admins);
   if (!sh || sh.getLastRow() <= 1) return [];
 
-  const rows = sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,9).getValues();
   return rows.map(function(r) {
     const permissionCode = String(r[6] || '');
     return {
@@ -678,7 +863,8 @@ function readAdminUsersSafe_() {
       enabled: normalizeBool_(r[5]),
       permissionCode: permissionCode,
       permissions: permissionsForCode_(permissionCode),
-      updatedAt: dateTimeText_(r[7])
+      updatedAt: dateTimeText_(r[7]),
+      email: String(r[8] || '')
     };
   });
 }
@@ -689,6 +875,7 @@ function saveAdminUser_(data) {
   const displayName = String(data.displayName || '').trim();
   const username = String(data.username || '').trim();
   const password = String(data.password || '');
+  const email = String(data.email || '').trim().toLowerCase();
   const enabled = data.enabled !== false;
   const permissions = Array.isArray(data.permissions) ? data.permissions : [];
 
@@ -697,11 +884,11 @@ function saveAdminUser_(data) {
   let row = findRowById_(sh,id);
   let existing = null;
   if (row) {
-    existing = sh.getRange(row,1,1,8).getValues()[0];
+    existing = sh.getRange(row,1,1,9).getValues()[0];
   }
 
-  if (!row && (!username || password.length < 8)) {
-    return { ok:false, error:'new_user_requires_username_and_8_char_password' };
+  if (!row && (!username || password.length < 8 || !isValidEmail_(email))) {
+    return { ok:false, error:'new_user_requires_username_email_and_8_char_password' };
   }
 
   if (username && usernameExistsForOther_(username,id)) {
@@ -709,6 +896,8 @@ function saveAdminUser_(data) {
   }
 
   const account = username || String(existing && existing[2] || '');
+  const accountEmail = email || String(existing && existing[8] || '').trim().toLowerCase();
+  if (!isValidEmail_(accountEmail)) return { ok:false, error:'invalid_email' };
   let salt = String(existing && existing[3] || '');
   let hash = String(existing && existing[4] || '');
 
@@ -719,9 +908,9 @@ function saveAdminUser_(data) {
   }
 
   const permissionCode = upsertUserPermissions_(id,displayName,permissions);
-  const values = [[id,displayName,account,salt,hash,enabled,permissionCode,new Date()]];
+  const values = [[id,displayName,account,salt,hash,enabled,permissionCode,new Date(),accountEmail]];
 
-  if (row) sh.getRange(row,1,1,8).setValues(values);
+  if (row) sh.getRange(row,1,1,9).setValues(values);
   else sh.appendRow(values[0]);
 
   return {
@@ -730,6 +919,7 @@ function saveAdminUser_(data) {
       id:id,
       displayName:displayName,
       enabled:enabled,
+      email:accountEmail,
       permissionCode:permissionCode,
       permissions:permissionsForCode_(permissionCode)
     }
@@ -761,7 +951,7 @@ function deleteAdminUser_(data) {
 function usernameExistsForOther_(username,id) {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.admins);
   if (!sh || sh.getLastRow() <= 1) return false;
-  const rows = sh.getRange(2,1,sh.getLastRow()-1,8).getValues();
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,9).getValues();
   const target = String(username || '').trim().toLowerCase();
   return rows.some(function(r){
     return String(r[2] || '').trim().toLowerCase() === target && String(r[0] || '') !== String(id || '');
@@ -829,6 +1019,88 @@ function saveCompanyInfo_(data) {
  * Existing CMS functions
  * ========================= */
 
+
+function getCompanySetting_(code) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.company);
+  if (!sh || sh.getLastRow() <= 1) return '';
+
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,5).getValues();
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][0] || '').trim() === String(code || '').trim()) {
+      return String(rows[i][2] || '').trim();
+    }
+  }
+  return '';
+}
+
+function sendInquiryEmail_(data, inquiryId, submittedAt) {
+  const to = getCompanySetting_('inquiry_email') || getCompanySetting_('email');
+  if (!to) return false;
+
+  const subject = `【誠創科技｜新客戶表單】${data.storeName || '未填店名'}｜${data.contactName || '未填聯絡人'}`;
+
+  const safe = v => String(v || '').replace(/[<>&]/g, s => ({
+    '<':'&lt;','>':'&gt;','&':'&amp;'
+  }[s]));
+
+  const html = `
+  <div style="font-family:Arial,'Noto Sans TC','Microsoft JhengHei',sans-serif;max-width:760px;margin:auto;color:#2f3337">
+    <div style="background:#3f3d3a;color:#fff;padding:24px 28px">
+      <div style="font-size:13px;opacity:.8">CHENG CHUANG TECHNOLOGY · DESIGN</div>
+      <div style="font-size:24px;font-weight:700;margin-top:6px">新客戶諮詢表單</div>
+      <div style="font-size:13px;margin-top:6px">編號：${safe(inquiryId)}</div>
+    </div>
+
+    <div style="padding:24px 28px;background:#faf9f7">
+      <div style="margin-bottom:18px;font-size:14px">
+        <b>提交時間：</b>${safe(submittedAt)}
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;background:#fff">
+        <tr><th style="text-align:left;padding:11px;border:1px solid #ddd;background:#f1eeea;width:30%">欄位</th><th style="text-align:left;padding:11px;border:1px solid #ddd;background:#f1eeea">內容</th></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">店名</td><td style="padding:11px;border:1px solid #ddd">${safe(data.storeName)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">聯絡人</td><td style="padding:11px;border:1px solid #ddd">${safe(data.contactName)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">聯絡電話</td><td style="padding:11px;border:1px solid #ddd">${safe(data.phone)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">LINE ID</td><td style="padding:11px;border:1px solid #ddd">${safe(data.line)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">Email</td><td style="padding:11px;border:1px solid #ddd">${safe(data.email)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">營業狀態</td><td style="padding:11px;border:1px solid #ddd">${safe(data.businessStatus)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">需求</td><td style="padding:11px;border:1px solid #ddd">${safe(data.service)}</td></tr>
+        <tr><td style="padding:11px;border:1px solid #ddd">備註</td><td style="padding:11px;border:1px solid #ddd;white-space:pre-wrap">${safe(data.note)}</td></tr>
+      </table>
+
+      <div style="margin-top:20px;padding:14px;background:#fff;border:1px solid #e5e0db;border-radius:8px;font-size:13px;color:#6d6a66">
+        此信件由誠創科技網站表單自動寄送。客戶資料已同步寫入 Google 試算表「客戶表單」。
+      </div>
+    </div>
+  </div>`;
+
+  const text = [
+    '誠創科技｜新客戶諮詢表單',
+    `編號：${inquiryId}`,
+    `提交時間：${submittedAt}`,
+    '',
+    `店名：${data.storeName || ''}`,
+    `聯絡人：${data.contactName || ''}`,
+    `聯絡電話：${data.phone || ''}`,
+    `LINE ID：${data.line || ''}`,
+    `Email：${data.email || ''}`,
+    `營業狀態：${data.businessStatus || ''}`,
+    `需求：${data.service || ''}`,
+    `備註：${data.note || ''}`
+  ].join('\n');
+
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    body: text,
+    htmlBody: html,
+    name: '誠創科技網站'
+  });
+
+  return true;
+}
+
+
 function saveInquiry_(data) {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.inquiries);
   const now = new Date();
@@ -849,7 +1121,18 @@ function saveInquiry_(data) {
     '未處理'
   ]);
 
-  return { ok: true, id: id };
+  let emailSent = false;
+  try {
+    emailSent = sendInquiryEmail_(
+      data,
+      id,
+      Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss')
+    );
+  } catch (mailErr) {
+    console.error('sendInquiryEmail_ failed:', mailErr);
+  }
+
+  return { ok: true, id: id, emailSent: emailSent };
 }
 
 function readInquiries_() {

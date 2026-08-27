@@ -179,6 +179,141 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     showLogin();
   });
 
+
+  // V72 忘記密碼 Email 重設
+  const forgotModal=$('#forgotPasswordModal');
+  const openForgotPassword=()=>{
+    $('#forgotUsername').value=$('#loginUser')?.value?.trim()||'';
+    $('#forgotEmail').value='';
+    $('#forgotPasswordMessage').textContent='';
+    forgotModal?.classList.add('open');
+    forgotModal?.setAttribute('aria-hidden','false');
+  };
+  const closeForgotPassword=()=>{
+    forgotModal?.classList.remove('open');
+    forgotModal?.setAttribute('aria-hidden','true');
+  };
+  $('#forgotPasswordBtn')?.addEventListener('click',openForgotPassword);
+  document.addEventListener('click',e=>{if(e.target.closest('[data-forgot-close]'))closeForgotPassword();});
+  $('#forgotPasswordForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const username=$('#forgotUsername').value.trim();
+    const email=$('#forgotEmail').value.trim();
+    const msg=$('#forgotPasswordMessage');
+    const btn=$('#forgotSubmitBtn');
+    btn.disabled=true;
+    msg.textContent='傳送中…';
+    try{
+      const result=await authPost('adminForgotPassword',{username,email});
+      msg.textContent=result.message||'如果資料相符，系統已寄出密碼重設信。';
+      msg.classList.add('is-success');
+    }catch(err){
+      msg.textContent=`傳送失敗：${err.message}`;
+      msg.classList.remove('is-success');
+    }finally{btn.disabled=false;}
+  });
+
+
+
+  // ==========================================================
+  // V73 客戶表單多 Email 收件者
+  // ==========================================================
+  let inquiryRecipients=[];
+
+  const validInquiryEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
+
+  const renderInquiryRecipients=()=>{
+    const box=$('#inquiryEmailList');
+    if(!box)return;
+    box.innerHTML=inquiryRecipients.length
+      ? inquiryRecipients.map((email,i)=>`
+          <div class="inquiry-email-chip">
+            <span>${gsSafe(email)}</span>
+            <button type="button" data-remove-inquiry-email="${i}" aria-label="移除 ${gsSafe(email)}">×</button>
+          </div>`).join('')
+      : '<div class="inquiry-email-empty">目前沒有接收 Email</div>';
+  };
+
+  const loadInquiryRecipients=async()=>{
+    const status=$('#inquiryEmailStatus');
+    if(!status)return;
+    status.textContent='讀取中…';
+    try{
+      const result=await authGet('companyInfo',sessionToken);
+      const rows=Array.isArray(result.data)?result.data:[];
+      const row=rows.find(x=>String(x.key||'')==='inquiry_email');
+      const fallback=rows.find(x=>String(x.key||'')==='email');
+      const raw=String(row?.value||fallback?.value||'');
+      inquiryRecipients=[...new Set(raw.split(/[;,\n\r]+/).map(v=>v.trim().toLowerCase()).filter(validInquiryEmail))];
+      renderInquiryRecipients();
+      status.textContent=`已讀取 ${inquiryRecipients.length} 位接收者`;
+    }catch(err){
+      status.textContent=`讀取失敗：${err.message}`;
+    }
+  };
+
+  const addInquiryRecipient=()=>{
+    const input=$('#inquiryEmailInput');
+    if(!input)return;
+    const email=input.value.trim().toLowerCase();
+    if(!validInquiryEmail(email)){alert('請輸入正確的 Email。');return;}
+    if(inquiryRecipients.includes(email)){alert('此 Email 已在接收名單。');return;}
+    inquiryRecipients.push(email);
+    input.value='';
+    renderInquiryRecipients();
+    $('#inquiryEmailStatus').textContent='尚未儲存變更';
+  };
+
+  $('#addInquiryEmailBtn')?.addEventListener('click',addInquiryRecipient);
+  $('#inquiryEmailInput')?.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();addInquiryRecipient();}
+  });
+
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('[data-remove-inquiry-email]');
+    if(!btn)return;
+    const i=Number(btn.dataset.removeInquiryEmail);
+    if(Number.isInteger(i)){
+      inquiryRecipients.splice(i,1);
+      renderInquiryRecipients();
+      $('#inquiryEmailStatus').textContent='尚未儲存變更';
+    }
+  });
+
+  $('#saveInquiryEmailsBtn')?.addEventListener('click',async()=>{
+    const btn=$('#saveInquiryEmailsBtn');
+    const status=$('#inquiryEmailStatus');
+    if(!inquiryRecipients.length){
+      alert('至少保留一個客戶表單接收 Email。');
+      return;
+    }
+    btn.disabled=true;
+    status.textContent='儲存中…';
+    try{
+      await authPost('saveCompanyInfo',{
+        token:sessionToken,
+        rows:[{
+          key:'inquiry_email',
+          label:'客戶表單接收Email（可多位）',
+          value:inquiryRecipients.join(','),
+          isPublic:false
+        }]
+      });
+      status.textContent=`已儲存 ${inquiryRecipients.length} 位接收者`;
+    }catch(err){
+      status.textContent=`儲存失敗：${err.message}`;
+    }finally{
+      btn.disabled=false;
+    }
+  });
+
+  document.addEventListener('click',e=>{
+    if(e.target.closest('[data-page="company"],[data-open-page="company"]')){
+      setTimeout(loadInquiryRecipients,50);
+    }
+  });
+
+
   const pageNames = {
     dashboard:'儀表板', news:'最新消息','faq-admin':'常見問題', home:'首頁內容', services:'服務項目',
     products:'產品設備', industries:'適用產業', forms:'表單洽詢', company:'公司資訊',
@@ -1217,7 +1352,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     list.innerHTML=v47Admins.map((u,i)=>`
       <div class="admin-row gs-data-row">
         <time>${i+1}</time>
-        <div class="row-copy"><b>${gsSafe(u.displayName||'管理員')}</b><small>登入帳號已保護｜權限 ${Array.isArray(u.permissions)?u.permissions.length:0} 項</small></div>
+        <div class="row-copy"><b>${gsSafe(u.displayName||'管理員')}</b><small>${gsSafe(u.email||'尚未設定 Email')}｜登入帳號已保護｜權限 ${Array.isArray(u.permissions)?u.permissions.length:0} 項</small></div>
         <span class="gs-state ${u.enabled?'on':'off'}">${u.enabled?'啟用':'停用'}</span>
         <div class="row-actions">
           <button class="icon-btn" data-v47-edit-admin="${gsSafe(u.id)}" title="編輯">${icon('pencil')}</button>
@@ -1233,6 +1368,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     $('#v47AdminName').value=user?.displayName||'';
     $('#v47AdminUsername').value='';
     $('#v47AdminPassword').value='';
+    $('#v47AdminEmail').value=user?.email||'';
     $('#v47AdminUsername').placeholder=user?'帳號已保護；留空不變':'新增時必填';
     $('#v47AdminPassword').placeholder=user?'留空不變；輸入則更新密碼':'新增至少 8 碼';
     $('#v47AdminEnabled').value=user?.enabled===false?'false':'true';
@@ -1252,11 +1388,13 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
       id,
       displayName:$('#v47AdminName').value.trim(),
       username:$('#v47AdminUsername').value.trim(),
+      email:$('#v47AdminEmail').value.trim(),
       password:$('#v47AdminPassword').value,
       enabled:$('#v47AdminEnabled').value==='true',
       permissions:[...document.querySelectorAll('#v47PermissionGrid input:checked')].map(x=>x.value)
     };
     if(!payload.displayName){alert('請填寫管理員名稱。');return;}
+    if(!payload.email){alert('請填寫管理人員 Email。');return;}
     if(!id && (!payload.username || payload.password.length<8)){alert('新增管理員需要帳號與至少 8 碼密碼。');return;}
     try{
       await gsPost('saveAdminUser',payload);
