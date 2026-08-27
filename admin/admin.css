@@ -602,3 +602,16 @@ button.is-syncing>svg{display:none}
 }
 .google-toggle-counts>div:first-child strong{color:#477957}
 .google-toggle-counts>div:last-child strong{color:#a64f48}
+
+/* V58 CMS counts */
+.google-toggle-counts strong{
+  min-width:1.5em;
+  font-variant-numeric:tabular-nums;
+}
+.google-toggle-counts [id$="EnabledCount"]::after,
+.google-toggle-counts [id$="DisabledCount"]::after{
+  content:" 筆";
+  font-size:11px;
+  font-weight:600;
+  color:#8a8f94;
+}

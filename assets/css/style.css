@@ -706,3 +706,40 @@ body.front-admin-open{overflow:hidden}
   .news-google-head strong{font-size:16px}
   .news-google-body{padding:0 18px 20px}
 }
+
+/* V58 latest-news sync status */
+.news-sync-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:14px;
+  color:#8a8f94;
+  font-size:11px;
+}
+.news-sync-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  border:1.5px solid #9ca3aa;
+  display:inline-block;
+}
+.news-sync-dot.is-spinning{
+  width:11px;
+  height:11px;
+  border:1.5px solid rgba(52,79,120,.18);
+  border-top-color:#344F78;
+  animation:v58SyncSpin .8s linear infinite;
+}
+.news-sync-meta[data-state="success"] .news-sync-dot{
+  background:#68a67a;
+  border-color:#68a67a;
+}
+.news-sync-meta[data-state="error"] .news-sync-dot{
+  background:#bd645e;
+  border-color:#bd645e;
+}
+.news-sync-meta time{
+  color:#a5a9ad;
+}
+@keyframes v58SyncSpin{to{transform:rotate(360deg)}}

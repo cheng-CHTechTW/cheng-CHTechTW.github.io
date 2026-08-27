@@ -1295,17 +1295,29 @@
   };
 
   
-  // V57：Google 最新消息／常見問題啟用與關閉數量
-  const v57UpdateToggleCounts = () => {
-    const newsOn = gsNews.filter(x => x.enabled === true).length;
-    const newsOff = gsNews.filter(x => x.enabled !== true).length;
-    const faqOn = gsFaq.filter(x => x.enabled === true).length;
-    const faqOff = gsFaq.filter(x => x.enabled !== true).length;
 
-    if($('#gsNewsEnabledCount')) $('#gsNewsEnabledCount').textContent = newsOn;
-    if($('#gsNewsDisabledCount')) $('#gsNewsDisabledCount').textContent = newsOff;
-    if($('#gsFaqEnabledCount')) $('#gsFaqEnabledCount').textContent = faqOn;
-    if($('#gsFaqDisabledCount')) $('#gsFaqDisabledCount').textContent = faqOff;
+  // V58：Google 最新消息／常見問題啟用與關閉數量
+  const v58Boolish = (v) => {
+    if(v === true) return true;
+    if(v === false || v == null) return false;
+    const s=String(v).trim().toLowerCase();
+    return !['false','0','否','停用','關閉','disabled','off',''].includes(s);
+  };
+
+  const v58UpdateToggleCounts = () => {
+    const newsRows = Array.isArray(gsNews) ? gsNews : [];
+    const faqRows = Array.isArray(gsFaq) ? gsFaq : [];
+
+    const newsOn = newsRows.filter(x => v58Boolish(x.enabled)).length;
+    const newsOff = newsRows.length - newsOn;
+    const faqOn = faqRows.filter(x => v58Boolish(x.enabled)).length;
+    const faqOff = faqRows.length - faqOn;
+
+    const set=(id,val)=>{ const el=$(id); if(el) el.textContent=String(val); };
+    set('#gsNewsEnabledCount',newsOn);
+    set('#gsNewsDisabledCount',newsOff);
+    set('#gsFaqEnabledCount',faqOn);
+    set('#gsFaqDisabledCount',faqOff);
   };
 
 const v48SyncAll=async()=>{
