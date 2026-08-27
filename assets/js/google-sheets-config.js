@@ -1,5 +1,5 @@
 window.GOOGLE_SHEETS_CONFIG = {
-  webAppUrl: 'https://script.google.com/macros/s/AKfycbxt3bv3sSGlbvt1uL4SXlLNJ6ag-18DBc5wdwDP9IT98yOUNjNM6yT1qISWME9_skBd/exec',
+  webAppUrl: 'https://script.google.com/macros/s/AKfycbzuY-EZ82DkiteD7WZYoxuD4sMN4NvRFzT9n526fbib-idu2sNhddz-oyykCiNKHrQc/exec',
 
   sheetTabs: {
     news: '最新消息',
