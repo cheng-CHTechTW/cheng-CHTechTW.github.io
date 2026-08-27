@@ -1,4 +1,27 @@
 (() => {
+
+  // V56：正式網站第一次開啟固定顯示主頁頂端。
+  const isMainHomepage =
+    location.pathname === '/' ||
+    location.pathname.endsWith('/index.html') ||
+    location.pathname.endsWith('/home.html');
+
+  if(isMainHomepage){
+    if('scrollRestoration' in history) history.scrollRestoration='manual';
+
+    // Remove stale section hashes such as #news left from a previous visit.
+    if(location.hash){
+      try{
+        history.replaceState(null,'',location.pathname + location.search);
+      }catch(_){}
+    }
+
+    window.scrollTo(0,0);
+    requestAnimationFrame(()=>window.scrollTo(0,0));
+    window.addEventListener('load',()=>setTimeout(()=>window.scrollTo(0,0),0),{once:true});
+  }
+
+
   const GS = window.GOOGLE_SHEETS_CONFIG || {};
   const GS_URL = String(GS.webAppUrl || '').trim();
 
@@ -362,6 +385,17 @@
     document.body.classList.remove('modal-open');
   };
 
+
+  // V56：登入視窗關閉按鈕／背景遮罩直接綁定。
+  document.querySelectorAll('[data-front-admin-close],[data-admin-login-close]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      closeFrontAdminLogin();
+    });
+  });
+
+
   if(frontAdminTrigger){
     frontAdminTrigger.addEventListener('click', e => {
       e.preventDefault();
@@ -371,7 +405,7 @@
   }
 
   document.addEventListener('click', e => {
-    if(e.target.closest('[data-front-admin-close]')){
+    if(e.target.closest('[data-front-admin-close],[data-admin-login-close]')){
       closeFrontAdminLogin();
     }
   });

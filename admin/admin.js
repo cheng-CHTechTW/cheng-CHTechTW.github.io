@@ -51,7 +51,7 @@
       role:'超級管理員',
       enabled:true,
       password:'1234',
-      permissions:['dashboard','news','home','services','products','industries','forms','company','links','appearance','admins','system'],
+      permissions:['dashboard','news','faq-admin','home','services','products','industries','forms','company','links','appearance','admins','system'],
       lastLogin:'2026-08-27 07:41'
     },
     {
@@ -61,7 +61,7 @@
       role:'內容管理員',
       enabled:true,
       password:'1234',
-      permissions:['dashboard','news','home','services','products','industries','appearance'],
+      permissions:['dashboard','news','faq-admin','home','services','products','industries','appearance'],
       lastLogin:'尚未登入'
     }
   ];
@@ -148,6 +148,20 @@
     if(syncHash && location.hash !== `#${page}`){
       history.replaceState(null,'',`#${page}`);
     }
+
+    // V51：進入 Google 資料頁時立即重新同步。
+    if(['news','faq-admin','forms'].includes(page)){
+      setTimeout(()=>{
+        if(typeof v48SyncAll === 'function'){
+          v48SyncAll();
+        }else{
+          if(page==='news' && typeof loadGsNews === 'function') loadGsNews();
+          if(page==='faq-admin' && typeof loadGsFaq === 'function') loadGsFaq();
+          if(page==='forms' && typeof loadGsInquiries === 'function') loadGsInquiries();
+        }
+      },60);
+    }
+
     window.scrollTo({top:0,behavior:'smooth'});
   };
 
@@ -730,7 +744,7 @@
   const loadGsNews=async()=>{
     if(!$('#gsNewsList')) return;
     if(!GS_ADMIN_URL){gsApiMissing('#gsNewsList');return;}
-    $('#gsNewsList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
+    $('#gsNewsList').innerHTML='<div class="gs-loading"><span class="inline-sync-spinner"></span>正在同步 Google 試算表最新消息...</div>';
     try{
       gsNews=await gsGet('adminNews');
       $('#gsNewsList').innerHTML=gsNews.length?gsNews.map((x,i)=>`
@@ -752,7 +766,7 @@
   const loadGsFaq=async()=>{
     if(!$('#gsFaqList')) return;
     if(!GS_ADMIN_URL){gsApiMissing('#gsFaqList');return;}
-    $('#gsFaqList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
+    $('#gsFaqList').innerHTML='<div class="gs-loading"><span class="inline-sync-spinner"></span>正在同步 Google 試算表常見問題...</div>';
     try{
       gsFaq=await gsGet('adminFaq');
       setText('#gsFaqBadge',gsFaq.length);
@@ -1315,6 +1329,7 @@
 
       if($('#googleNewsCount'))$('#googleNewsCount').textContent=`${gsNews.length} 筆`;
       if($('#googleFaqCount'))$('#googleFaqCount').textContent=`${gsFaq.length} 筆`;
+      if($('#gsFaqBadge')) $('#gsFaqBadge').textContent=gsFaq.length;
       if($('#googleInquiryCount'))$('#googleInquiryCount').textContent=`${gsInquiries.length} 筆`;
 
       v48SetConnection('success','Google 試算表：成功連線',`最新消息 ${gsNews.length} 筆｜常見問題 ${gsFaq.length} 筆｜客戶表單 ${gsInquiries.length} 筆`);

@@ -627,3 +627,16 @@ body.front-admin-open{overflow:hidden}
 .front-admin-input-wrap input{
   padding:11px 42px 11px 12px!important;
 }
+
+/* V56 login close interaction */
+.front-admin-close{
+  z-index:5!important;
+  pointer-events:auto!important;
+}
+.front-admin-backdrop{
+  cursor:pointer;
+  pointer-events:auto;
+}
+.front-admin-dialog{
+  isolation:isolate;
+}

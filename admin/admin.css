@@ -567,3 +567,11 @@ button.is-syncing>svg{display:none}
 .google-connection-status[data-state="error"] b{
   color:#a64f48;
 }
+
+/* V51 page-entry Google sync */
+.inline-sync-spinner{
+  display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:-3px;
+  border:2px solid rgba(128,98,76,.18);border-top-color:#80624c;border-radius:50%;
+  animation:v48Spin .75s linear infinite;
+}
+#gsFaqBadge:empty{display:none}
