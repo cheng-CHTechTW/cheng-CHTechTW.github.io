@@ -5,127 +5,146 @@
 
   const $ = (s, root=document) => root.querySelector(s);
   const esc = (v='') => String(v)
-    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-    .replaceAll('"','&quot;').replaceAll("'","&#039;");
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 
-  const boolish = (v) => {
-    if (v === true) return true;
-    if (v === false || v == null) return false;
-    const s = String(v).trim().toLowerCase();
-    return !['false','0','否','停用','關閉','disabled','off',''].includes(s);
-  };
-
-  const host = () => $('#newsList');
+  const host = () => $('#newsPageList');
   const meta = () => $('#newsSyncMeta');
   const dot = () => $('#newsSyncDot');
   const text = () => $('#newsSyncText');
   const time = () => $('#newsSyncTime');
 
-  const setSync = (state, message, withTime=false) => {
-    if(meta()) meta().dataset.state = state;
+  const setSync = (state, message, showTime=false) => {
+    const m = meta();
+    if(m) m.dataset.state = state;
     if(text()) text().textContent = message;
     if(dot()) dot().classList.toggle('is-spinning', state === 'loading');
-    if(withTime && time()){
+
+    if(showTime && time()){
       const now = new Date();
-      time().textContent = `最後更新 ${now.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}`;
+      time().textContent =
+        `最後更新 ${now.toLocaleTimeString('zh-TW',{
+          hour:'2-digit',
+          minute:'2-digit',
+          second:'2-digit',
+          hour12:false
+        })}`;
     }
+  };
+
+  // 優先使用 fullDate，避免 Google Sheets 把 08.20 轉成 8.2。
+  const displayDate = (x) => {
+    const full = String(x.fullDate || '').trim();
+    const m = full.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m){
+      return `${String(m[2]).padStart(2,'0')} | ${String(m[3]).padStart(2,'0')}`;
+    }
+
+    const raw = String(x.date || '').trim();
+    const d = raw.split(/[.\-\/|]/).map(v => v.trim()).filter(Boolean);
+    if(d.length >= 2){
+      return `${String(Number(d[0]) || d[0]).padStart(2,'0')} | ${String(Number(d[1]) || d[1]).padStart(2,'0')}`;
+    }
+    return raw;
   };
 
   const render = (items) => {
     const el = host();
-    if (!el) return;
+    if(!el) return;
 
-    const rows = Array.isArray(items)
-      ? items.filter(x => boolish(x.enabled))
-      : [];
-
-    if (!rows.length) {
+    if(!Array.isArray(items) || items.length === 0){
       el.innerHTML = '<div class="news-google-empty">目前沒有已發布的最新消息。</div>';
       return;
     }
 
-    el.innerHTML = rows.map(x => `
-      <article class="news-google-item" data-news-id="${esc(x.id || '')}">
-        <button class="news-google-head" type="button" aria-expanded="false">
-          <time>${esc(String(x.date || '').replace('.', ' | '))}</time>
-          <strong>${esc(x.title || '')}</strong>
-          <span class="news-google-arrow" aria-hidden="true">⌄</span>
+    el.innerHTML = items.map((x, i) => `
+      <article class="news-page-card">
+        <button class="news-page-title" type="button" aria-expanded="false">
+          <span class="news-page-date">${esc(displayDate(x))}</span>
+          <span class="news-page-heading">${esc(x.title || '')}</span>
+          <i data-lucide="chevron-down"></i>
         </button>
-        <div class="news-google-body" hidden>
-          <div>${esc(x.body || '').replace(/\n/g,'<br>')}</div>
-          ${x.fullDate ? `<small>發布日期：${esc(x.fullDate)}</small>` : ''}
+        <div class="news-page-body">
+          <div class="news-page-full-date">發布日期：${esc(x.fullDate || '')}</div>
+          <p>${esc(x.body || '').replace(/\n/g,'<br>')}</p>
         </div>
       </article>
     `).join('');
 
-    el.querySelectorAll('.news-google-head').forEach(btn => {
+    el.querySelectorAll('.news-page-title').forEach(btn => {
       btn.addEventListener('click', () => {
-        const current = btn.closest('.news-google-item');
-        const body = current.querySelector('.news-google-body');
-        const willOpen = body.hidden;
+        const card = btn.closest('.news-page-card');
 
-        el.querySelectorAll('.news-google-item').forEach(item => {
-          const b = item.querySelector('.news-google-body');
-          const h = item.querySelector('.news-google-head');
-          if (item !== current) {
-            if (b) b.hidden = true;
-            if (h) h.setAttribute('aria-expanded','false');
-            item.classList.remove('is-open');
+        el.querySelectorAll('.news-page-card.open').forEach(other => {
+          if(other !== card){
+            other.classList.remove('open');
+            const otherBtn = other.querySelector('.news-page-title');
+            if(otherBtn) otherBtn.setAttribute('aria-expanded','false');
           }
         });
 
-        body.hidden = !willOpen;
-        btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-        current.classList.toggle('is-open', willOpen);
+        card.classList.toggle('open');
+        btn.setAttribute(
+          'aria-expanded',
+          card.classList.contains('open') ? 'true' : 'false'
+        );
       });
     });
+
+    if(window.lucide) lucide.createIcons();
   };
 
   const load = async () => {
-    if (!url) {
-      setSync('error','尚未設定 Google 試算表連線');
+    const el = host();
+
+    if(!el){
+      console.error('[news-google] #newsPageList not found');
       return;
     }
 
-    const el = host();
-    if (!el) {
-      console.error('[news-google] #newsList not found');
+    if(!url){
+      el.innerHTML = '<div class="news-google-empty">尚未設定 Google 試算表連線。</div>';
+      setSync('error','尚未設定 Google 試算表連線');
       return;
     }
 
     setSync('loading','同步中…');
     el.innerHTML = '<div class="news-google-loading"><span></span>正在同步最新消息…</div>';
 
-    try {
-      // Public page intentionally requests "news", so disabled rows are excluded server-side.
-      const res = await fetch(`${url}?action=news&_=${Date.now()}`, {
+    try{
+      const response = await fetch(`${url}?action=news&_=${Date.now()}`, {
         method:'GET',
         cache:'no-store',
         redirect:'follow'
       });
-      const data = await res.json();
 
-      if (!data || data.ok !== true || !Array.isArray(data.data)) {
-        throw new Error((data && data.error) || 'invalid_response');
+      const result = await response.json();
+
+      if(!result || result.ok !== true || !Array.isArray(result.data)){
+        throw new Error((result && result.error) || 'invalid_response');
       }
 
-      render(data.data);
-      setSync('success',`已同步 ${data.data.length} 則`,true);
-      document.documentElement.dataset.newsSource='google';
-    } catch (err) {
+      // Apps Script 的 action=news 本身只回傳 enabled=true 的資料。
+      render(result.data);
+      setSync('success', `已同步 ${result.data.length} 則`, true);
+      document.documentElement.dataset.newsSource = 'google';
+    }catch(err){
       console.error('[news-google]', err);
-      el.innerHTML = '<div class="news-google-empty">最新消息同步失敗，請稍後重新整理。</div>';
+      el.innerHTML =
+        '<div class="news-google-empty">最新消息同步失敗，請稍後重新整理。</div>';
       setSync('error','同步失敗',true);
-      document.documentElement.dataset.newsSource='error';
+      document.documentElement.dataset.newsSource = 'error';
     }
   };
 
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', load, {once:true});
+    document.addEventListener('DOMContentLoaded', load, { once:true });
   }else{
     load();
   }
 
-  // expose for manual refresh/debug
   window.reloadGoogleNews = load;
 })();

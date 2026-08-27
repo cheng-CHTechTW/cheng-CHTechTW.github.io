@@ -641,71 +641,28 @@ body.front-admin-open{overflow:hidden}
   isolation:isolate;
 }
 
-/* V57 Google latest-news page */
+/* V59 Google latest-news loading state */
 .news-google-loading,
 .news-google-empty{
-  padding:24px;
-  border:1px solid rgba(52,79,120,.14);
+  padding:20px 22px;
+  border:1px solid rgba(52,79,120,.12);
   border-radius:18px;
   background:#fff;
   color:#6e747b;
+  font-size:13px;
 }
 .news-google-loading span{
-  display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:-3px;
-  border:2px solid rgba(52,79,120,.18);border-top-color:#344F78;border-radius:50%;
-  animation:v57NewsSpin .8s linear infinite;
+  display:inline-block;
+  width:12px;
+  height:12px;
+  margin-right:7px;
+  vertical-align:-2px;
+  border:1.5px solid rgba(52,79,120,.18);
+  border-top-color:#344F78;
+  border-radius:50%;
+  animation:v59NewsSpin .8s linear infinite;
 }
-@keyframes v57NewsSpin{to{transform:rotate(360deg)}}
-.news-google-item{
-  margin:0 0 16px;
-  border:1px solid rgba(52,79,120,.13);
-  border-radius:22px;
-  background:#fff;
-  overflow:hidden;
-  box-shadow:0 8px 24px rgba(40,46,55,.035);
-}
-.news-google-head{
-  width:100%;
-  display:grid;
-  grid-template-columns:120px 1fr 36px;
-  gap:20px;
-  align-items:center;
-  padding:24px 28px;
-  border:0;
-  background:transparent;
-  text-align:left;
-  cursor:pointer;
-}
-.news-google-head time{
-  color:#a20f19;
-  font-weight:800;
-  letter-spacing:.04em;
-}
-.news-google-head strong{
-  color:#23272c;
-  font-size:18px;
-}
-.news-google-arrow{
-  color:#1784e8;
-  font-size:24px;
-  transition:transform .2s ease;
-}
-.news-google-item.is-open .news-google-arrow{transform:rotate(180deg)}
-.news-google-body{
-  padding:0 28px 24px 168px;
-  color:#555d64;
-  line-height:1.8;
-}
-.news-google-body small{
-  display:block;
-  margin-top:12px;
-  color:#8a8f94;
-}
-@media (max-width:700px){
-  .news-google-head{grid-template-columns:112px 1fr 24px;padding:20px 18px;gap:12px}
-  .news-google-head strong{font-size:16px}
-  .news-google-body{padding:0 18px 20px}
-}
+@keyframes v59NewsSpin{to{transform:rotate(360deg)}}
 
 /* V58 latest-news sync status */
 .news-sync-meta{
