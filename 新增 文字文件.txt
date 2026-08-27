@@ -1,0 +1,26 @@
+#assets/img/industries/
+├─ restaurant.svg          餐飲業
+├─ retail.svg              零售業
+├─ foodcourt.svg           美食街
+├─ shopping-district.svg   商圈店家
+├─ snack-shop.svg          小吃店
+└─ lifestyle-store.svg     生活百貨
+
+
+
+#-one-stop-pos.svg  -公司外觀
+
+#-img/industries/
+
+
+#-img/products/
+#barcode-scanner   -掃描器
+#cash-drawer       -錢箱 
+#e-invoice-paper   -發票紙
+#label-printer     -熱感式標籤機
+#label-sticker     -出單紙/標籤紙
+#pos-terminal      -主機
+#receipt-printer   -熱感式列印機
+#spec-check        -規格確認服務
+#supplies-kit      -耗材
+#thermal-roll      -熱感式紙捲

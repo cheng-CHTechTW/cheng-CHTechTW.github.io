@@ -1,0 +1,679 @@
+(() => {
+  const C = window.SITE_CONTENT || {announcements:[],services:[],products:{hardware:[],consumables:[]},industries:[]};
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const icon = n => `<i data-lucide="${n}"></i>`;
+
+  const UI_USER = 'admin';
+  const UI_PASS = '1234';
+
+  const FRONT_SETTINGS = {
+    heroTitle:'讓營運更簡單，讓成長更有力量',
+    heroSubtitle:'整合 POS、電子發票、雲端服務、網站設計與客製系統。',
+    heroImage:'converted.svg',
+    logo:'chlogo.svg',
+    favicon:'chlogo.svg / favicon.svg',
+    solutionImage:'assets/img/one-stop-pos.svg',
+    newsPage:'news/index.html',
+    ticker:'月 | 日固定 + 公告標題跑馬 + > 詳情',
+    contact:'Modal 視窗跳出',
+    adminEntry:'版權列左側菱形 ICON',
+    company:{
+      name:'誠創科技工作室',
+      phone:'(02) 8623-7091',
+      phoneHref:'tel:+886286237091',
+      email:'service@chuang-c.com',
+      emailHref:'mailto:service@chuang-c.com',
+      line:'@905dqqgw',
+      lineHref:'https://lin.ee/N8TErfC',
+      address:'新北市淡水區水源街二段177巷104號6樓',
+      hours:'週一～週五 09:00～18:00'
+    }
+  };
+
+  const INQUIRIES = [
+    {id:'Q20260827001',name:'晨光餐飲',phone:'0912-345-678',email:'morning@example.com',line:'morningpos',service:'POS 系統',date:'2026-08-27 07:18',message:'新店預計 9 月開幕，需要一套 POS、出單機與錢箱，希望可以支援電子發票與後續雲端看帳。',unread:true},
+    {id:'Q20260827002',name:'好食商行',phone:'0922-168-520',email:'goodfood@example.com',line:'goodfood520',service:'電子發票',date:'2026-08-27 06:52',message:'目前已有 POS，希望詢問電子發票申請、字軌設定與出單設備整合方式。',unread:true},
+    {id:'Q20260826001',name:'樂品生活',phone:'0988-320-611',email:'life@example.com',line:'life.shop',service:'網站設計',date:'2026-08-26 18:40',message:'需要製作品牌形象網站，包含產品介紹、最新公告、聯絡表單與手機版 RWD。',unread:false},
+    {id:'Q20260825003',name:'拾味小館',phone:'0935-620-199',email:'taste@example.com',line:'taste88',service:'多元支付',date:'2026-08-25 15:12',message:'想了解店內 POS 可否串接多元支付與電子發票，並希望操作流程簡單。',unread:false},
+    {id:'Q20260824001',name:'方圓百貨',phone:'0975-881-232',email:'square@example.com',line:'squaremart',service:'設備與耗材',date:'2026-08-24 11:06',message:'需要追加熱感紙捲、標籤貼紙與一台標籤機，請協助確認規格。',unread:false},
+    {id:'Q20260823002',name:'雲食餐飲集團',phone:'0908-555-210',email:'cloudfood@example.com',line:'cloudfood',service:'雲端服務',date:'2026-08-23 14:22',message:'目前有三間分店，希望整合遠端看帳、每日營收與雲端備份。',unread:false},
+    {id:'Q20260822001',name:'創意選物',phone:'0966-140-330',email:'select@example.com',line:'select.tw',service:'客製化開發',date:'2026-08-22 09:35',message:'希望開發內部商品、客戶、銷售與庫存管理介面，並可輸出報表。',unread:false}
+  ];
+
+  const ADMIN_USERS = [
+    {
+      name:'系統管理員',
+      username:'admin',
+      email:'service@chuang-c.com',
+      role:'超級管理員',
+      enabled:true,
+      password:'1234',
+      permissions:['dashboard','news','home','services','products','industries','forms','company','links','appearance','admins','system'],
+      lastLogin:'2026-08-27 07:41'
+    },
+    {
+      name:'內容管理',
+      username:'content',
+      email:'content@chuang-c.com',
+      role:'內容管理員',
+      enabled:true,
+      password:'1234',
+      permissions:['dashboard','news','home','services','products','industries','appearance'],
+      lastLogin:'尚未登入'
+    }
+  ];
+
+  const loginView = $('#loginView');
+  const adminView = $('#adminView');
+
+  const showAdmin = () => {
+    loginView.hidden = true;
+    adminView.hidden = false;
+    renderAll();
+    const currentUsername=sessionStorage.getItem('cc_admin_user')||'admin';
+    const currentAdmin=ADMIN_USERS.find(x=>x.username===currentUsername)||ADMIN_USERS[0];
+    $$('.nav-item[data-page]').forEach(btn=>{
+      const allowed=currentAdmin.permissions.includes(btn.dataset.page);
+      btn.style.display=allowed?'':'none';
+    });
+    let initialPage=getHashPage();
+    if(!currentAdmin.permissions.includes(initialPage)) initialPage=currentAdmin.permissions[0]||'dashboard';
+    openPage(initialPage, !location.hash);
+    lucide.createIcons();
+  };
+  const showLogin = () => {
+    adminView.hidden = true;
+    loginView.hidden = false;
+    lucide.createIcons();
+  };
+
+  $('#togglePass').addEventListener('click', () => {
+    const p = $('#loginPass');
+    p.type = p.type === 'password' ? 'text' : 'password';
+  });
+
+  $('#loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const u = $('#loginUser').value.trim();
+    const p = $('#loginPass').value;
+    const matched = ADMIN_USERS.find(x=>x.username===u && x.password===p && x.enabled);
+    if (matched) {
+      sessionStorage.setItem('cc_admin_preview','1');
+      sessionStorage.setItem('cc_admin_user',matched.username);
+      $('#loginError').textContent = '';
+      history.replaceState(null,'','#dashboard');
+      showAdmin();
+    } else {
+      $('#loginError').textContent = '帳號、密碼不正確，或此管理員已停用。';
+    }
+  });
+
+  $('#logoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('cc_admin_preview');
+    sessionStorage.removeItem('cc_admin_user');
+    history.replaceState(null,'',location.pathname);
+    showLogin();
+  });
+
+  const pageNames = {
+    dashboard:'儀表板', news:'最新公告', home:'首頁內容', services:'服務項目',
+    products:'產品設備', industries:'適用產業', forms:'表單洽詢', company:'公司資訊',
+    links:'連結 / 快捷', appearance:'版面與色彩', admins:'管理員管理', system:'系統設定'
+  };
+
+  const validPages = Object.keys(pageNames);
+  const getHashPage = () => {
+    const page = location.hash.replace('#','').trim();
+    return validPages.includes(page) ? page : 'dashboard';
+  };
+
+  const openPage = (page, syncHash=true) => {
+    if(!validPages.includes(page)) page = 'dashboard';
+    const currentUsername=sessionStorage.getItem('cc_admin_user')||'admin';
+    const currentAdmin=ADMIN_USERS.find(x=>x.username===currentUsername)||ADMIN_USERS[0];
+    if(!currentAdmin.permissions.includes(page)) page=currentAdmin.permissions[0]||'dashboard';
+    $$('.admin-page').forEach(x => x.classList.toggle('active', x.dataset.adminPage === page));
+    $$('.nav-item').forEach(x => {
+      const active = x.dataset.page === page;
+      x.classList.toggle('active', active);
+      x.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+    $('#pageTitle').textContent = pageNames[page] || '後台管理';
+    document.title = `${pageNames[page] || '後台管理'}｜誠創科技後台`;
+    adminView.classList.remove('menu-open');
+    if(syncHash && location.hash !== `#${page}`){
+      history.replaceState(null,'',`#${page}`);
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  $('#adminNav').addEventListener('click', e => {
+    const b = e.target.closest('[data-page]');
+    if (b) openPage(b.dataset.page);
+  });
+  window.addEventListener('hashchange', () => {
+    if(!adminView.hidden) openPage(getHashPage(), false);
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-open-page]');
+    if (b) openPage(b.dataset.openPage);
+  });
+
+  $('#mobileMenu').addEventListener('click', () => adminView.classList.toggle('menu-open'));
+  $('#drawerOverlay').addEventListener('click', () => adminView.classList.remove('menu-open'));
+  $('#previewBtn').addEventListener('click', () => location.href = '../index.html');
+
+  const exportContent = () => {
+    const blob = new Blob(['window.SITE_CONTENT = ' + JSON.stringify(C,null,2) + ';\n'], {type:'text/javascript'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'content.js';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  };
+  $('#exportBtn').addEventListener('click', exportContent);
+  $('#exportBtn2').addEventListener('click', exportContent);
+
+  const fmtDate = d => {
+    const [m,day] = String(d || '').split('.');
+    return `${m || ''} | ${day || ''}`;
+  };
+
+  const renderDashboard = () => {
+    const customerCount = INQUIRIES.length;
+    const unreadCount = INQUIRIES.filter(x => x.unread).length;
+    $('#dashCustomers').textContent = customerCount;
+    $('#dashUnread').textContent = unreadCount;
+    $('#dashNews').textContent = C.announcements.length;
+    $('#dashIndustries').textContent = C.industries.length;
+    $('#newsCount').textContent = C.announcements.length;
+    $('#formUnreadBadge').textContent = unreadCount;
+    $('#formUnreadBadge').classList.toggle('has-unread', unreadCount > 0);
+    $('#dashNewsList').innerHTML = C.announcements.slice(0,5).map(x => `
+      <div class="mini-item"><time>${fmtDate(x.date)}</time><div><b>${x.title}</b><span>${x.fullDate || ''}</span></div><span>已發布</span></div>
+    `).join('');
+  };
+
+  const renderNews = (query='') => {
+    const q = query.trim().toLowerCase();
+    $('#newsAdminList').innerHTML = C.announcements.map((x,i)=>({x,i}))
+      .filter(({x}) => !q || (x.title + x.body).toLowerCase().includes(q))
+      .map(({x,i}) => `
+        <div class="admin-row">
+          <time>${fmtDate(x.date)}</time>
+          <div class="row-copy"><b>${x.title}</b><small>${x.body}</small></div>
+          <div class="row-actions">
+            <button class="icon-btn" data-edit="news" data-index="${i}" title="編輯">${icon('pencil')}</button>
+            <button class="icon-btn danger" data-delete-news="${i}" title="刪除">${icon('trash-2')}</button>
+          </div>
+        </div>
+      `).join('');
+    lucide.createIcons();
+  };
+
+  const renderServices = () => {
+    $('#serviceAdminGrid').innerHTML = C.services.map((x,i)=>`
+      <article class="edit-card">
+        <div class="edit-media">${icon(x.icon || 'briefcase')}</div>
+        <div class="edit-card-body"><h3>${x.title}</h3><p>${x.text}</p>
+          <div class="edit-card-foot"><code>${x.icon || ''}</code><button class="ghost" data-edit="service" data-index="${i}">編輯</button></div>
+        </div>
+      </article>`).join('');
+    lucide.createIcons();
+  };
+
+  let productType = 'hardware';
+  const renderProducts = () => {
+    const arr = C.products[productType] || [];
+    $('#productAdminGrid').innerHTML = arr.map((x,i)=>`
+      <article class="edit-card">
+        <div class="edit-media">${x.image ? `<img src="../${x.image}" alt="${x.title}">` : icon(x.icon || 'package')}</div>
+        <div class="edit-card-body"><h3>${x.title}</h3><p>${x.text}</p>
+          <div class="edit-card-foot"><code>${x.image || x.icon || ''}</code><button class="ghost" data-edit="product" data-index="${i}">編輯</button></div>
+        </div>
+      </article>`).join('');
+    lucide.createIcons();
+  };
+
+  const renderIndustries = () => {
+    $('#industryAdminGrid').innerHTML = C.industries.map((x,i)=>`
+      <article class="edit-card">
+        <div class="edit-media">${x.image ? `<img src="../${x.image}" alt="${x.title}">` : icon(x.icon || 'store')}</div>
+        <div class="edit-card-body"><h3>${x.title}</h3><p>${x.text}</p>
+          <div class="edit-card-foot"><code>${x.image || ''}</code><button class="ghost" data-edit="industry" data-index="${i}">編輯</button></div>
+        </div>
+      </article>`).join('');
+    lucide.createIcons();
+  };
+
+  const setValue = (selector,value) => {
+    const el=$(selector);
+    if(el) el.value=value;
+  };
+  const setText = (selector,value) => {
+    const el=$(selector);
+    if(el) el.textContent=value;
+  };
+
+  const syncFrontSettingsToAdmin = () => {
+    setValue('#frontHeroTitle',FRONT_SETTINGS.heroTitle);
+    setValue('#frontHeroSubtitle',FRONT_SETTINGS.heroSubtitle);
+    setValue('#frontHeroImage',FRONT_SETTINGS.heroImage);
+
+    setText('#frontLogoSetting',FRONT_SETTINGS.logo);
+    setText('#frontFaviconSetting',FRONT_SETTINGS.favicon);
+    setText('#frontHeroSetting',FRONT_SETTINGS.heroImage);
+    setText('#frontSolutionSetting',FRONT_SETTINGS.solutionImage);
+    setText('#frontTickerSetting',FRONT_SETTINGS.ticker);
+    setText('#frontContactSetting',FRONT_SETTINGS.contact);
+    setText('#frontNewsPageSetting',FRONT_SETTINGS.newsPage);
+    setText('#frontAdminEntrySetting',FRONT_SETTINGS.adminEntry);
+
+    setValue('#companyName',FRONT_SETTINGS.company.name);
+    setValue('#companyPhone',FRONT_SETTINGS.company.phone);
+    setValue('#companyEmail',FRONT_SETTINGS.company.email);
+    setValue('#companyLine',FRONT_SETTINGS.company.line);
+    setValue('#companyAddress',FRONT_SETTINGS.company.address);
+    setValue('#companyHours',FRONT_SETTINGS.company.hours);
+    setValue('#companyLogo',FRONT_SETTINGS.logo);
+
+    setText('#linkLineLabel',FRONT_SETTINGS.company.line);
+    setValue('#linkLineUrl',FRONT_SETTINGS.company.lineHref);
+    setText('#linkPhoneLabel',FRONT_SETTINGS.company.phone);
+    setValue('#linkPhoneUrl',FRONT_SETTINGS.company.phoneHref);
+    setText('#linkEmailLabel',FRONT_SETTINGS.company.email);
+    setValue('#linkEmailUrl',FRONT_SETTINGS.company.emailHref);
+    setText('#linkFormLabel','諮詢表單');
+    setValue('#linkFormUrl','#contactFormModal');
+  };
+
+  const inquiryFilters = {
+    start:'',
+    end:'',
+    category:'',
+    status:'',
+    keyword:''
+  };
+  let currentInquiryIndex = null;
+
+  const getFilteredInquiries = () => {
+    const kw = inquiryFilters.keyword.trim().toLowerCase();
+    return INQUIRIES.map((x,i)=>({x,i})).filter(({x})=>{
+      const dateOnly = x.date.slice(0,10);
+      if(inquiryFilters.start && dateOnly < inquiryFilters.start) return false;
+      if(inquiryFilters.end && dateOnly > inquiryFilters.end) return false;
+      if(inquiryFilters.category && x.service !== inquiryFilters.category) return false;
+      if(inquiryFilters.status === 'unread' && !x.unread) return false;
+      if(inquiryFilters.status === 'read' && x.unread) return false;
+      if(kw){
+        const hay = [x.name,x.phone,x.email,x.line,x.service,x.message,x.id,x.date].join(' ').toLowerCase();
+        if(!hay.includes(kw)) return false;
+      }
+      return true;
+    });
+  };
+
+  const renderInquiries = () => {
+    const unreadCount = INQUIRIES.filter(x => x.unread).length;
+    const filtered = getFilteredInquiries();
+    setText('#formsCustomerCount', INQUIRIES.length);
+    setText('#formsUnreadCount', unreadCount);
+    setText('#formsFilteredCount', filtered.length);
+
+    const list = $('#inquiryAdminList');
+    if(!list) return;
+    if(!filtered.length){
+      list.innerHTML = `<div class="inquiry-empty"><i data-lucide="search-x"></i><b>沒有符合條件的洽詢資料</b><span>請調整日期、類別或關鍵字篩選。</span></div>`;
+      lucide.createIcons();
+      return;
+    }
+
+    list.innerHTML = filtered.map(({x,i})=>`
+      <button class="admin-row inquiry-row ${x.unread ? 'is-unread' : ''}" type="button" data-inquiry-index="${i}">
+        <time>${x.date.slice(5,10).replace('-','/')}</time>
+        <div class="row-copy">
+          <b>${x.name} ${x.unread ? '<span class="unread-dot">未讀</span>' : ''}</b>
+          <small>${x.service}｜${x.phone}｜${x.email}</small>
+        </div>
+        <div class="row-actions">
+          <span class="inquiry-open-hint">查看詳情 <i data-lucide="chevron-right"></i></span>
+        </div>
+      </button>
+    `).join('');
+    lucide.createIcons();
+  };
+
+  const permissionNames = {
+    dashboard:'儀表板',news:'最新公告',home:'首頁內容',services:'服務項目',
+    products:'產品設備',industries:'適用產業',forms:'表單洽詢',company:'公司資訊',
+    links:'連結 / 快捷',appearance:'版面與色彩',admins:'管理員管理',system:'系統設定'
+  };
+
+  const renderAdminUsers = () => {
+    const total=ADMIN_USERS.length;
+    const enabled=ADMIN_USERS.filter(x=>x.enabled).length;
+    const disabled=total-enabled;
+    setText('#adminTotalCount',total);
+    setText('#adminEnabledCount',enabled);
+    setText('#adminDisabledCount',disabled);
+    setText('#adminCountBadge',total);
+
+    const list=$('#adminUserList');
+    if(!list) return;
+    list.innerHTML=ADMIN_USERS.map((x,i)=>{
+      const all=x.permissions.length>=Object.keys(permissionNames).length;
+      const summary=all?'全部權限':x.permissions.slice(0,3).map(p=>permissionNames[p]).join('、')+(x.permissions.length>3?` +${x.permissions.length-3}`:'');
+      return `
+        <div class="admin-user-row">
+          <span><i class="admin-state ${x.enabled?'on':'off'}"></i>${x.enabled?'啟用':'停用'}</span>
+          <div class="admin-person"><b>${x.name}</b><small>${x.username} · ${x.email||'-'}</small></div>
+          <span class="role-pill">${x.role}</span>
+          <span class="permission-summary">${summary}</span>
+          <span class="last-login">${x.lastLogin||'尚未登入'}</span>
+          <div class="admin-user-actions">
+            <button class="icon-btn" data-edit-admin="${i}" title="編輯">${icon('pencil')}</button>
+            <button class="icon-btn" data-toggle-admin="${i}" title="${x.enabled?'停用':'啟用'}">${icon(x.enabled?'user-round-x':'user-round-check')}</button>
+            ${i===0?'':`<button class="icon-btn danger" data-delete-admin="${i}" title="刪除">${icon('trash-2')}</button>`}
+          </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+  };
+
+  const renderAll = () => {
+    syncFrontSettingsToAdmin();
+    const now = new Date();
+    $('#todayText').textContent = new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).format(now);
+    renderDashboard();
+    renderInquiries();
+    renderNews();
+    renderServices();
+    renderProducts();
+    renderIndustries();
+    renderAdminUsers();
+  };
+
+  $('#inquiryStartDate')?.addEventListener('change',e=>{inquiryFilters.start=e.target.value;renderInquiries();});
+  $('#inquiryEndDate')?.addEventListener('change',e=>{inquiryFilters.end=e.target.value;renderInquiries();});
+  $('#inquiryCategory')?.addEventListener('change',e=>{inquiryFilters.category=e.target.value;renderInquiries();});
+  $('#inquiryReadStatus')?.addEventListener('change',e=>{inquiryFilters.status=e.target.value;renderInquiries();});
+  $('#inquiryKeyword')?.addEventListener('input',e=>{inquiryFilters.keyword=e.target.value;renderInquiries();});
+  $('#clearInquiryFilters')?.addEventListener('click',()=>{
+    inquiryFilters.start=''; inquiryFilters.end=''; inquiryFilters.category=''; inquiryFilters.status=''; inquiryFilters.keyword='';
+    $('#inquiryStartDate').value='';
+    $('#inquiryEndDate').value='';
+    $('#inquiryCategory').value='';
+    $('#inquiryReadStatus').value='';
+    $('#inquiryKeyword').value='';
+    renderInquiries();
+  });
+
+  $('#newsSearch').addEventListener('input', e => renderNews(e.target.value));
+
+  $$('[data-product-admin-tab]').forEach(b => b.addEventListener('click', () => {
+    $$('[data-product-admin-tab]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    productType = b.dataset.productAdminTab;
+    renderProducts();
+  }));
+
+  const adminUserModal=$('#adminUserModal');
+  let currentAdminIndex=null;
+
+  const getPermissionChecks=()=>[...document.querySelectorAll('#permissionGrid input[type="checkbox"]')];
+
+  const applyRoleDefaults = role => {
+    const defaults = {
+      '超級管理員':Object.keys(permissionNames),
+      '內容管理員':['dashboard','news','home','services','products','industries','appearance'],
+      '客服管理員':['dashboard','forms','company'],
+      '一般管理員':['dashboard']
+    };
+    const allowed=defaults[role]||['dashboard'];
+    getPermissionChecks().forEach(cb=>cb.checked=allowed.includes(cb.value));
+  };
+
+  const openAdminUserModal=(index=null)=>{
+    currentAdminIndex=index;
+    const x=index===null?null:ADMIN_USERS[index];
+    $('#adminUserModalTitle').textContent=index===null?'新增管理員':'編輯管理員';
+    $('#adminEditIndex').value=index===null?'':index;
+    $('#adminName').value=x?.name||'';
+    $('#adminUsername').value=x?.username||'';
+    $('#adminEmail').value=x?.email||'';
+    $('#adminRole').value=x?.role||'一般管理員';
+    $('#adminPassword').value='';
+    $('#adminEnabled').value=String(x?.enabled ?? true);
+    if(x){
+      getPermissionChecks().forEach(cb=>cb.checked=x.permissions.includes(cb.value));
+    }else{
+      applyRoleDefaults('一般管理員');
+    }
+    adminUserModal.classList.add('open');
+    adminUserModal.setAttribute('aria-hidden','false');
+    setTimeout(()=>$('#adminName').focus(),50);
+    lucide.createIcons();
+  };
+
+  const closeAdminUserModal=()=>{
+    adminUserModal.classList.remove('open');
+    adminUserModal.setAttribute('aria-hidden','true');
+    currentAdminIndex=null;
+  };
+
+  $('#addAdminBtn')?.addEventListener('click',()=>openAdminUserModal());
+  $('#adminRole')?.addEventListener('change',e=>{
+    if(currentAdminIndex===null) applyRoleDefaults(e.target.value);
+  });
+  $('#selectAllPerms')?.addEventListener('click',()=>getPermissionChecks().forEach(cb=>cb.checked=true));
+  $('#clearAllPerms')?.addEventListener('click',()=>getPermissionChecks().forEach(cb=>cb.checked=false));
+
+  $('#adminUserForm')?.addEventListener('submit',e=>{
+    e.preventDefault();
+    const idx=$('#adminEditIndex').value===''?null:Number($('#adminEditIndex').value);
+    const permissions=getPermissionChecks().filter(cb=>cb.checked).map(cb=>cb.value);
+    const data={
+      name:$('#adminName').value.trim(),
+      username:$('#adminUsername').value.trim(),
+      email:$('#adminEmail').value.trim(),
+      role:$('#adminRole').value,
+      enabled:$('#adminEnabled').value==='true',
+      permissions,
+      lastLogin:idx===null?'尚未登入':ADMIN_USERS[idx].lastLogin
+    };
+    const password=$('#adminPassword').value;
+    if(idx===null){
+      if(!password){alert('新增管理員時請輸入登入密碼。');return;}
+      data.password=password;
+      if(ADMIN_USERS.some(x=>x.username===data.username)){alert('此帳號已存在。');return;}
+      ADMIN_USERS.push(data);
+    }else{
+      data.password=password||ADMIN_USERS[idx].password;
+      if(ADMIN_USERS.some((x,i)=>i!==idx&&x.username===data.username)){alert('此帳號已存在。');return;}
+      ADMIN_USERS[idx]=data;
+    }
+    renderAdminUsers();
+    closeAdminUserModal();
+  });
+
+  const inquiryDetailModal = $('#inquiryDetailModal');
+
+  const openInquiryDetail = index => {
+    const x = INQUIRIES[index];
+    if(!x) return;
+    currentInquiryIndex = index;
+    setText('#detailName',x.name);
+    setText('#detailPhone',x.phone);
+    setText('#detailEmail',x.email || '-');
+    setText('#detailLine',x.line || '-');
+    setText('#detailService',x.service);
+    setText('#detailSubmittedAt',x.date);
+    setText('#detailDate',x.date.slice(0,10));
+    setText('#detailId',x.id);
+    setText('#detailMessage',x.message || '-');
+
+    const status = $('#detailStatus');
+    status.textContent = x.unread ? '未讀' : '已讀';
+    status.classList.toggle('is-read',!x.unread);
+
+    const btn = $('#detailMarkRead');
+    btn.disabled = !x.unread;
+    btn.textContent = x.unread ? '標記已讀' : '已讀';
+
+    inquiryDetailModal.classList.add('open');
+    inquiryDetailModal.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    lucide.createIcons();
+  };
+
+  const closeInquiryDetail = () => {
+    inquiryDetailModal.classList.remove('open');
+    inquiryDetailModal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+    currentInquiryIndex=null;
+  };
+
+  const modal = $('#editModal');
+  const openModal = (type,index,create=false) => {
+    $('#editType').value = type;
+    $('#editIndex').value = index ?? '';
+    $('#editDateWrap').style.display = type === 'news' ? '' : 'none';
+
+    let item = null;
+    if (!create) {
+      if(type === 'news') item = C.announcements[index];
+      if(type === 'service') item = C.services[index];
+      if(type === 'product') item = C.products[productType][index];
+      if(type === 'industry') item = C.industries[index];
+    }
+    $('#editTitle').textContent = create ? '新增公告' : `編輯${type==='news'?'公告':'內容'}`;
+    $('#editName').value = item?.title || '';
+    $('#editText').value = item?.text || item?.body || '';
+    $('#editDate').value = item?.date || '';
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>$('#editName').focus(),50);
+  };
+  const closeModal = () => {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+  };
+  document.addEventListener('click', e => {
+    const editAdmin=e.target.closest('[data-edit-admin]');
+    if(editAdmin){
+      openAdminUserModal(Number(editAdmin.dataset.editAdmin));
+      return;
+    }
+    const toggleAdmin=e.target.closest('[data-toggle-admin]');
+    if(toggleAdmin){
+      const i=Number(toggleAdmin.dataset.toggleAdmin);
+      if(i===0 && ADMIN_USERS[i].enabled){alert('主要系統管理員不可停用。');return;}
+      ADMIN_USERS[i].enabled=!ADMIN_USERS[i].enabled;
+      renderAdminUsers();
+      return;
+    }
+    const deleteAdmin=e.target.closest('[data-delete-admin]');
+    if(deleteAdmin){
+      const i=Number(deleteAdmin.dataset.deleteAdmin);
+      if(i===0) return;
+      if(confirm('確定刪除此管理員？')){
+        ADMIN_USERS.splice(i,1);
+        renderAdminUsers();
+      }
+      return;
+    }
+    if(e.target.closest('[data-admin-user-close]')){
+      closeAdminUserModal();
+      return;
+    }
+
+    const inquiryRow = e.target.closest('[data-inquiry-index]');
+    if(inquiryRow){
+      openInquiryDetail(Number(inquiryRow.dataset.inquiryIndex));
+      return;
+    }
+    if(e.target.closest('[data-inquiry-close]')){
+      closeInquiryDetail();
+      return;
+    }
+
+    const eb = e.target.closest('[data-edit]');
+    if (eb) openModal(eb.dataset.edit, Number(eb.dataset.index));
+    if (e.target.closest('[data-modal-close]')) closeModal();
+
+    const readBtn = e.target.closest('[data-mark-read]');
+    if(readBtn){
+      const i = Number(readBtn.dataset.markRead);
+      if(INQUIRIES[i]){
+        INQUIRIES[i].unread = false;
+        renderDashboard();
+        renderInquiries();
+      }
+      return;
+    }
+
+    const del = e.target.closest('[data-delete-news]');
+    if(del){
+      const i = Number(del.dataset.deleteNews);
+      if(confirm('確定刪除此公告？')){
+        C.announcements.splice(i,1);
+        renderDashboard(); renderNews($('#newsSearch').value);
+      }
+    }
+  });
+  $('#addNewsBtn').addEventListener('click', () => openModal('news','',true));
+
+  $('#detailMarkRead')?.addEventListener('click',()=>{
+    if(currentInquiryIndex===null) return;
+    const x=INQUIRIES[currentInquiryIndex];
+    if(x && x.unread){
+      x.unread=false;
+      renderDashboard();
+      renderInquiries();
+      openInquiryDetail(currentInquiryIndex);
+    }
+  });
+
+  $('#editForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const type = $('#editType').value;
+    const idx = $('#editIndex').value === '' ? null : Number($('#editIndex').value);
+    const title = $('#editName').value.trim();
+    const text = $('#editText').value.trim();
+    const date = $('#editDate').value.trim();
+
+    if(type === 'news'){
+      if(idx === null){
+        const fullDate = new Date().toISOString().slice(0,10);
+        C.announcements.unshift({date:date || '08.27',fullDate,title,body:text});
+      }else{
+        Object.assign(C.announcements[idx],{date,title,body:text});
+      }
+      renderDashboard(); renderNews($('#newsSearch').value);
+    }
+    if(type === 'service'){ C.services[idx].title=title; C.services[idx].text=text; renderServices(); }
+    if(type === 'product'){ C.products[productType][idx].title=title; C.products[productType][idx].text=text; renderProducts(); }
+    if(type === 'industry'){ C.industries[idx].title=title; C.industries[idx].text=text; renderIndustries(); }
+    closeModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      if(inquiryDetailModal?.classList.contains('open')) closeInquiryDetail();
+      else closeModal();
+    }
+  });
+
+  const bootAdmin = () => {
+    if (sessionStorage.getItem('cc_admin_preview') === '1') {
+      if (!location.hash) history.replaceState(null,'','#dashboard');
+      showAdmin();
+    } else {
+      showLogin();
+    }
+  };
+
+  bootAdmin();
+  lucide.createIcons();
+})();
