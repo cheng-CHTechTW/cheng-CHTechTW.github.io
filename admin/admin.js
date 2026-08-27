@@ -388,7 +388,7 @@
       const summary=all?'全部權限':x.permissions.slice(0,3).map(p=>permissionNames[p]).join('、')+(x.permissions.length>3?` +${x.permissions.length-3}`:'');
       return `
         <div class="admin-user-row">
-          <span><i class="admin-state ${x.enabled?'on':'off'}"></i>${x.enabled?'啟用':'停用'}</span>
+          <span><i class="admin-state ${v58Boolish(x.enabled)?'on':'off'}"></i>${v58Boolish(x.enabled)?'啟用':'停用'}</span>
           <div class="admin-person"><b>${x.name}</b><small>${x.username} · ${x.email||'-'}</small></div>
           <span class="role-pill">${x.role}</span>
           <span class="permission-summary">${summary}</span>
@@ -750,8 +750,8 @@
       $('#gsNewsList').innerHTML=gsNews.length?gsNews.map((x,i)=>`
         <div class="admin-row gs-data-row">
           <time>${gsSafe(x.date||'')}</time>
-          <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${x.enabled?'啟用':'停用'}</small></div>
-          <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'前台顯示':'已停用'}</span>
+          <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${v58Boolish(x.enabled)?'啟用':'停用'}</small></div>
+          <span class="gs-state ${v58Boolish(x.enabled)?'on':'off'}">${v58Boolish(x.enabled)?'前台顯示':'已停用'}</span>
           <div class="row-actions">
             <button class="icon-btn" data-gs-edit-news="${i}" title="編輯">${icon('pencil')}</button>
             <button class="icon-btn danger" data-gs-delete-news="${i}" title="刪除">${icon('trash-2')}</button>
@@ -774,7 +774,7 @@
         <div class="admin-row gs-data-row">
           <time>${x.order}</time>
           <div class="row-copy"><b>${gsSafe(x.q)}</b><small>${gsSafe(x.a).slice(0,90)}${String(x.a).length>90?'…':''}</small></div>
-          <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'啟用':'停用'}</span>
+          <span class="gs-state ${v58Boolish(x.enabled)?'on':'off'}">${v58Boolish(x.enabled)?'啟用':'停用'}</span>
           <div class="row-actions">
             <button class="icon-btn" data-gs-edit-faq="${i}" title="編輯">${icon('pencil')}</button>
             <button class="icon-btn danger" data-gs-delete-faq="${i}" title="刪除">${icon('trash-2')}</button>
@@ -1269,8 +1269,8 @@
     list.innerHTML=gsNews.length?gsNews.map((x,i)=>`
       <div class="admin-row gs-data-row">
         <time>${gsSafe(x.date||'')}</time>
-        <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${x.enabled?'啟用':'停用'}</small></div>
-        <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'前台顯示':'已停用'}</span>
+        <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${v58Boolish(x.enabled)?'啟用':'停用'}</small></div>
+        <span class="gs-state ${v58Boolish(x.enabled)?'on':'off'}">${v58Boolish(x.enabled)?'前台顯示':'已停用'}</span>
         <div class="row-actions">
           <button class="icon-btn" data-gs-edit-news="${i}" title="編輯">${icon('pencil')}</button>
           <button class="icon-btn danger" data-gs-delete-news="${i}" title="刪除">${icon('trash-2')}</button>
@@ -1285,7 +1285,7 @@
       <div class="admin-row gs-data-row">
         <time>${x.order}</time>
         <div class="row-copy"><b>${gsSafe(x.q)}</b><small>${gsSafe(x.a).slice(0,90)}${String(x.a).length>90?'…':''}</small></div>
-        <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'啟用':'停用'}</span>
+        <span class="gs-state ${v58Boolish(x.enabled)?'on':'off'}">${v58Boolish(x.enabled)?'啟用':'停用'}</span>
         <div class="row-actions">
           <button class="icon-btn" data-gs-edit-faq="${i}" title="編輯">${icon('pencil')}</button>
           <button class="icon-btn danger" data-gs-delete-faq="${i}" title="刪除">${icon('trash-2')}</button>
@@ -1347,11 +1347,14 @@ const v48SyncAll=async()=>{
       gsNews=Array.isArray(news)?news:[];
       gsFaq=Array.isArray(faq)?faq:[];
       gsInquiries=Array.isArray(inquiries)?inquiries:[];
+      // V61：資料完成同步後立即重新計算啟用／關閉數量。
+      v58UpdateToggleCounts();
 
       v48RenderNews();
       v48RenderFaq();
       renderGsInquiries();
       syncGoogleInquiryDashboard();
+      v58UpdateToggleCounts();
 
       if($('#googleNewsCount'))$('#googleNewsCount').textContent=`${gsNews.length} 筆`;
       if($('#googleFaqCount'))$('#googleFaqCount').textContent=`${gsFaq.length} 筆`;

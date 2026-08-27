@@ -1,11 +1,23 @@
-LINE 分享圖測試：
-https://www.chuang-c.com/line-share.jpg
+V61 LINE 分享圖測試
 
-正常情況下，直接在瀏覽器開這個網址必須只顯示圖片，不可 404、不可登入、不可回傳 HTML。
+請先直接在手機瀏覽器開：
+https://chuang-c.com/line-share-v61.jpg
 
-若 LINE 已快取舊預覽：
-1. 先確認上方圖片網址可直接開啟。
-2. 分享 https://www.chuang-c.com/?line=60 測試一次新 URL。
-3. 正式分享仍可使用 https://www.chuang-c.com/ 。
+必須直接看到公司外觀分享圖。
 
-本版刻意不用 ?v=xx 放在 og:image，避免部分分享爬蟲快取/解析異常。
+正式 OG 圖：
+https://chuang-c.com/line-share-v61.jpg
+
+LINE 若仍顯示舊預覽，可先貼：
+https://chuang-c.com/?line-preview=61
+
+這次使用：
+- 實際主網域 chuang-c.com
+- 全新 JPG 檔名 line-share-v61.jpg
+- 1200 × 630
+- image/jpeg
+- og:image
+- og:image:url
+- og:image:secure_url
+- image_src
+- itemprop=image
