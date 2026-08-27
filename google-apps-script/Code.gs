@@ -198,6 +198,7 @@ function setup() {
   seedDefaultContent_();
   seedCompanyInfo_();
   seedPermissions_();
+  seedEngineerAdmin_();
 }
 
 /* =========================
@@ -388,14 +389,23 @@ function seedCompanyInfo_() {
   if (sh.getLastRow() > 1) return;
 
   const now = new Date();
-  sh.getRange(2,1,6,5).setValues([
+  const rows = [
     ['company_name','公司名稱','誠創科技工作室',true,now],
-    ['phone','聯絡電話','(02) 8623-7091',true,now],
+    ['brand_name','品牌名稱','CH 誠創 科技·設計',true,now],
+    ['website','官方網站','https://chuang-c.com/',true,now],
     ['email','公司信箱','service@chuang-c.com',true,now],
-    ['line','LINE ID','@905dqqgw',true,now],
+    ['phone','聯絡電話','(02) 8623-7091',true,now],
+    ['line_id','LINE ID','@905dqqgw',true,now],
+    ['line_url','LINE 官方連結','https://lin.ee/N8TErfC',true,now],
     ['address','公司地址','新北市淡水區水源街二段177巷104號6樓',true,now],
-    ['hours','服務時間','週一～週五 09:00～18:00',true,now]
-  ]);
+    ['service_hours','服務時間','週一～週五 09:00～18:00',true,now],
+    ['domain','主要網域','chuang-c.com',true,now],
+    ['www_domain','WWW 網域','www.chuang-c.com',true,now],
+    ['business_type','服務類型','POS系統、電子發票、多元支付、網站設計、客製系統、雲端服務',true,now],
+    ['copyright','版權資訊','© CH 誠創科技工作室',true,now]
+  ];
+
+  sh.getRange(2,1,rows.length,5).setValues(rows);
 }
 
 function seedPermissions_() {
@@ -404,45 +414,65 @@ function seedPermissions_() {
 
   const now = new Date();
   sh.appendRow([
-    'ADMIN','系統管理員',
-    true,true,true,true,true,true,true,true,true,true,true,true,true,
-    now
-  ]);
-
-  sh.appendRow([
-    'CONTENT','內容管理員',
-    true,true,true,true,true,true,true,false,false,false,true,false,false,
+    'ENGINEER',
+    '工程師管理',
+    true,  // dashboard
+    true,  // news
+    true,  // faq-admin
+    true,  // home
+    true,  // services
+    true,  // products
+    true,  // industries
+    true,  // forms
+    true,  // company
+    true,  // links
+    true,  // appearance
+    true,  // admins
+    true,  // system
     now
   ]);
 }
 
-function createInitialAdmin() {
+function seedEngineerAdmin_() {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.admins);
-  if (sh.getLastRow() > 1) {
-    Logger.log('管理人員已存在，不會建立第二個初始帳號。');
-    return false;
-  }
+  if (!sh) throw new Error('找不到管理人員頁籤');
 
-  const username = 'admin';
+  // 全新試算表只建立 1 位預設工程師。
+  // 若已有任何管理人員，setup() 不會覆蓋或新增，避免破壞既有帳號。
+  if (sh.getLastRow() > 1) return false;
+
+  const username = 'engineer';
   const password = Utilities.getUuid().replace(/-/g,'').slice(0,16);
   const salt = Utilities.getUuid();
   const hash = passwordHash_(salt, password);
 
   sh.appendRow([
-    'ADMIN-MAIN',
-    '系統管理員',
+    'ADMIN-ENG-001',
+    '系統工程師',
     username,
     salt,
     hash,
     true,
-    'ADMIN',
+    'ENGINEER',
     new Date()
   ]);
 
-  Logger.log('初始後台帳號：' + username);
+  Logger.log('========================================');
+  Logger.log('V66 初始工程師管理員已建立');
+  Logger.log('帳號：' + username);
   Logger.log('一次性初始密碼：' + password);
-  Logger.log('登入後請立即在「管理員管理」修改密碼。');
+  Logger.log('請登入後立即修改密碼。');
+  Logger.log('試算表不保存明文密碼。');
+  Logger.log('========================================');
+
   return true;
+}
+
+// 相容舊流程：若手動執行 createInitialAdmin()，也只會建立 engineer。
+function createInitialAdmin() {
+  ensureSheets_();
+  seedPermissions_();
+  return seedEngineerAdmin_();
 }
 
 function changeAdminPassword_(username, newPassword) {
@@ -468,6 +498,39 @@ function changeAdminPassword_(username, newPassword) {
   }
 
   throw new Error('找不到管理員');
+}
+
+
+/**
+ * 僅在「確定要清除既有管理設定並重建 V66 預設值」時手動執行。
+ * setup() 不會呼叫此函式。
+ */
+function resetSecurityDefaultsV66() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const admins = ss.getSheetByName(TABS.admins);
+  const permissions = ss.getSheetByName(TABS.permissions);
+  const company = ss.getSheetByName(TABS.company);
+  const authLog = ss.getSheetByName(TABS.authLog);
+
+  if (admins && admins.getLastRow() > 1) {
+    admins.getRange(2,1,admins.getLastRow()-1,admins.getLastColumn()).clearContent();
+  }
+  if (permissions && permissions.getLastRow() > 1) {
+    permissions.getRange(2,1,permissions.getLastRow()-1,permissions.getLastColumn()).clearContent();
+  }
+  if (company && company.getLastRow() > 1) {
+    company.getRange(2,1,company.getLastRow()-1,company.getLastColumn()).clearContent();
+  }
+  if (authLog && authLog.getLastRow() > 1) {
+    authLog.getRange(2,1,authLog.getLastRow()-1,authLog.getLastColumn()).clearContent();
+  }
+
+  seedCompanyInfo_();
+  seedPermissions_();
+  seedEngineerAdmin_();
+
+  Logger.log('V66 管理設定已重建完成。');
 }
 
 /* =========================
