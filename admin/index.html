@@ -5,9 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f7f4ef">
   <title>誠創科技｜網站後台管理</title>
-  <link rel="icon" type="image/svg+xml" href="../chlogo.svg">
-  <link rel="shortcut icon" type="image/svg+xml" href="../chlogo.svg">
-  <link rel="apple-touch-icon" href="../chlogo.svg">
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="shortcut icon" type="image/svg+xml" href="../favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon.svg">
+
+  
+  
+  
 
 <link rel="stylesheet" href="admin.css">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,7 +22,7 @@
   <div id="loginView" class="login-page">
     <div class="login-shell">
       <section class="login-brand">
-        <img src="../chlogo.svg" alt="誠創科技">
+        <img src="../favicon.svg" alt="誠創科技">
         <span class="eyebrow">CHENG CHUANG · ADMIN</span>
         <h1>網站內容管理後台</h1>
         <p>管理網站公告、服務、產品、產業、公司資訊與版面內容。</p>
@@ -63,13 +67,13 @@
   </div>
 
   <div id="adminView" class="admin-app" hidden>
-    <aside class="sidebar" id="adminSidebar">
-        <button class="admin-mobile-close-btn" id="adminMobileCloseBtn" type="button" aria-label="關閉後台目錄">
-          <i data-lucide="x"></i>
-        </button>
+    <aside class="sidebar">
+      <button class="mobile-sidebar-close" id="mobileSidebarClose" type="button" aria-label="關閉目錄">
+        <i data-lucide="x"></i>
+      </button>
 
       <div class="side-brand">
-        <img src="../chlogo.svg" alt="誠創科技">
+        <img src="../favicon.svg" alt="誠創科技">
         <div><b>誠創科技</b><small>Website Admin</small></div>
       </div>
 
@@ -96,31 +100,16 @@
     </aside>
 
     <main class="admin-main">
-      <div class="admin-mobile-bar">
-        <button class="admin-mobile-menu-btn" id="adminMobileMenuBtn" type="button" aria-label="開啟後台目錄" aria-expanded="false">
-          <i data-lucide="menu"></i>
-        </button>
-        <div class="admin-mobile-brand">
-          <img src="../chlogo.svg" alt="誠創科技">
-          <span>後台管理</span>
-        </div>
-        <button class="admin-mobile-refresh-btn" id="adminMobileRefreshBtn" type="button" aria-label="同步 Google 試算表">
-          <i data-lucide="refresh-cw"></i>
-        </button>
-      </div>
-      <div class="admin-mobile-overlay" id="adminMobileOverlay"></div>
-      <div class="google-sheets-mobile-hint">
-        <i data-lucide="database"></i>
-        <span>Google 試算表：最新消息・客戶表單・常見問題</span>
-      </div>
-
       <header class="admin-topbar">
-        <button class="mobile-menu" id="mobileMenu"><i data-lucide="menu"></i></button>
+        <button class="mobile-menu" id="mobileMenu" type="button" aria-label="開啟後台目錄" aria-expanded="false"><i data-lucide="menu"></i><span>目錄</span></button>
         <div class="top-title">
           <small>誠創科技形象網站</small>
           <h2 id="pageTitle">儀表板</h2>
         </div>
         <div class="top-actions">
+          <button class="ghost mobile-google-sync" id="mobileGoogleSync" type="button" title="同步 Google 試算表">
+            <i data-lucide="refresh-cw"></i><span>同步</span>
+          </button>
           <button class="ghost" id="previewBtn"><i data-lucide="monitor-up"></i><span>預覽網站</span></button>
           <button class="primary" id="exportBtn"><i data-lucide="download"></i><span>下載 content.js</span></button>
           <button class="user-chip"><span>CH</span><div><b>管理員</b><small>Administrator</small></div></button>
@@ -129,8 +118,44 @@
 
       <div class="content-area">
         <section class="admin-page active" data-admin-page="dashboard">
+          <article class="panel" id="v47GoogleManagePanel" style="margin-bottom:14px">
+            <div class="panel-head">
+              <div><small>GOOGLE SHEETS CMS</small><h3>Google 試算表管理</h3></div>
+              <span class="gs-live-badge"><i></i> 已串接</span>
+            </div>
+            <div class="front-current-grid">
+              <div><span>最新消息</span><b>可新增 / 編輯 / 刪除 / 啟用停用</b></div>
+              <div><span>常見問題</span><b>可新增 / 編輯 / 刪除 / 排序</b></div>
+              <div><span>客戶表單</span><b>可查看 / 已讀 / 處理狀態</b></div>
+            </div>
+          </article>
+
           <div class="page-intro">
             <div><span>OVERVIEW</span><h1>網站管理儀表板</h1><p>快速查看網站內容狀態與待處理項目。</p></div>
+          <article class="panel google-connection-panel" id="googleConnectionPanel">
+            <div class="panel-head">
+              <div><small>GOOGLE SHEETS CONNECTION</small><h3>Google 試算表連線狀態</h3></div>
+              <button class="ghost google-sync-btn" id="googleSyncAllBtn" type="button">
+                <span class="google-sync-spinner" aria-hidden="true"></span>
+                <i data-lucide="refresh-cw"></i>
+                <span>重新整理</span>
+              </button>
+            </div>
+            <div class="google-connection-status" id="googleConnectionStatus" data-state="idle">
+              <span class="google-status-dot"></span>
+              <div>
+                <b id="googleConnectionTitle">尚未檢查連線</b>
+                <small id="googleConnectionMessage">點「重新整理」檢查 Google Apps Script Web App。</small>
+              </div>
+            </div>
+            <div class="google-sync-result-grid">
+              <div><span>Web App URL</span><b id="googleWebAppUrlStatus">尚未設定</b></div>
+              <div><span>最新消息</span><b id="googleNewsCount">—</b></div>
+              <div><span>常見問題</span><b id="googleFaqCount">—</b></div>
+              <div><span>客戶表單</span><b id="googleInquiryCount">—</b></div>
+            </div>
+          </article>
+
             <div class="date-chip"><i data-lucide="calendar-days"></i><span id="todayText"></span></div>
           </div>
 
@@ -172,6 +197,12 @@
         <section class="admin-page" data-admin-page="news">
           <div class="page-intro">
             <div><span>GOOGLE SHEETS · NEWS</span><h1>最新消息</h1><p>直接管理 Google 試算表「最新消息」頁籤，啟用的內容會同步顯示到前台。</p></div>
+          <div class="google-page-sync-state" id="gsNewsSyncState" data-state="idle">
+            <span class="google-status-dot"></span>
+            <b>最新消息：等待同步</b>
+            <small>資料來源：Google 試算表</small>
+          </div>
+
             <div class="page-actions"><button class="ghost" id="gsReloadNews"><i data-lucide="refresh-cw"></i>重新整理</button><button class="primary" id="gsAddNews"><i data-lucide="plus"></i>新增最新消息</button></div>
           </div>
           <article class="panel">
@@ -187,12 +218,12 @@
               <div class="panel-head"><div><small>HERO</small><h3>首頁主視覺</h3></div></div>
               <label>主標題<input id="frontHeroTitle" value="讓營運更簡單，讓成長更有力量"></label>
               <label>副標題<textarea id="frontHeroSubtitle" rows="4">整合 POS、電子發票、雲端服務、網站設計與客製系統。</textarea></label>
-              <label>主頁圖片檔名<input id="frontHeroImage" value="converted.svg" readonly></label>
-              <div class="inline-note"><i data-lucide="image"></i><span>目前首頁圖片由根目錄 <b>converted.svg</b> 讀取。</span></div>
+              <label>主頁圖片檔名<input id="frontHeroImage" value="assets/img/one-stop-pos.svg" readonly></label>
+              <div class="inline-note"><i data-lucide="image"></i><span>目前首頁圖片由根目錄 <b>assets/img/one-stop-pos.svg</b> 讀取。</span></div>
             </article>
             <article class="panel preview-card">
               <small>LIVE PREVIEW</small><h3>首頁預覽</h3>
-              <div class="fake-browser"><div class="fake-bar"><i></i><i></i><i></i></div><div class="fake-screen"><img src="../converted.svg" alt=""><div><b>誠創科技</b><span>POS · SYSTEM · DESIGN</span></div></div></div>
+              <div class="fake-browser"><div class="fake-bar"><i></i><i></i><i></i></div><div class="fake-screen"><img src="../assets/img/one-stop-pos.svg" alt=""><div><b>誠創科技</b><span>POS · SYSTEM · DESIGN</span></div></div></div>
             </article>
           </div>
 
@@ -230,6 +261,12 @@
         <section class="admin-page" data-admin-page="forms">
           <div class="page-intro">
             <div><span>GOOGLE SHEETS · INQUIRIES</span><h1>客戶表單</h1><p>直接讀取 Google 試算表「客戶表單」頁籤。</p></div>
+          <div class="google-page-sync-state" id="gsInquirySyncState" data-state="idle">
+            <span class="google-status-dot"></span>
+            <b>客戶表單：等待同步</b>
+            <small>資料來源：Google 試算表</small>
+          </div>
+
             <button class="ghost" id="gsReloadInquiries"><i data-lucide="refresh-cw"></i>重新整理</button>
           </div>
 
@@ -259,6 +296,12 @@
         <section class="admin-page" data-admin-page="faq-admin">
           <div class="page-intro">
             <div><span>GOOGLE SHEETS · FAQ</span><h1>常見問題</h1><p>直接管理 Google 試算表「常見問題」頁籤，前台會同步讀取啟用項目。</p></div>
+          <div class="google-page-sync-state" id="gsFaqSyncState" data-state="idle">
+            <span class="google-status-dot"></span>
+            <b>常見問題：等待同步</b>
+            <small>資料來源：Google 試算表</small>
+          </div>
+
             <div class="page-actions"><button class="ghost" id="gsReloadFaq"><i data-lucide="refresh-cw"></i>重新整理</button><button class="primary" id="gsAddFaq"><i data-lucide="plus"></i>新增常見問題</button></div>
           </div>
           <article class="panel">
@@ -319,27 +362,17 @@
         
         <section class="admin-page" data-admin-page="admins">
           <div class="page-intro">
-            <div><span>ADMIN USERS</span><h1>管理員管理</h1><p>新增管理人員、設定角色與可使用的後台功能權限。</p></div>
-            <button class="primary" id="addAdminBtn"><i data-lucide="user-plus"></i>新增管理員</button>
+            <div><span>ADMIN USERS</span><h1>後台管理員</h1><p>新增、編輯、停用管理員與設定可使用的後台模組。</p></div>
+            <div class="page-actions">
+              <button class="primary" id="v47AddAdminBtn" type="button"><i data-lucide="user-plus"></i>新增管理員</button>
+            </div>
           </div>
-
-          <div class="forms-summary-grid admin-summary-grid">
-            <article class="panel form-summary"><small>管理員總數</small><strong id="adminTotalCount">0</strong><span>已建立帳號</span></article>
-            <article class="panel form-summary"><small>啟用中</small><strong id="adminEnabledCount">0</strong><span>可登入使用</span></article>
-            <article class="panel form-summary unread"><small>停用帳號</small><strong id="adminDisabledCount">0</strong><span>暫停登入</span></article>
-          </div>
-
           <article class="panel">
             <div class="panel-head">
-              <div><small>ADMIN LIST</small><h3>管理人員列表</h3></div>
-              <span class="toolbar-hint">權限可細分到後台功能頁籤</span>
+              <div><small>ADMIN USERS</small><h3>管理員列表</h3></div>
+              <span id="v47AdminCount" class="toolbar-hint">0 位</span>
             </div>
-            <div class="admin-user-table">
-              <div class="admin-user-head">
-                <span>狀態</span><span>管理員</span><span>角色</span><span>權限摘要</span><span>最後登入</span><span>操作</span>
-              </div>
-              <div id="adminUserList"></div>
-            </div>
+            <div id="v47AdminList" class="admin-list"></div>
           </article>
         </section>
 
@@ -486,10 +519,7 @@
       </form>
     </div>
   </div>
-
-  <script src="admin.js"></script>
-
-  <div class="edit-modal" id="gsEditModal" aria-hidden="true">
+<div class="edit-modal" id="gsEditModal" aria-hidden="true">
     <div class="edit-backdrop" data-gs-edit-close></div>
     <div class="edit-dialog">
       <button class="modal-x" type="button" data-gs-edit-close><i data-lucide="x"></i></button>
@@ -521,5 +551,32 @@
     </div>
   </div>
 
+
+  <div class="edit-modal" id="v47AdminModal" aria-hidden="true">
+    <div class="edit-backdrop" data-v47-admin-close></div>
+    <div class="edit-dialog">
+      <button class="modal-x" type="button" data-v47-admin-close><i data-lucide="x"></i></button>
+      <div class="edit-head"><span>ADMIN USER</span><h3 id="v47AdminModalTitle">新增管理員</h3></div>
+      <form id="v47AdminForm">
+        <input type="hidden" id="v47AdminId">
+        <div class="two-col">
+          <label>顯示名稱<input id="v47AdminName" required></label>
+          <label>登入帳號<input id="v47AdminUsername" required></label>
+          <label>登入密碼<input id="v47AdminPassword" type="password" required></label>
+          <label>狀態<select id="v47AdminEnabled"><option value="true">啟用</option><option value="false">停用</option></select></label>
+          <div class="wide">
+            <span class="field-title">可使用模組</span>
+            <div class="permission-grid" id="v47PermissionGrid"></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" data-v47-admin-close>取消</button>
+          <button type="submit" class="primary">儲存管理員</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
 </body>
 </html>

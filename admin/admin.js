@@ -186,21 +186,26 @@
   const renderDashboard = () => {
     const customerCount = INQUIRIES.length;
     const unreadCount = INQUIRIES.filter(x => x.unread).length;
-    $('#dashCustomers').textContent = customerCount;
-    $('#dashUnread').textContent = unreadCount;
-    $('#dashNews').textContent = C.announcements.length;
-    $('#dashIndustries').textContent = C.industries.length;
-    $('#newsCount').textContent = C.announcements.length;
-    $('#formUnreadBadge').textContent = unreadCount;
-    $('#formUnreadBadge').classList.toggle('has-unread', unreadCount > 0);
-    $('#dashNewsList').innerHTML = C.announcements.slice(0,5).map(x => `
-      <div class="mini-item"><time>${fmtDate(x.date)}</time><div><b>${x.title}</b><span>${x.fullDate || ''}</span></div><span>已發布</span></div>
-    `).join('');
+    if($('#dashCustomers')) $('#dashCustomers').textContent = customerCount;
+    if($('#dashUnread')) $('#dashUnread').textContent = unreadCount;
+    if($('#dashNews')) $('#dashNews').textContent = C.announcements.length;
+    if($('#dashIndustries')) $('#dashIndustries').textContent = C.industries.length;
+    if($('#newsCount')) $('#newsCount').textContent = C.announcements.length;
+    if($('#formUnreadBadge')) $('#formUnreadBadge').textContent = unreadCount;
+    if($('#formUnreadBadge')) $('#formUnreadBadge').classList.toggle('has-unread', unreadCount > 0);
+    const dashNewsList=$('#dashNewsList');
+    if(dashNewsList){
+      dashNewsList.innerHTML = C.announcements.slice(0,5).map(x => `
+        <div class="mini-item"><time>${fmtDate(x.date)}</time><div><b>${x.title}</b><span>${x.fullDate || ''}</span></div><span>已發布</span></div>
+      `).join('');
+    }
   };
 
   const renderNews = (query='') => {
+    const list=$('#newsAdminList');
+    if(!list) return;
     const q = query.trim().toLowerCase();
-    $('#newsAdminList').innerHTML = C.announcements.map((x,i)=>({x,i}))
+    list.innerHTML = C.announcements.map((x,i)=>({x,i}))
       .filter(({x}) => !q || (x.title + x.body).toLowerCase().includes(q))
       .map(({x,i}) => `
         <div class="admin-row">
@@ -396,10 +401,9 @@
     renderGoogleSheetsStatus();
     syncFrontSettingsToAdmin();
     const now = new Date();
-    $('#todayText').textContent = new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).format(now);
+    if($('#todayText')) $('#todayText').textContent = new Intl.DateTimeFormat('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).format(now);
     renderDashboard();
-    renderInquiries();
-    renderNews();
+    // 最新消息 / 客戶表單 / 常見問題由 Google Sheets CMS 載入。
     renderServices();
     renderProducts();
     renderIndustries();
@@ -413,15 +417,15 @@
   $('#inquiryKeyword')?.addEventListener('input',e=>{inquiryFilters.keyword=e.target.value;renderInquiries();});
   $('#clearInquiryFilters')?.addEventListener('click',()=>{
     inquiryFilters.start=''; inquiryFilters.end=''; inquiryFilters.category=''; inquiryFilters.status=''; inquiryFilters.keyword='';
-    $('#inquiryStartDate').value='';
-    $('#inquiryEndDate').value='';
-    $('#inquiryCategory').value='';
-    $('#inquiryReadStatus').value='';
-    $('#inquiryKeyword').value='';
+    if($('#inquiryStartDate')) $('#inquiryStartDate').value='';
+    if($('#inquiryEndDate')) $('#inquiryEndDate').value='';
+    if($('#inquiryCategory')) $('#inquiryCategory').value='';
+    if($('#inquiryReadStatus')) $('#inquiryReadStatus').value='';
+    if($('#inquiryKeyword')) $('#inquiryKeyword').value='';
     renderInquiries();
   });
 
-  $('#newsSearch').addEventListener('input', e => renderNews(e.target.value));
+  $('#newsSearch')?.addEventListener('input', e => renderNews(e.target.value));
 
   $$('[data-product-admin-tab]').forEach(b => b.addEventListener('click', () => {
     $$('[data-product-admin-tab]').forEach(x=>x.classList.remove('active'));
@@ -630,11 +634,11 @@
       const i = Number(del.dataset.deleteNews);
       if(confirm('確定刪除此公告？')){
         C.announcements.splice(i,1);
-        renderDashboard(); renderNews($('#newsSearch').value);
+        renderDashboard(); renderNews($('#newsSearch')?.value||'');
       }
     }
   });
-  $('#addNewsBtn').addEventListener('click', () => openModal('news','',true));
+  $('#addNewsBtn')?.addEventListener('click', () => openModal('news','',true));
 
   $('#detailMarkRead')?.addEventListener('click',()=>{
     if(currentInquiryIndex===null) return;
@@ -662,7 +666,7 @@
       }else{
         Object.assign(C.announcements[idx],{date,title,body:text});
       }
-      renderDashboard(); renderNews($('#newsSearch').value);
+      renderDashboard(); renderNews($('#newsSearch')?.value||'');
     }
     if(type === 'service'){ C.services[idx].title=title; C.services[idx].text=text; renderServices(); }
     if(type === 'product'){ C.products[productType][idx].title=title; C.products[productType][idx].text=text; renderProducts(); }
@@ -815,11 +819,12 @@
       if(el) el.textContent = unread;
     });
 
-    const navBadge = $('#formUnreadBadge');
+    const navBadge=$('#formUnreadBadge');
     if(navBadge){
-      navBadge.textContent = unread;
-      navBadge.classList.toggle('has-unread', unread > 0);
-      navBadge.style.display = unread > 0 ? '' : 'none';
+      navBadge.textContent=unread;
+      navBadge.classList.toggle('has-unread',unread>0);
+      navBadge.hidden=unread===0;
+      navBadge.style.display=unread>0?'inline-flex':'none';
     }
   };
 
@@ -844,7 +849,7 @@
       const originalIndex=gsInquiries.indexOf(x);
       return `<button class="admin-row inquiry-row ${x.readStatus!=='已讀'?'is-unread':''}" type="button" data-gs-inquiry="${originalIndex}">
         <time>${gsSafe(String(x.submittedAt||'').slice(5,16))}</time>
-        <div class="row-copy"><b>${gsSafe(x.storeName)} / ${gsSafe(x.contactName)} ${x.readStatus!=='已讀'?'<span class="unread-dot">未讀</span>':''}</b><small>${gsSafe(x.service)}｜${gsSafe(x.phone)}｜${gsSafe(x.processStatus)}</small></div>
+        <div class="row-copy"><b>${gsSafe(x.storeName)} / ${gsSafe(x.contactName)} ${x.readStatus!=='已讀'?'<span class="unread-dot">未讀</span>':''}</b><small>${gsSafe(x.businessStatus||'-')}｜${gsSafe(x.phone)}｜${gsSafe(x.processStatus)}</small></div>
         <span class="gs-state ${x.processStatus==='已完成'?'on':'pending'}">${gsSafe(x.processStatus)}</span>
         <div class="row-actions"><span class="inquiry-open-hint">查看詳情 ${icon('chevron-right')}</span></div>
       </button>`;
@@ -914,7 +919,7 @@
           enabled:$('#gsNewsEnabled').value==='true'
         };
         await gsPost('saveNews',payload);
-        closeGsEdit(); await loadGsNews();
+        closeGsEdit(); await v48SyncAll();
       }else{
         await gsPost('saveFaq',{
           id,
@@ -923,26 +928,39 @@
           a:$('#gsFaqA').value.trim(),
           enabled:$('#gsFaqEnabled').value==='true'
         });
-        closeGsEdit(); await loadGsFaq();
+        closeGsEdit(); await v48SyncAll();
       }
     }catch(err){alert(`儲存失敗：${err.message}`)}
     finally{submit.disabled=false;}
   });
 
   const gsInquiryModal=$('#gsInquiryModal');
-  const openGsInquiry=i=>{
+  const openGsInquiry=async i=>{
     const x=gsInquiries[i]; if(!x)return;
     gsCurrentInquiry=x;
+    if(x.readStatus!=='已讀'&&GS_ADMIN_URL){
+      try{
+        await gsPost('updateInquiry',{id:x.id,readStatus:'已讀'});
+        x.readStatus='已讀';
+        syncGoogleInquiryDashboard();
+        renderGsInquiries();
+      }catch(err){console.warn('Auto mark read failed',err);}
+    }
     $('#gsProcessStatus').value=x.processStatus||'未處理';
     $('#gsInquiryDetail').innerHTML=`
-      <div class="inquiry-detail-meta"><span class="detail-status ${x.readStatus==='已讀'?'is-read':''}">${gsSafe(x.readStatus)}</span><span>${gsSafe(x.submittedAt)}</span><code>${gsSafe(x.id)}</code></div>
+      <div class="inquiry-detail-meta">
+        <span class="detail-status ${x.readStatus==='已讀'?'is-read':''}">${gsSafe(x.readStatus)}</span>
+        <span>${gsSafe(x.submittedAt)}</span><code>${gsSafe(x.id)}</code>
+      </div>
       <div class="inquiry-detail-grid">
-        <div><span>姓名 / 店名</span><b>${gsSafe(x.storeName)} / ${gsSafe(x.contactName)}</b></div>
-        <div><span>聯絡電話</span><b>${gsSafe(x.phone)}</b></div>
-        <div><span>Email</span><b>${gsSafe(x.email||'-')}</b></div>
+        <div><span>店名</span><b>${gsSafe(x.storeName||'-')}</b></div>
+        <div><span>聯絡人</span><b>${gsSafe(x.contactName||'-')}</b></div>
+        <div><span>聯絡電話</span><b>${gsSafe(x.phone||'-')}</b></div>
         <div><span>LINE ID</span><b>${gsSafe(x.line||'-')}</b></div>
-        <div><span>營業狀態</span><b>${gsSafe(x.businessStatus)}</b></div><div><span>需求</span><b>${gsSafe(x.service||'-')}</b></div>
-        <div><span>處理狀態</span><b>${gsSafe(x.processStatus)}</b></div>
+        <div><span>Email</span><b>${gsSafe(x.email||'-')}</b></div>
+        <div><span>營業狀態</span><b>${gsSafe(x.businessStatus||'-')}</b></div>
+        <div><span>需求</span><b>${gsSafe(x.service||'-')}</b></div>
+        <div><span>處理狀態</span><b>${gsSafe(x.processStatus||'未處理')}</b></div>
       </div>
       <div class="inquiry-detail-message"><span>備註</span><p>${gsSafe(x.note||'-')}</p></div>`;
     $('#gsMarkRead').disabled=x.readStatus==='已讀';
@@ -966,7 +984,7 @@
     if(!gsCurrentInquiry)return;
     try{
       await gsPost('updateInquiry',{id:gsCurrentInquiry.id,readStatus:'已讀',processStatus:$('#gsProcessStatus').value});
-      closeGsInquiry(); await loadGsInquiries(); syncGoogleInquiryDashboard();
+      closeGsInquiry(); await v48SyncAll();
     }catch(err){alert(`更新失敗：${err.message}`)}
   });
 
@@ -986,7 +1004,7 @@
     const dn=e.target.closest('[data-gs-delete-news]');
     if(dn){
       const x=gsNews[Number(dn.dataset.gsDeleteNews)];
-      if(x&&confirm(`確定刪除「${x.title}」？`)){try{await gsPost('deleteNews',{id:x.id});await loadGsNews()}catch(err){alert(err.message)}}
+      if(x&&confirm(`確定刪除「${x.title}」？`)){try{await gsPost('deleteNews',{id:x.id});await v48SyncAll()}catch(err){alert(err.message)}}
       return;
     }
     const ef=e.target.closest('[data-gs-edit-faq]');
@@ -994,7 +1012,7 @@
     const df=e.target.closest('[data-gs-delete-faq]');
     if(df){
       const x=gsFaq[Number(df.dataset.gsDeleteFaq)];
-      if(x&&confirm(`確定刪除這個問題？`)){try{await gsPost('deleteFaq',{id:x.id});await loadGsFaq()}catch(err){alert(err.message)}}
+      if(x&&confirm(`確定刪除這個問題？`)){try{await gsPost('deleteFaq',{id:x.id});await v48SyncAll()}catch(err){alert(err.message)}}
       return;
     }
     const iq=e.target.closest('[data-gs-inquiry]');
@@ -1041,51 +1059,48 @@
 
 
 
-  // ==========================================================
-  // V44 Mobile Admin Menu
-  // ==========================================================
-  const adminMobileMenuBtn = $('#adminMobileMenuBtn');
-  const adminMobileCloseBtn = $('#adminMobileCloseBtn');
-  const adminMobileOverlay = $('#adminMobileOverlay');
-  const adminMobileRefreshBtn = $('#adminMobileRefreshBtn');
+  // V46 stable mobile controls
+  const mobileSidebarClose = $('#mobileSidebarClose');
+  const mobileGoogleSync = $('#mobileGoogleSync');
 
-  const openAdminMobileMenu = () => {
-    document.body.classList.add('admin-menu-open');
-    adminMobileMenuBtn?.setAttribute('aria-expanded','true');
+  const syncMobileMenuAria = () => {
+    const opened = adminView.classList.contains('menu-open');
+    $('#mobileMenu')?.setAttribute('aria-expanded', opened ? 'true' : 'false');
   };
 
-  const closeAdminMobileMenu = () => {
-    document.body.classList.remove('admin-menu-open');
-    adminMobileMenuBtn?.setAttribute('aria-expanded','false');
-  };
+  $('#mobileMenu')?.addEventListener('click', () => {
+    setTimeout(syncMobileMenuAria, 0);
+  });
 
-  adminMobileMenuBtn?.addEventListener('click', openAdminMobileMenu);
-  adminMobileCloseBtn?.addEventListener('click', closeAdminMobileMenu);
-  adminMobileOverlay?.addEventListener('click', closeAdminMobileMenu);
+  mobileSidebarClose?.addEventListener('click', () => {
+    adminView.classList.remove('menu-open');
+    syncMobileMenuAria();
+  });
+
+  $('#drawerOverlay')?.addEventListener('click', () => {
+    syncMobileMenuAria();
+  });
 
   document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && document.body.classList.contains('admin-menu-open')){
-      closeAdminMobileMenu();
+    if(e.key === 'Escape' && adminView.classList.contains('menu-open')){
+      adminView.classList.remove('menu-open');
+      syncMobileMenuAria();
     }
   });
 
-  // Close mobile menu automatically after selecting any admin page.
-  document.addEventListener('click', e => {
-    const nav = e.target.closest('[data-page],[data-admin-page-target],[data-nav]');
-    if(nav && window.matchMedia('(max-width: 900px)').matches){
-      setTimeout(closeAdminMobileMenu, 40);
+  window.addEventListener('resize', () => {
+    if(window.innerWidth > 900){
+      adminView.classList.remove('menu-open');
+      syncMobileMenuAria();
     }
   });
 
-  const syncAllGoogleSheetsAdmin = async () => {
+  mobileGoogleSync?.addEventListener('click', async () => {
     if(!GS_ADMIN_URL){
       alert('尚未設定 Google Apps Script Web App URL。');
       return;
     }
-    if(adminMobileRefreshBtn){
-      adminMobileRefreshBtn.disabled = true;
-      adminMobileRefreshBtn.classList.add('is-loading');
-    }
+    mobileGoogleSync.disabled = true;
     try{
       await Promise.all([
         loadGsNews(),
@@ -1094,21 +1109,253 @@
       ]);
       syncGoogleInquiryDashboard();
     }catch(err){
-      console.warn('Google Sheets full sync failed', err);
+      console.warn('Mobile Google Sheets sync failed', err);
+      alert('Google 試算表同步失敗，請稍後再試。');
     }finally{
-      if(adminMobileRefreshBtn){
-        adminMobileRefreshBtn.disabled = false;
-        adminMobileRefreshBtn.classList.remove('is-loading');
-      }
+      mobileGoogleSync.disabled = false;
+    }
+  });
+
+
+
+  // ==========================================================
+  // V47 管理員 CRUD（唯一命名避免與舊版衝突）
+  // ==========================================================
+  const V47_ADMIN_KEY='cc_admin_users_v47';
+  const V47_MODULES=[
+    ['dashboard','儀表板'],['news','最新消息'],['faq-admin','常見問題'],['forms','客戶表單'],
+    ['home','首頁內容'],['services','服務項目'],['products','產品設備'],['industries','適用產業'],
+    ['company','公司資訊'],['links','連結設定'],['appearance','外觀設定'],['admins','後台管理員'],['system','系統設定']
+  ];
+  const v47DefaultAdmins=()=>[{id:'ADMIN-MAIN',displayName:'系統管理員',username:'admin',password:'1234',enabled:true,permissions:V47_MODULES.map(x=>x[0])}];
+  const v47ReadAdmins=()=>{
+    try{
+      const raw=localStorage.getItem(V47_ADMIN_KEY);
+      const rows=raw?JSON.parse(raw):v47DefaultAdmins();
+      return Array.isArray(rows)&&rows.length?rows:v47DefaultAdmins();
+    }catch(_){return v47DefaultAdmins();}
+  };
+  const v47WriteAdmins=rows=>localStorage.setItem(V47_ADMIN_KEY,JSON.stringify(rows));
+  let v47Admins=v47ReadAdmins();
+
+  const v47RenderAdmins=()=>{
+    const list=$('#v47AdminList'); if(!list)return;
+    $('#v47AdminCount').textContent=`${v47Admins.length} 位`;
+    list.innerHTML=v47Admins.map((u,i)=>`
+      <div class="admin-row gs-data-row">
+        <time>${i+1}</time>
+        <div class="row-copy"><b>${gsSafe(u.displayName||u.username)}</b><small>帳號：${gsSafe(u.username)}｜權限 ${Array.isArray(u.permissions)?u.permissions.length:0} 項</small></div>
+        <span class="gs-state ${u.enabled?'on':'off'}">${u.enabled?'啟用':'停用'}</span>
+        <div class="row-actions">
+          <button class="icon-btn" data-v47-edit-admin="${gsSafe(u.id)}" title="編輯">${icon('pencil')}</button>
+          ${u.id!=='ADMIN-MAIN'?`<button class="icon-btn danger" data-v47-delete-admin="${gsSafe(u.id)}" title="刪除">${icon('trash-2')}</button>`:''}
+        </div>
+      </div>`).join('');
+    lucide.createIcons();
+  };
+
+  const v47OpenAdmin=(user=null)=>{
+    $('#v47AdminModalTitle').textContent=user?'編輯管理員':'新增管理員';
+    $('#v47AdminId').value=user?.id||'';
+    $('#v47AdminName').value=user?.displayName||'';
+    $('#v47AdminUsername').value=user?.username||'';
+    $('#v47AdminPassword').value=user?.password||'';
+    $('#v47AdminEnabled').value=user?.enabled===false?'false':'true';
+    const p=new Set(user?.permissions||V47_MODULES.map(x=>x[0]));
+    $('#v47PermissionGrid').innerHTML=V47_MODULES.map(([id,label])=>`
+      <label class="permission-item"><input type="checkbox" value="${id}" ${p.has(id)?'checked':''}><span>${label}</span></label>`).join('');
+    $('#v47AdminModal').classList.add('open');
+    $('#v47AdminModal').setAttribute('aria-hidden','false');
+  };
+  const v47CloseAdmin=()=>{$('#v47AdminModal')?.classList.remove('open');$('#v47AdminModal')?.setAttribute('aria-hidden','true');};
+
+  $('#v47AddAdminBtn')?.addEventListener('click',()=>v47OpenAdmin());
+  $('#v47AdminForm')?.addEventListener('submit',e=>{
+    e.preventDefault();
+    const id=$('#v47AdminId').value||`ADMIN-${Date.now()}`;
+    const row={
+      id,
+      displayName:$('#v47AdminName').value.trim(),
+      username:$('#v47AdminUsername').value.trim(),
+      password:$('#v47AdminPassword').value,
+      enabled:$('#v47AdminEnabled').value==='true',
+      permissions:[...document.querySelectorAll('#v47PermissionGrid input:checked')].map(x=>x.value)
+    };
+    if(!row.displayName||!row.username||!row.password){alert('請完整填寫名稱、帳號與密碼。');return;}
+    if(v47Admins.some(x=>x.username.toLowerCase()===row.username.toLowerCase()&&x.id!==id)){alert('此登入帳號已存在。');return;}
+    const idx=v47Admins.findIndex(x=>x.id===id);
+    if(idx>=0)v47Admins[idx]=row;else v47Admins.push(row);
+    v47WriteAdmins(v47Admins);v47RenderAdmins();v47CloseAdmin();
+  });
+
+  document.addEventListener('click',e=>{
+    const edit=e.target.closest('[data-v47-edit-admin]');
+    if(edit){const u=v47Admins.find(x=>x.id===edit.dataset.v47EditAdmin);if(u)v47OpenAdmin(u);return;}
+    const del=e.target.closest('[data-v47-delete-admin]');
+    if(del){const u=v47Admins.find(x=>x.id===del.dataset.v47DeleteAdmin);if(u&&confirm(`確定刪除「${u.displayName}」？`)){v47Admins=v47Admins.filter(x=>x.id!==u.id);v47WriteAdmins(v47Admins);v47RenderAdmins();}return;}
+    if(e.target.closest('[data-v47-admin-close]'))v47CloseAdmin();
+  });
+  v47RenderAdmins();
+
+
+
+
+  // ==========================================================
+  // V48 visible Google Sheets sync
+  // ==========================================================
+  const v48SetBusy=(busy)=>{
+    ['#googleSyncAllBtn','#gsReloadNews','#gsReloadFaq','#gsReloadInquiries','#mobileGoogleSync'].forEach(sel=>{
+      const btn=$(sel);
+      if(!btn)return;
+      btn.disabled=busy;
+      btn.classList.toggle('is-syncing',busy);
+    });
+  };
+
+  const v48SetConnection=(state,title,message='')=>{
+    const el=$('#googleConnectionStatus');
+    if(el)el.dataset.state=state;
+    if($('#googleConnectionTitle'))$('#googleConnectionTitle').textContent=title;
+    if($('#googleConnectionMessage'))$('#googleConnectionMessage').textContent=message;
+  };
+
+  const v48SetPageState=(selector,state,title,detail='')=>{
+    const el=$(selector); if(!el)return;
+    el.dataset.state=state;
+    const b=el.querySelector('b');
+    const s=el.querySelector('small');
+    if(b)b.textContent=title;
+    if(s)s.textContent=detail||'資料來源：Google 試算表';
+  };
+
+  const v48ShowUrlState=()=>{
+    const el=$('#googleWebAppUrlStatus');
+    if(!el)return;
+    if(GS_ADMIN_URL){
+      el.textContent='已設定 /exec';
+      el.classList.add('is-ok');
+      el.title=GS_ADMIN_URL;
+    }else{
+      el.textContent='尚未設定';
+      el.classList.remove('is-ok');
     }
   };
 
-  adminMobileRefreshBtn?.addEventListener('click', syncAllGoogleSheetsAdmin);
+  const v48Ping=async()=>{
+    if(!GS_ADMIN_URL)throw new Error('尚未設定 Web App URL');
+    const res=await fetch(`${GS_ADMIN_URL}?action=ping&_=${Date.now()}`,{cache:'no-store',redirect:'follow'});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    if(!data?.ok)throw new Error(data?.error||'API 回傳失敗');
+    return data;
+  };
 
-  // On returning to the tab/app, refresh Google Sheets data automatically.
-  document.addEventListener('visibilitychange', () => {
-    if(document.visibilityState === 'visible' && GS_ADMIN_URL){
-      syncAllGoogleSheetsAdmin();
+  const v48RenderNews=()=>{
+    const list=$('#gsNewsList'); if(!list)return;
+    list.innerHTML=gsNews.length?gsNews.map((x,i)=>`
+      <div class="admin-row gs-data-row">
+        <time>${gsSafe(x.date||'')}</time>
+        <div class="row-copy"><b>${gsSafe(x.title)}</b><small>${gsSafe(x.fullDate)} · ${x.enabled?'啟用':'停用'}</small></div>
+        <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'前台顯示':'已停用'}</span>
+        <div class="row-actions">
+          <button class="icon-btn" data-gs-edit-news="${i}" title="編輯">${icon('pencil')}</button>
+          <button class="icon-btn danger" data-gs-delete-news="${i}" title="刪除">${icon('trash-2')}</button>
+        </div>
+      </div>`).join(''):`<div class="gs-empty"><b>目前沒有最新消息</b><span>可按「新增最新消息」建立資料。</span></div>`;
+    lucide.createIcons();
+  };
+
+  const v48RenderFaq=()=>{
+    const list=$('#gsFaqList'); if(!list)return;
+    list.innerHTML=gsFaq.length?gsFaq.map((x,i)=>`
+      <div class="admin-row gs-data-row">
+        <time>${x.order}</time>
+        <div class="row-copy"><b>${gsSafe(x.q)}</b><small>${gsSafe(x.a).slice(0,90)}${String(x.a).length>90?'…':''}</small></div>
+        <span class="gs-state ${x.enabled?'on':'off'}">${x.enabled?'啟用':'停用'}</span>
+        <div class="row-actions">
+          <button class="icon-btn" data-gs-edit-faq="${i}" title="編輯">${icon('pencil')}</button>
+          <button class="icon-btn danger" data-gs-delete-faq="${i}" title="刪除">${icon('trash-2')}</button>
+        </div>
+      </div>`).join(''):`<div class="gs-empty"><b>目前沒有常見問題</b></div>`;
+    lucide.createIcons();
+  };
+
+  const v48SyncAll=async()=>{
+    v48ShowUrlState();
+
+    if(!GS_ADMIN_URL){
+      v48SetConnection('error','無法連線：尚未設定 Web App URL','請在 assets/js/google-sheets-config.js 填入 Apps Script /exec 網址。');
+      v48SetPageState('#gsNewsSyncState','error','最新消息：無法連線','尚未設定 Web App URL');
+      v48SetPageState('#gsFaqSyncState','error','常見問題：無法連線','尚未設定 Web App URL');
+      v48SetPageState('#gsInquirySyncState','error','客戶表單：無法連線','尚未設定 Web App URL');
+      return false;
+    }
+
+    v48SetBusy(true);
+    v48SetConnection('loading','正在連線 Google 試算表','正在讀取最新消息、常見問題與客戶表單…');
+    v48SetPageState('#gsNewsSyncState','loading','最新消息：同步中');
+    v48SetPageState('#gsFaqSyncState','loading','常見問題：同步中');
+    v48SetPageState('#gsInquirySyncState','loading','客戶表單：同步中');
+
+    try{
+      await v48Ping();
+      const [news,faq,inquiries]=await Promise.all([
+        gsGet('adminNews'),
+        gsGet('adminFaq'),
+        gsGet('inquiries')
+      ]);
+      gsNews=Array.isArray(news)?news:[];
+      gsFaq=Array.isArray(faq)?faq:[];
+      gsInquiries=Array.isArray(inquiries)?inquiries:[];
+
+      v48RenderNews();
+      v48RenderFaq();
+      renderGsInquiries();
+      syncGoogleInquiryDashboard();
+
+      if($('#googleNewsCount'))$('#googleNewsCount').textContent=`${gsNews.length} 筆`;
+      if($('#googleFaqCount'))$('#googleFaqCount').textContent=`${gsFaq.length} 筆`;
+      if($('#googleInquiryCount'))$('#googleInquiryCount').textContent=`${gsInquiries.length} 筆`;
+
+      v48SetConnection('success','Google 試算表：成功連線',`最新消息 ${gsNews.length} 筆｜常見問題 ${gsFaq.length} 筆｜客戶表單 ${gsInquiries.length} 筆`);
+      v48SetPageState('#gsNewsSyncState','success',`最新消息：已同步 ${gsNews.length} 筆`);
+      v48SetPageState('#gsFaqSyncState','success',`常見問題：已同步 ${gsFaq.length} 筆`);
+      v48SetPageState('#gsInquirySyncState','success',`客戶表單：已同步 ${gsInquiries.length} 筆`);
+      return true;
+    }catch(err){
+      const msg=err?.message||String(err);
+      v48SetConnection('error','Google 試算表：連線失敗',msg);
+      v48SetPageState('#gsNewsSyncState','error','最新消息：同步失敗',msg);
+      v48SetPageState('#gsFaqSyncState','error','常見問題：同步失敗',msg);
+      v48SetPageState('#gsInquirySyncState','error','客戶表單：同步失敗',msg);
+      return false;
+    }finally{
+      v48SetBusy(false);
+    }
+  };
+
+  $('#googleSyncAllBtn')?.addEventListener('click',v48SyncAll);
+  $('#gsReloadNews')?.addEventListener('click',v48SyncAll,true);
+  $('#gsReloadFaq')?.addEventListener('click',v48SyncAll,true);
+  $('#gsReloadInquiries')?.addEventListener('click',v48SyncAll,true);
+  $('#mobileGoogleSync')?.addEventListener('click',v48SyncAll,true);
+
+  setTimeout(()=>{
+    v48ShowUrlState();
+    if(GS_ADMIN_URL)v48SyncAll();
+    else v48SetConnection('error','無法連線：尚未設定 Web App URL','請設定 Apps Script /exec 網址後重新整理。');
+  },500);
+
+
+
+  window.addEventListener('error', e => {
+    const box=document.getElementById('googleConnectionStatus');
+    const title=document.getElementById('googleConnectionTitle');
+    const msg=document.getElementById('googleConnectionMessage');
+    if(box && title && msg){
+      box.dataset.state='error';
+      title.textContent='後台程式發生錯誤';
+      msg.textContent=e.message||'請重新整理頁面後再試。';
     }
   });
 

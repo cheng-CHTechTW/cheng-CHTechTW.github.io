@@ -278,52 +278,59 @@
 
 
   async function loadGoogleSheetPublicContent(){
-    if(!GS_URL) return;
-
-    try{
-      const newsResult=await googleSheetsGet('news');
-      if(newsResult?.ok && Array.isArray(newsResult.data) && newsResult.data.length){
-        C.announcements = newsResult.data;
-        if(typeof renderNews === 'function'){
-          try{ renderNews(C.announcements[0]); }catch(_){}
-        }
-        const newsList=$('#newsList');
-        if(newsList){
-          newsList.innerHTML=C.announcements.map((x,i)=>`
-            <div class="news-item reveal visible">
-              <span class="news-date">${x.date||''}</span>
-              <button class="news-title-btn" data-news-index="${i}">${x.title||''}</button>
-            </div>`).join('');
-        }
-        if(C.announcements[0]){
-          const parts=String(C.announcements[0].date||'').split('.');
-          if($('#tickerDate') && parts.length===2) $('#tickerDate').textContent=`${parts[0]} | ${parts[1]}`;
-          if($('#tickerText')) $('#tickerText').textContent=C.announcements[0].title||'';
-        }
-      }
-    }catch(err){
-      console.warn('Google Sheets news fallback to local content.js',err);
+    if(!GS_URL){
+      console.warn('Google Sheets Web App URL 未設定，前台暫用 content.js');
+      return;
     }
 
     try{
-      const faqResult=await googleSheetsGet('faq');
-      if(faqResult?.ok && Array.isArray(faqResult.data) && faqResult.data.length){
+      const [newsResult,faqResult]=await Promise.all([
+        googleSheetsGet('news'),
+        googleSheetsGet('faq')
+      ]);
+
+      if(newsResult?.ok && Array.isArray(newsResult.data)){
+        C.announcements=newsResult.data;
+        const newsList=$('#newsList');
+        if(newsList){
+          newsList.innerHTML=C.announcements.length
+            ? C.announcements.map((x,i)=>`
+              <div class="news-item reveal visible">
+                <span class="news-date">${x.date||''}</span>
+                <button class="news-title-btn" data-news-index="${i}">${x.title||''}</button>
+              </div>`).join('')
+            : '<div class="empty-state">目前沒有最新消息</div>';
+        }
+        if(C.announcements[0]){
+          const first=C.announcements[0];
+          const parts=String(first.date||'').split('.');
+          if($('#tickerDate')&&parts.length===2)$('#tickerDate').textContent=`${parts[0]} | ${parts[1]}`;
+          if($('#tickerText'))$('#tickerText').textContent=first.title||'';
+        }
+      }
+
+      if(faqResult?.ok && Array.isArray(faqResult.data)){
         C.faqs=faqResult.data;
         const faqList=$('#faqList');
         if(faqList){
-          faqList.innerHTML=C.faqs.map((x,i)=>`
-            <div class="faq-item" data-search="${((x.q||'')+(x.a||'')).toLowerCase()}">
-              <button class="faq-q" aria-expanded="false">
-                <span>Q${i+1}. ${x.q||''}</span>
-                <i data-lucide="chevron-down"></i>
-              </button>
-              <div class="faq-a">${x.a||''}</div>
-            </div>`).join('');
-          if(window.lucide) lucide.createIcons();
+          faqList.innerHTML=C.faqs.length
+            ? C.faqs.map((x,i)=>`
+              <div class="faq-item" data-search="${((x.q||'')+(x.a||'')).toLowerCase()}">
+                <button class="faq-q" aria-expanded="false">
+                  <span>Q${i+1}. ${x.q||''}</span>
+                  <i data-lucide="chevron-down"></i>
+                </button>
+                <div class="faq-a">${x.a||''}</div>
+              </div>`).join('')
+            : '<div class="empty-state">目前沒有常見問題</div>';
+          if(window.lucide)lucide.createIcons();
         }
       }
+
+      document.documentElement.dataset.googleSheets='connected';
     }catch(err){
-      console.warn('Google Sheets faq fallback to local content.js',err);
+      document.documentElement.dataset.googleSheets='fallback';
+      console.warn('Google Sheets 連線失敗，前台改用本地 content.js',err);
     }
   }
 
