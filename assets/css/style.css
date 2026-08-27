@@ -700,3 +700,20 @@ body.front-admin-open{overflow:hidden}
   color:#a5a9ad;
 }
 @keyframes v58SyncSpin{to{transform:rotate(360deg)}}
+
+/* V68：後台登入 ICON 固定在所有權列最前方 */
+.footer-bottom .admin-square-trigger,
+.footer-copy .admin-square-trigger,
+.copyright .admin-square-trigger,
+.footer-legal .admin-square-trigger{
+  position:static!important;
+  flex:0 0 auto;
+  margin:0 8px 0 0!important;
+  vertical-align:middle;
+}
+.footer-bottom,
+.footer-copy,
+.copyright,
+.footer-legal{
+  align-items:center;
+}
