@@ -1,0 +1,16 @@
+V62 網域與分享圖統一
+
+正式主網域：
+https://chuang-c.com/
+
+www 網域：
+https://www.chuang-c.com/
+
+兩者分享時使用同一張圖片：
+https://chuang-c.com/line-share-v61.jpg
+
+SEO canonical 統一：
+https://chuang-c.com/
+
+本版僅調整網域／分享圖 metadata，未修改前台版面、後台功能、
+Google Sheets、最新消息、常見問題、表單與登入功能。
