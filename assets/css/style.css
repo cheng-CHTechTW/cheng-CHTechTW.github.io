@@ -374,3 +374,256 @@ body.front-admin-open{overflow:hidden}
   .front-admin-login{padding:12px}
   .front-admin-dialog{padding:28px 18px 22px;border-radius:20px}
 }
+
+/* V38 front ownership/admin icon fix */
+.admin-square-trigger{
+  width:24px;
+  height:24px;
+  padding:0;
+  border:0;
+  background:transparent;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  border-radius:5px;
+  opacity:.82;
+  position:relative;
+  z-index:2;
+}
+.admin-square-trigger img{
+  width:19px;
+  height:19px;
+  display:block;
+  object-fit:contain;
+}
+.admin-square-trigger:hover{opacity:1;transform:scale(1.08)}
+
+.front-admin-login{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:.2s ease;
+}
+.front-admin-login.open{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.front-admin-login-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(25,26,27,.58);
+  backdrop-filter:blur(5px);
+}
+.front-admin-login-dialog{
+  position:relative;
+  z-index:1;
+  width:min(420px,100%);
+  background:#fff;
+  border:1px solid #e8e2dc;
+  border-radius:22px;
+  padding:30px;
+  box-shadow:0 30px 90px rgba(0,0,0,.28);
+}
+.front-admin-login-close{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:38px;
+  height:38px;
+  border:1px solid #e5dfd9;
+  border-radius:50%;
+  background:#fff;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+.front-admin-login-brand{text-align:center;margin-bottom:18px}
+.front-admin-login-brand img{width:90px;max-height:62px;object-fit:contain}
+.front-admin-login-brand span{display:block;margin-top:8px;font-size:9px;font-weight:900;letter-spacing:.18em;color:#80624c}
+.front-admin-login-brand h3{margin:7px 0 0;font-size:22px}
+.front-admin-login label{display:grid;gap:6px;margin:12px 0;font-size:11px;font-weight:800}
+.front-admin-login input{width:100%;border:1px solid #ded7d0;border-radius:10px;padding:11px}
+.front-admin-login-error{min-height:18px;margin:3px 0;color:#a14e46;font-size:10px}
+
+/* V39 login icon/input spacing fix */
+.front-admin-input-wrap{
+  position:relative;
+  width:100%;
+}
+.front-admin-input-wrap>svg{
+  position:absolute;
+  left:13px;
+  top:50%;
+  transform:translateY(-50%);
+  width:17px;
+  height:17px;
+  color:#80624c;
+  pointer-events:none;
+  z-index:2;
+}
+.front-admin-input-wrap input{
+  width:100%;
+  min-height:44px;
+  padding:11px 12px 11px 42px!important;
+  border:1px solid #ded7d0;
+  border-radius:10px;
+  background:#fff;
+  line-height:1.4;
+}
+.front-admin-input-wrap input::placeholder{
+  color:#aaa39c;
+}
+.front-admin-input-wrap input:focus{
+  outline:none;
+  border-color:#9d8169;
+  box-shadow:0 0 0 3px rgba(128,98,76,.09);
+}
+
+/* V40 submit-success animation */
+.submit-success-modal{
+  position:fixed;
+  inset:0;
+  z-index:10020;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .22s ease,visibility .22s ease;
+}
+.submit-success-modal.open{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.submit-success-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(28,31,31,.52);
+  backdrop-filter:blur(6px);
+}
+.submit-success-dialog{
+  position:relative;
+  z-index:1;
+  width:min(420px,100%);
+  padding:34px 30px 28px;
+  border:1px solid #dfe8e1;
+  border-radius:24px;
+  background:#fff;
+  text-align:center;
+  box-shadow:0 30px 90px rgba(18,35,23,.22);
+  transform:translateY(12px) scale(.97);
+  transition:transform .28s ease;
+}
+.submit-success-modal.open .submit-success-dialog{
+  transform:translateY(0) scale(1);
+}
+.submit-success-icon{
+  width:84px;
+  height:84px;
+  margin:0 auto 14px;
+}
+.submit-success-icon svg{
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+.success-circle{
+  fill:#54a568;
+  stroke:#54a568;
+  stroke-width:3;
+  stroke-dasharray:170;
+  stroke-dashoffset:170;
+  transform-origin:50% 50%;
+}
+.success-check{
+  fill:none;
+  stroke:#fff;
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:42;
+  stroke-dashoffset:42;
+}
+.submit-success-modal.open .success-circle{
+  animation:successCircleDraw .48s ease forwards;
+}
+.submit-success-modal.open .success-check{
+  animation:successCheckDraw .4s .38s ease forwards;
+}
+@keyframes successCircleDraw{
+  0%{stroke-dashoffset:170;transform:scale(.76)}
+  70%{transform:scale(1.08)}
+  100%{stroke-dashoffset:0;transform:scale(1)}
+}
+@keyframes successCheckDraw{
+  to{stroke-dashoffset:0}
+}
+.submit-success-kicker{
+  display:block;
+  margin-top:2px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.18em;
+  color:#54805f;
+}
+.submit-success-dialog h3{
+  margin:7px 0 9px;
+  font-size:24px;
+  color:#3c4540;
+}
+.submit-success-dialog p{
+  margin:0 auto 20px;
+  max-width:330px;
+  font-size:12px;
+  line-height:1.8;
+  color:#6d756f;
+}
+.submit-success-dialog p b{
+  color:#478359;
+}
+.submit-success-close-btn{
+  min-width:120px;
+  min-height:42px;
+  border:0;
+  border-radius:999px;
+  background:#54a568;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+.submit-success-close-btn:hover{
+  background:#478c59;
+}
+.submit-success-dialog small{
+  display:block;
+  margin-top:10px;
+  font-size:9px;
+  color:#999;
+}
+
+/* V42 form fields + login icons on the right */
+.contact-card label>span{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+}
+.contact-card label>span b{
+  color:#b45c52;
+  font-weight:900;
+}
+.front-admin-input-wrap>svg{
+  left:auto!important;
+  right:13px!important;
+}
+.front-admin-input-wrap input{
+  padding:11px 42px 11px 12px!important;
+}

@@ -138,3 +138,6 @@
 .modal-status-select{min-height:40px;border:1px solid #ddd6cf;border-radius:9px;padding:0 10px;background:#fff}
 #gsEditFields .wide{grid-column:1/-1}
 @media(max-width:680px){.gs-data-row{grid-template-columns:58px 1fr}.gs-data-row>span,.gs-data-row>.row-actions{grid-column:2}}
+
+/* V39 Google Sheets content overview */
+.google-sheet-content-overview{margin-bottom:14px}

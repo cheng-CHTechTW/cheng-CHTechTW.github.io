@@ -91,7 +91,7 @@ function ensureSheets_() {
   ensureSheet_(
     ss,
     TABS.inquiries,
-    ['編號','提交時間','姓名/店名','電話','Email','LINE ID','需求項目','需求內容','讀取狀態','處理狀態']
+    ['編號','提交時間','店名','聯絡人','聯絡電話','LINE ID','Email','營業狀態','需求','備註','讀取狀態','處理狀態']
   );
 
   ensureSheet_(
@@ -121,12 +121,14 @@ function saveInquiry_(data) {
   sh.appendRow([
     id,
     now,
-    data.name || '',
+    data.storeName || '',
+    data.contactName || '',
     data.phone || '',
-    data.email || '',
     data.line || '',
+    data.email || '',
+    data.businessStatus || '',
     data.service || '',
-    data.message || '',
+    data.note || '',
     '未讀',
     '未處理'
   ]);
@@ -138,18 +140,20 @@ function readInquiries_() {
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TABS.inquiries);
   if (sh.getLastRow() <= 1) return [];
 
-  const rows = sh.getRange(2,1,sh.getLastRow()-1,10).getValues();
+  const rows = sh.getRange(2,1,sh.getLastRow()-1,12).getValues();
   return rows.map(r => ({
     id: String(r[0] || ''),
     submittedAt: dateTimeText_(r[1]),
-    name: String(r[2] || ''),
-    phone: String(r[3] || ''),
-    email: String(r[4] || ''),
+    storeName: String(r[2] || ''),
+    contactName: String(r[3] || ''),
+    phone: String(r[4] || ''),
     line: String(r[5] || ''),
-    service: String(r[6] || ''),
-    message: String(r[7] || ''),
-    readStatus: String(r[8] || '未讀'),
-    processStatus: String(r[9] || '未處理')
+    email: String(r[6] || ''),
+    businessStatus: String(r[7] || ''),
+    service: String(r[8] || ''),
+    note: String(r[9] || ''),
+    readStatus: String(r[10] || '未讀'),
+    processStatus: String(r[11] || '未處理')
   })).sort((a,b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
 }
 
@@ -158,8 +162,8 @@ function updateInquiry_(data) {
   const row = findRowById_(sh, data.id);
   if (!row) return { ok: false, error: 'not_found' };
 
-  if (data.readStatus !== undefined) sh.getRange(row,9).setValue(data.readStatus);
-  if (data.processStatus !== undefined) sh.getRange(row,10).setValue(data.processStatus);
+  if (data.readStatus !== undefined) sh.getRange(row,11).setValue(data.readStatus);
+  if (data.processStatus !== undefined) sh.getRange(row,12).setValue(data.processStatus);
 
   return { ok: true, id: data.id };
 }
@@ -286,6 +290,52 @@ function dateTimeText_(value) {
     return Utilities.formatDate(value, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
   }
   return String(value);
+}
+
+
+/**
+ * 第一次設定時執行：
+ * 1. 建立三個頁籤
+ * 2. 如果「最新消息」與「常見問題」只有標題列，則寫入 V27 預設資料
+ *
+ * 已有資料時不會重複匯入。
+ */
+function setup() {
+  ensureSheets_();
+  seedDefaultContent_();
+}
+
+function seedDefaultContent_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  const newsSh = ss.getSheetByName(TABS.news);
+  if (newsSh.getLastRow() <= 1) {
+    const now = new Date();
+    const rows = [
+      ['NEWS-20260827','2026-08-27','08.27','誠創科技形象網站新版正式上線','全新網站提供 POS、電子發票、雲端服務、網站設計與客製系統，並持續補充教學與最新公告。',true,now],
+      ['NEWS-20260820','2026-08-20','08.20','系統與服務內容持續更新中','持續整理服務說明、網站內容與相關支援資訊。',true,now],
+      ['NEWS-20260815','2026-08-15','08.15','新增設備與耗材說明專區','新增 POS 周邊設備與紙捲耗材相關介紹。',true,now],
+      ['NEWS-20260808','2026-08-08','08.08','雲端串接與多店管理方案更新','提供多店營運、雲端看帳與資料串接規劃。',true,now],
+      ['NEWS-20260730','2026-07-30','07.30','POS 導入流程與交機服務更新','補充 POS 導入、備貨、安裝與交機服務流程。',true,now],
+      ['NEWS-20260715','2026-07-15','07.15','企業系統客製與流程自動化服務開放諮詢','提供企業流程、系統整合與自動化需求諮詢。',true,now]
+    ];
+    newsSh.getRange(2,1,rows.length,7).setValues(rows);
+  }
+
+  const faqSh = ss.getSheetByName(TABS.faq);
+  if (faqSh.getLastRow() <= 1) {
+    const now = new Date();
+    const rows = [
+      ['FAQ-001',1,'誠創科技主要提供哪些服務？','提供 POS 系統、電子發票、多元支付、網站設計、客製化系統與雲端服務等。',true,now],
+      ['FAQ-002',2,'POS 系統可以依店家需求調整嗎？','可以，會依餐飲、零售、美食街、商圈等不同營運方式規劃適合的功能與設備。',true,now],
+      ['FAQ-003',3,'可以協助電子發票申請與設定嗎？','可以，可依實際需求協助電子發票相關申請、設備與系統串接規劃。',true,now],
+      ['FAQ-004',4,'網站可以支援手機和平板嗎？','可以，網站會採 RWD 響應式設計，讓桌機、平板與手機都能正常瀏覽。',true,now],
+      ['FAQ-005',5,'設備安裝後有售後服務嗎？','有，可依設備與服務內容提供後續客服、遠端協助與相關支援。',true,now],
+      ['FAQ-006',6,'可以只購買設備或耗材嗎？','可以，可依需求購買 POS 周邊設備、紙捲、標籤與相關耗材。',true,now],
+      ['FAQ-007',7,'如何提出網站或系統客製需求？','可透過網站諮詢表單留下需求，我們會再依功能、流程與預算進一步討論。',true,now]
+    ];
+    faqSh.getRange(2,1,rows.length,6).setValues(rows);
+  }
 }
 
 function json_(obj) {

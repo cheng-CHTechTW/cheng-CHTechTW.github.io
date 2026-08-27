@@ -10,6 +10,46 @@
     return await res.json();
   }
 
+
+  let submitSuccessTimer = null;
+  let submitSuccessCountdownTimer = null;
+
+  const openSubmitSuccess = () => {
+    const modal=document.getElementById('submitSuccessModal');
+    const countdown=document.getElementById('submitSuccessCountdown');
+    if(!modal) return;
+
+    clearTimeout(submitSuccessTimer);
+    clearInterval(submitSuccessCountdownTimer);
+
+    let remaining=10;
+    if(countdown) countdown.textContent=`${remaining} 秒後自動關閉`;
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+
+    submitSuccessCountdownTimer=setInterval(()=>{
+      remaining-=1;
+      if(countdown && remaining>0) countdown.textContent=`${remaining} 秒後自動關閉`;
+      if(remaining<=0) clearInterval(submitSuccessCountdownTimer);
+    },1000);
+
+    submitSuccessTimer=setTimeout(()=>{
+      closeSubmitSuccess();
+    },10000);
+  };
+
+  const closeSubmitSuccess = () => {
+    const modal=document.getElementById('submitSuccessModal');
+    if(!modal) return;
+    clearTimeout(submitSuccessTimer);
+    clearInterval(submitSuccessCountdownTimer);
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+  };
+
   async function googleSheetsPost(action,data){
     if(!GS_URL) throw new Error('GOOGLE_SHEETS_NOT_CONFIGURED');
     const res = await fetch(GS_URL,{
@@ -140,13 +180,20 @@
     const fd=new FormData(form);
 
     const payload={
-      name:String(fd.get('name')||'').trim(),
+      storeName:String(fd.get('storeName')||'').trim(),
+      contactName:String(fd.get('contactName')||'').trim(),
       phone:String(fd.get('phone')||'').trim(),
-      email:String(fd.get('email')||'').trim(),
       line:String(fd.get('line')||'').trim(),
+      email:String(fd.get('email')||'').trim(),
+      businessStatus:String(fd.get('businessStatus')||'').trim(),
       service:String(fd.get('service')||'').trim(),
-      message:String(fd.get('message')||'').trim()
+      note:String(fd.get('note')||'').trim()
     };
+
+    if(!payload.storeName || !payload.contactName || !payload.phone || !payload.businessStatus){
+      note.textContent='請填寫必填欄位：店名、聯絡人、聯絡電話、營業狀態。';
+      return;
+    }
 
     if(!GS_URL){
       note.textContent='尚未設定 Google 試算表 API，請先設定 google-sheets-config.js。';
@@ -161,8 +208,17 @@
     try{
       const result=await googleSheetsPost('submitInquiry',payload);
       if(!result || !result.ok) throw new Error(result?.error||'submit_failed');
-      note.textContent='已成功送出，我們會盡快與您聯繫。';
+      note.textContent='';
       form.reset();
+
+      // Close the inquiry form first, then show the success animation.
+      const contactModal=document.getElementById('contactFormModal');
+      if(contactModal){
+        contactModal.classList.remove('open');
+        contactModal.setAttribute('aria-hidden','true');
+      }
+      document.body.classList.remove('modal-open');
+      setTimeout(openSubmitSuccess,120);
     }catch(err){
       console.error(err);
       note.textContent='送出失敗，請稍後再試或使用電話、LINE 聯繫。';
@@ -272,5 +328,82 @@
   }
 
   loadGoogleSheetPublicContent();
+
+
+
+  // V38: ChengChuang front square admin icon
+  const frontAdminTrigger = document.getElementById('adminLoginTrigger');
+  const frontAdminModal = document.getElementById('frontAdminLogin');
+  const frontAdminForm = document.getElementById('frontAdminLoginForm');
+
+  const openFrontAdminLogin = () => {
+    if(!frontAdminModal) return;
+    frontAdminModal.classList.add('open');
+    frontAdminModal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+    const err=document.getElementById('frontAdminLoginError');
+    if(err) err.textContent='';
+    const user=document.getElementById('frontAdminUser');
+    if(user) setTimeout(()=>user.focus(),50);
+    if(window.lucide) lucide.createIcons();
+  };
+
+  const closeFrontAdminLogin = () => {
+    if(!frontAdminModal) return;
+    frontAdminModal.classList.remove('open');
+    frontAdminModal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+  };
+
+  if(frontAdminTrigger){
+    frontAdminTrigger.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      openFrontAdminLogin();
+    });
+  }
+
+  document.addEventListener('click', e => {
+    if(e.target.closest('[data-front-admin-close]')){
+      closeFrontAdminLogin();
+    }
+  });
+
+  if(frontAdminForm){
+    frontAdminForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const user=(document.getElementById('frontAdminUser')?.value||'').trim();
+      const pass=document.getElementById('frontAdminPass')?.value||'';
+      const err=document.getElementById('frontAdminLoginError');
+
+      if(user==='admin' && pass==='1234'){
+        sessionStorage.setItem('cc_admin_preview','1');
+        sessionStorage.setItem('cc_admin_user','admin');
+        window.location.href='admin/index.html#dashboard';
+        return;
+      }
+      if(err) err.textContent='帳號或密碼不正確。';
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    if(e.key==='Escape' && frontAdminModal?.classList.contains('open')){
+      closeFrontAdminLogin();
+    }
+  });
+
+
+
+  document.addEventListener('click', e => {
+    if(e.target.closest('[data-submit-success-close]')){
+      closeSubmitSuccess();
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if(e.key==='Escape' && document.getElementById('submitSuccessModal')?.classList.contains('open')){
+      closeSubmitSuccess();
+    }
+  });
 
 })();

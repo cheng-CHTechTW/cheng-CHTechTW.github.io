@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#f7f4ef">
   <title>誠創科技｜網站後台管理</title>
   <link rel="icon" type="image/svg+xml" href="../chlogo.svg">
-  <link rel="stylesheet" href="admin.css">
+  <link rel="shortcut icon" type="image/svg+xml" href="../chlogo.svg">
+  <link rel="apple-touch-icon" href="../chlogo.svg">
+
+<link rel="stylesheet" href="admin.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="../assets/js/google-sheets-config.js"></script>
   <script src="../assets/js/content.js"></script>
@@ -110,8 +113,8 @@
           </div>
 
           <div class="stat-grid">
-            <article><div class="stat-icon"><i data-lucide="users"></i></div><div><small>客戶數量</small><strong id="dashCustomers">0</strong><span>目前客戶總數</span></div></article>
-            <article class="stat-unread"><div class="stat-icon"><i data-lucide="mail-warning"></i></div><div><small>新提交未讀</small><strong id="dashUnread">0</strong><span>待查看表單</span></div></article>
+            <article><div class="stat-icon"><i data-lucide="users"></i></div><div><small>客戶數量</small><strong id="dashCustomers" data-dashboard-customer-count>0</strong><span>目前客戶總數</span></div></article>
+            <article class="stat-unread"><div class="stat-icon"><i data-lucide="mail-warning"></i></div><div><small>新提交未讀</small><strong id="dashUnread" data-dashboard-unread-count>0</strong><span>待查看表單</span></div></article>
             <article><div class="stat-icon"><i data-lucide="megaphone"></i></div><div><small>公告數量</small><strong id="dashNews">0</strong><span>目前已發布</span></div></article>
             <article><div class="stat-icon"><i data-lucide="store"></i></div><div><small>適用產業</small><strong id="dashIndustries">0</strong><span>產業封面卡</span></div></article>
           </div>
@@ -320,6 +323,18 @@
 
 <section class="admin-page" data-admin-page="system">
           <div class="page-intro"><div><span>SYSTEM</span><h1>系統設定</h1><p>管理靜態網站資料輸出與部署資訊。</p></div></div>
+          <article class="panel google-sheet-content-overview" id="gsContentTabsOverview">
+            <div class="panel-head">
+              <div><small>GOOGLE SHEETS CONTENT</small><h3>網站內容頁籤</h3></div>
+              <span class="gs-live-badge"><i></i> 同一份試算表</span>
+            </div>
+            <div class="front-current-grid">
+              <div><span>後台最新消息</span><b>Google 頁籤：最新消息</b></div>
+              <div><span>後台常見問題</span><b>Google 頁籤：常見問題</b></div>
+              <div><span>前台客戶填表</span><b>Google 頁籤：客戶表單</b></div>
+              <div><span>資料來源</span><b>Google Apps Script Web App</b></div>
+            </div>
+          </article>
           <article class="panel google-sheet-admin-card">
             <div class="panel-head"><div><small>GOOGLE SHEETS</small><h3>Google 試算表串接</h3></div><span id="gsAdminStatus" class="status-off"><i></i> 尚未設定</span></div>
             <p>同一份 Google 試算表使用三個頁籤：<b>最新消息</b>、<b>客戶表單</b>、<b>常見問題</b>。</p>

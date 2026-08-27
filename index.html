@@ -156,8 +156,8 @@
     <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><div><i data-lucide="receipt-text"></i><b>電子發票</b><span>開立發票 / 銷項管理</span></div><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
     <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="#home">首頁</a><a href="#about">關於我們</a><a href="#services">服務項目</a><a href="#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="#services">POS 系統</a><a href="#services">電子發票</a><a href="#services">雲端串接</a><a href="#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="#faq">設備了解</a><a href="#faq">安裝教學</a><a href="#faq">紙捲規格</a><a href="#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="#contactFormModal" data-contact-modal>資訊表單</a><a href="#contact">保固登記</a><button class="footer-news-btn" type="button">最新公告</button><a href="admin/index.html#dashboard">後台入口</a></div></div>
     <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 8623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
-        <button class="admin-diamond-trigger" id="adminLoginTrigger" type="button" aria-label="後台登入" title="後台登入">
-          <span></span>
+        <button class="admin-square-trigger" id="adminLoginTrigger" type="button" aria-label="誠創後台登入" title="誠創後台登入">
+          <img src="favicon.svg" alt="誠創後台入口">
         </button>
         <span>Copyright © 2026 CH 誠創科技工作室 All Rights Reserved. 版權所有</span>
       </div></div>
@@ -188,26 +188,50 @@
     <div class="contact-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="contactModalTitle">
       <button class="contact-modal-close" type="button" data-contact-close aria-label="關閉表單"><i data-lucide="x"></i></button>
       <form class="contact-card contact-inquiry" id="contactForm">
-        <div class="contact-form-head">
-          <span class="contact-modal-kicker">CONTACT FORM</span>
-          <h3 id="contactModalTitle">誠創科技諮詢單</h3>
-          <p>請留下需求，我們會盡快與您聯繫。</p>
-        </div>
-        <div class="contact-fields-grid">
-          <label>姓名 / 店名<input name="name" required /></label>
-          <label>電話<input type="tel" name="phone" required /></label>
-          <label>Email<input type="email" name="email" required /></label>
-          <label>LINE ID<input name="line" /></label>
-        </div>
-        <label>需求項目
-          <select name="service" required>
-            <option value="POS 系統">POS 系統</option><option value="電子發票">電子發票</option><option value="多元支付">多元支付</option><option value="網站設計">網站設計</option><option value="客製化開發">客製化開發</option><option value="雲端服務">雲端服務</option><option value="設備與耗材">設備與耗材</option><option value="其他需求">其他需求</option>
+      <div class="contact-form-head">
+        <span class="contact-modal-kicker">CONTACT FORM</span>
+        <h3>誠創科技諮詢單</h3>
+        <p>請留下基本聯絡資料與需求，我們會盡快與您聯繫。</p>
+      </div>
+
+      <div class="contact-fields-grid">
+        <label><span><b>*</b>店名</span><input name="storeName" required placeholder="請輸入店名"></label>
+        <label><span><b>*</b>聯絡人</span><input name="contactName" required placeholder="請輸入聯絡人"></label>
+        <label><span><b>*</b>聯絡電話</span><input type="tel" name="phone" required placeholder="請輸入聯絡電話"></label>
+        <label><span>LINE ID</span><input name="line" placeholder="選填"></label>
+        <label><span>Email</span><input type="email" name="email" placeholder="選填"></label>
+        <label><span><b>*</b>營業狀態</span>
+          <select name="businessStatus" required>
+            <option value="">請選擇</option>
+            <option value="籌備中">籌備中</option>
+            <option value="營業中">營業中</option>
+            <option value="暫停營業">暫停營業</option>
+            <option value="其他">其他</option>
           </select>
         </label>
-        <label>需求內容<textarea name="message" rows="5" required maxlength="500" placeholder="請簡單描述您的需求"></textarea></label>
-        <button class="contact-submit" type="submit">送出表單</button>
-        <small class="form-note" id="formNote"></small>
-      </form>
+      </div>
+
+      <label><span>需求</span>
+        <select name="service">
+          <option value="">請選擇需求（選填）</option>
+          <option>POS 系統</option>
+          <option>電子發票</option>
+          <option>多元支付</option>
+          <option>網站設計</option>
+          <option>客製化開發</option>
+          <option>雲端服務</option>
+          <option>設備與耗材</option>
+          <option>其他需求</option>
+        </select>
+      </label>
+
+      <label><span>備註</span>
+        <textarea name="note" rows="5" placeholder="可填寫店家類型、需求內容或希望聯絡時間"></textarea>
+      </label>
+
+      <button class="contact-submit" type="submit">送出表單</button>
+      <small class="form-note" id="formNote"></small>
+    </form>
     </div>
   </div>
 
@@ -242,6 +266,24 @@
         <p class="front-admin-error" id="frontAdminError"></p>
         <button class="front-admin-submit" type="submit">登入後台 <i data-lucide="arrow-right"></i></button>
       </form>
+    </div>
+  </div>
+
+
+  <div class="submit-success-modal" id="submitSuccessModal" aria-hidden="true">
+    <div class="submit-success-backdrop" data-submit-success-close></div>
+    <div class="submit-success-dialog" role="dialog" aria-modal="true" aria-labelledby="submitSuccessTitle">
+      <div class="submit-success-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64">
+          <circle class="success-circle" cx="32" cy="32" r="27"></circle>
+          <path class="success-check" d="M19 33.5 28.5 43 46 23"></path>
+        </svg>
+      </div>
+      <span class="submit-success-kicker">FORM SUBMITTED</span>
+      <h3 id="submitSuccessTitle">完成送出表單</h3>
+      <p>本公司會盡快與您聯繫，或加入官方 LINE：<b>@905dqqgw</b></p>
+      <button type="button" class="submit-success-close-btn" data-submit-success-close>了解</button>
+      <small id="submitSuccessCountdown">10 秒後自動關閉</small>
     </div>
   </div>
 

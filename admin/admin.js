@@ -781,14 +781,50 @@
       if(cat&&x.service!==cat)return false;
       if(status&&x.processStatus!==status)return false;
       if(kw){
-        const hay=[x.id,x.name,x.phone,x.email,x.line,x.service,x.message,x.readStatus,x.processStatus].join(' ').toLowerCase();
+        const hay=[x.id,x.storeName,x.contactName,x.phone,x.email,x.line,x.businessStatus,x.service,x.note,x.readStatus,x.processStatus].join(' ').toLowerCase();
         if(!hay.includes(kw))return false;
       }
       return true;
     });
   };
 
+
+  const syncGoogleInquiryDashboard = () => {
+    const total = Array.isArray(gsInquiries) ? gsInquiries.length : 0;
+    const unread = Array.isArray(gsInquiries)
+      ? gsInquiries.filter(x => String(x.readStatus || '').trim() !== '已讀').length
+      : 0;
+
+    [
+      '#dashCustomers',
+      '#dashboardCustomers',
+      '#customerCount',
+      '[data-dashboard-customer-count]'
+    ].forEach(sel => {
+      const el = $(sel);
+      if(el) el.textContent = total;
+    });
+
+    [
+      '#dashUnread',
+      '#dashboardUnread',
+      '#unreadCount',
+      '[data-dashboard-unread-count]'
+    ].forEach(sel => {
+      const el = $(sel);
+      if(el) el.textContent = unread;
+    });
+
+    const navBadge = $('#formUnreadBadge');
+    if(navBadge){
+      navBadge.textContent = unread;
+      navBadge.classList.toggle('has-unread', unread > 0);
+      navBadge.style.display = unread > 0 ? '' : 'none';
+    }
+  };
+
   const renderGsInquiries=()=>{
+    syncGoogleInquiryDashboard();
     const list=$('#gsInquiryList');
     if(!list)return;
     const rows=filteredGsInquiries();
@@ -808,7 +844,7 @@
       const originalIndex=gsInquiries.indexOf(x);
       return `<button class="admin-row inquiry-row ${x.readStatus!=='已讀'?'is-unread':''}" type="button" data-gs-inquiry="${originalIndex}">
         <time>${gsSafe(String(x.submittedAt||'').slice(5,16))}</time>
-        <div class="row-copy"><b>${gsSafe(x.name)} ${x.readStatus!=='已讀'?'<span class="unread-dot">未讀</span>':''}</b><small>${gsSafe(x.service)}｜${gsSafe(x.phone)}｜${gsSafe(x.processStatus)}</small></div>
+        <div class="row-copy"><b>${gsSafe(x.storeName)} / ${gsSafe(x.contactName)} ${x.readStatus!=='已讀'?'<span class="unread-dot">未讀</span>':''}</b><small>${gsSafe(x.service)}｜${gsSafe(x.phone)}｜${gsSafe(x.processStatus)}</small></div>
         <span class="gs-state ${x.processStatus==='已完成'?'on':'pending'}">${gsSafe(x.processStatus)}</span>
         <div class="row-actions"><span class="inquiry-open-hint">查看詳情 ${icon('chevron-right')}</span></div>
       </button>`;
@@ -822,11 +858,9 @@
     $('#gsInquiryList').innerHTML='<div class="gs-loading">正在同步 Google 試算表...</div>';
     try{
       gsInquiries=await gsGet('inquiries');
+      syncGoogleInquiryDashboard();
       renderGsInquiries();
-      const unread=gsInquiries.filter(x=>x.readStatus!=='已讀').length;
-      if($('#formUnreadBadge')){$('#formUnreadBadge').textContent=unread;$('#formUnreadBadge').classList.toggle('has-unread',unread>0);}
-      if($('#dashCustomers'))$('#dashCustomers').textContent=gsInquiries.length;
-      if($('#dashUnread'))$('#dashUnread').textContent=unread;
+      syncGoogleInquiryDashboard();
     }catch(err){
       $('#gsInquiryList').innerHTML=`<div class="gs-empty"><b>讀取失敗</b><span>${gsSafe(err.message)}</span></div>`;
     }
@@ -903,14 +937,14 @@
     $('#gsInquiryDetail').innerHTML=`
       <div class="inquiry-detail-meta"><span class="detail-status ${x.readStatus==='已讀'?'is-read':''}">${gsSafe(x.readStatus)}</span><span>${gsSafe(x.submittedAt)}</span><code>${gsSafe(x.id)}</code></div>
       <div class="inquiry-detail-grid">
-        <div><span>姓名 / 店名</span><b>${gsSafe(x.name)}</b></div>
-        <div><span>電話</span><b>${gsSafe(x.phone)}</b></div>
+        <div><span>姓名 / 店名</span><b>${gsSafe(x.storeName)} / ${gsSafe(x.contactName)}</b></div>
+        <div><span>聯絡電話</span><b>${gsSafe(x.phone)}</b></div>
         <div><span>Email</span><b>${gsSafe(x.email||'-')}</b></div>
         <div><span>LINE ID</span><b>${gsSafe(x.line||'-')}</b></div>
-        <div><span>需求項目</span><b>${gsSafe(x.service)}</b></div>
+        <div><span>營業狀態</span><b>${gsSafe(x.businessStatus)}</b></div><div><span>需求</span><b>${gsSafe(x.service||'-')}</b></div>
         <div><span>處理狀態</span><b>${gsSafe(x.processStatus)}</b></div>
       </div>
-      <div class="inquiry-detail-message"><span>需求內容</span><p>${gsSafe(x.message||'-')}</p></div>`;
+      <div class="inquiry-detail-message"><span>備註</span><p>${gsSafe(x.note||'-')}</p></div>`;
     $('#gsMarkRead').disabled=x.readStatus==='已讀';
     gsInquiryModal.classList.add('open');
     gsInquiryModal.setAttribute('aria-hidden','false');
@@ -922,6 +956,7 @@
     try{
       await gsPost('updateInquiry',{id:gsCurrentInquiry.id,readStatus:'已讀'});
       await loadGsInquiries();
+      syncGoogleInquiryDashboard();
       const i=gsInquiries.findIndex(x=>x.id===gsCurrentInquiry.id);
       if(i>=0)openGsInquiry(i); else closeGsInquiry();
     }catch(err){alert(`更新失敗：${err.message}`)}
@@ -931,7 +966,7 @@
     if(!gsCurrentInquiry)return;
     try{
       await gsPost('updateInquiry',{id:gsCurrentInquiry.id,readStatus:'已讀',processStatus:$('#gsProcessStatus').value});
-      closeGsInquiry(); await loadGsInquiries();
+      closeGsInquiry(); await loadGsInquiries(); syncGoogleInquiryDashboard();
     }catch(err){alert(`更新失敗：${err.message}`)}
   });
 
@@ -988,4 +1023,20 @@
 
   bootAdmin();
   lucide.createIcons();
+
+
+  document.addEventListener('click', e => {
+    const nav=e.target.closest('[data-page="dashboard"],[data-admin-page-target="dashboard"],[data-nav="dashboard"]');
+    if(nav && GS_ADMIN_URL){
+      setTimeout(async()=>{
+        try{
+          gsInquiries=await gsGet('inquiries');
+          syncGoogleInquiryDashboard();
+        }catch(err){
+          console.warn('Dashboard inquiry sync failed',err);
+        }
+      },80);
+    }
+  });
+
 })();
