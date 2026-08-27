@@ -231,7 +231,7 @@ Google 試算表 → `客戶表單`
 預覽帳號：
 
 - 帳號：`admin`
-- 密碼：`1234`
+- 初始密碼：請執行 `createInitialAdmin()` 後至 Apps Script 執行記錄查看隨機一次性密碼。
 
 進入：
 

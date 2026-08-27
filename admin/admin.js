@@ -3,11 +3,7 @@
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   const icon = n => `<i data-lucide="${n}"></i>`;
-
-  const UI_USER = 'admin';
-  const UI_PASS = '1234';
-
-  const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
+const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
 
   const FRONT_SETTINGS = {
     heroTitle:'讓營運更簡單，讓成長更有力量',
@@ -43,78 +39,142 @@
     {id:'Q20260822001',name:'創意選物',phone:'0966-140-330',email:'select@example.com',line:'select.tw',service:'客製化開發',date:'2026-08-22 09:35',message:'希望開發內部商品、客戶、銷售與庫存管理介面，並可輸出報表。',unread:false}
   ];
 
-  const ADMIN_USERS = [
-    {
-      name:'系統管理員',
-      username:'admin',
-      email:'service@chuang-c.com',
-      role:'超級管理員',
-      enabled:true,
-      password:'1234',
-      permissions:['dashboard','news','faq-admin','home','services','products','industries','forms','company','links','appearance','admins','system'],
-      lastLogin:'2026-08-27 07:41'
-    },
-    {
-      name:'內容管理',
-      username:'content',
-      email:'content@chuang-c.com',
-      role:'內容管理員',
-      enabled:true,
-      password:'1234',
-      permissions:['dashboard','news','faq-admin','home','services','products','industries','appearance'],
-      lastLogin:'尚未登入'
-    }
-  ];
+  let CURRENT_ADMIN = null;
+  const AUTH_TOKEN_KEY = 'cc_admin_token_v63';
+  const AUTH_PROFILE_KEY = 'cc_admin_profile_v63';
 
+  const getStoredToken = () => sessionStorage.getItem(AUTH_TOKEN_KEY) || '';
+  const getStoredProfile = () => {
+    try { return JSON.parse(sessionStorage.getItem(AUTH_PROFILE_KEY) || 'null'); }
+    catch (_) { return null; }
+  };
+  const saveAuth = (token, profile) => {
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token || '');
+    sessionStorage.setItem(AUTH_PROFILE_KEY, JSON.stringify(profile || {}));
+    CURRENT_ADMIN = profile || null;
+  };
+  const clearAuth = () => {
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_PROFILE_KEY);
+    CURRENT_ADMIN = null;
+  };
   const loginView = $('#loginView');
   const adminView = $('#adminView');
 
+  const authPost = async (action, data={}) => {
+    const url = String((window.GOOGLE_SHEETS_CONFIG || {}).webAppUrl || '').trim();
+    if(!url) throw new Error('尚未設定 Google Apps Script Web App URL');
+
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action, data}),
+      redirect:'follow',
+      cache:'no-store'
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || '驗證失敗');
+    return json;
+  };
+
+  const authGet = async (action, token) => {
+    const url = String((window.GOOGLE_SHEETS_CONFIG || {}).webAppUrl || '').trim();
+    if(!url) throw new Error('尚未設定 Google Apps Script Web App URL');
+
+    const res = await fetch(
+      `${url}?action=${encodeURIComponent(action)}&token=${encodeURIComponent(token || '')}&_=${Date.now()}`,
+      {method:'GET', redirect:'follow', cache:'no-store'}
+    );
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || '驗證失敗');
+    return json;
+  };
+
+  const currentPermissions = () => {
+    const profile = CURRENT_ADMIN || getStoredProfile();
+    return Array.isArray(profile?.permissions) && profile.permissions.length
+      ? profile.permissions
+      : [];
+  };
+
   const showAdmin = () => {
+    const permissions = currentPermissions();
+    if(!getStoredToken() || !permissions.length){
+      showLogin();
+      return;
+    }
+
     loginView.hidden = true;
     adminView.hidden = false;
+    adminView.removeAttribute('inert');
+    adminView.setAttribute('aria-hidden','false');
+
     renderAll();
-    setTimeout(loadGoogleAdminData,0);
-    const currentUsername=sessionStorage.getItem('cc_admin_user')||'admin';
-    const currentAdmin=ADMIN_USERS.find(x=>x.username===currentUsername)||ADMIN_USERS[0];
+    setTimeout(()=>{loadGoogleAdminData();v47LoadAdmins();},0);
+
     $$('.nav-item[data-page]').forEach(btn=>{
-      const allowed=currentAdmin.permissions.includes(btn.dataset.page);
-      btn.style.display=allowed?'':'none';
+      btn.style.display = permissions.includes(btn.dataset.page) ? '' : 'none';
     });
+
     let initialPage=getHashPage();
-    if(!currentAdmin.permissions.includes(initialPage)) initialPage=currentAdmin.permissions[0]||'dashboard';
+    if(!permissions.includes(initialPage)) initialPage=permissions[0]||'dashboard';
     openPage(initialPage, !location.hash);
     lucide.createIcons();
   };
+
   const showLogin = () => {
     adminView.hidden = true;
+    adminView.setAttribute('inert','');
+    adminView.setAttribute('aria-hidden','true');
     loginView.hidden = false;
     lucide.createIcons();
   };
 
-  $('#togglePass').addEventListener('click', () => {
+  $('#togglePass')?.addEventListener('click', () => {
     const p = $('#loginPass');
+    if(!p) return;
     p.type = p.type === 'password' ? 'text' : 'password';
   });
 
-  $('#loginForm').addEventListener('submit', e => {
+  $('#loginForm')?.addEventListener('submit', async e => {
     e.preventDefault();
-    const u = $('#loginUser').value.trim();
-    const p = $('#loginPass').value;
-    const matched = ADMIN_USERS.find(x=>x.username===u && x.password===p && x.enabled);
-    if (matched) {
-      sessionStorage.setItem('cc_admin_preview','1');
-      sessionStorage.setItem('cc_admin_user',matched.username);
-      $('#loginError').textContent = '';
+
+    const btn = e.currentTarget.querySelector('button[type="submit"]');
+    const error = $('#loginError');
+    const username = ($('#loginUser')?.value || '').trim();
+    const password = $('#loginPass')?.value || '';
+
+    if(!username || !password) return;
+
+    if(btn) btn.disabled = true;
+    if(error) error.textContent = '驗證中…';
+
+    try{
+      const result = await authPost('adminLogin', {username, password});
+      saveAuth(result.token, result.profile);
+      if(error) error.textContent = '';
+      if($('#loginPass')) $('#loginPass').value = '';
       history.replaceState(null,'','#dashboard');
       showAdmin();
-    } else {
-      $('#loginError').textContent = '帳號、密碼不正確，或此管理員已停用。';
+    }catch(err){
+      clearAuth();
+      if(error) error.textContent =
+        err.message === 'invalid_credentials'
+          ? '帳號或密碼不正確，或此管理員已停用。'
+          : `登入失敗：${err.message}`;
+    }finally{
+      if(btn) btn.disabled = false;
     }
   });
 
-  $('#logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('cc_admin_preview');
-    sessionStorage.removeItem('cc_admin_user');
+  $('#logoutBtn')?.addEventListener('click', async () => {
+    const token = getStoredToken();
+    try{
+      if(token) await authPost('adminLogout', {token});
+    }catch(_){}
+    clearAuth();
     history.replaceState(null,'',location.pathname);
     showLogin();
   });
@@ -133,9 +193,8 @@
 
   const openPage = (page, syncHash=true) => {
     if(!validPages.includes(page)) page = 'dashboard';
-    const currentUsername=sessionStorage.getItem('cc_admin_user')||'admin';
-    const currentAdmin=ADMIN_USERS.find(x=>x.username===currentUsername)||ADMIN_USERS[0];
-    if(!currentAdmin.permissions.includes(page)) page=currentAdmin.permissions[0]||'dashboard';
+    const permissions=currentPermissions();
+    if(!permissions.includes(page)) page=permissions[0]||'dashboard';
     $$('.admin-page').forEach(x => x.classList.toggle('active', x.dataset.adminPage === page));
     $$('.nav-item').forEach(x => {
       const active = x.dataset.page === page;
@@ -372,36 +431,7 @@
     links:'連結 / 快捷',appearance:'版面與色彩',admins:'管理員管理',system:'系統設定'
   };
 
-  const renderAdminUsers = () => {
-    const total=ADMIN_USERS.length;
-    const enabled=ADMIN_USERS.filter(x=>x.enabled).length;
-    const disabled=total-enabled;
-    setText('#adminTotalCount',total);
-    setText('#adminEnabledCount',enabled);
-    setText('#adminDisabledCount',disabled);
-    setText('#adminCountBadge',total);
-
-    const list=$('#adminUserList');
-    if(!list) return;
-    list.innerHTML=ADMIN_USERS.map((x,i)=>{
-      const all=x.permissions.length>=Object.keys(permissionNames).length;
-      const summary=all?'全部權限':x.permissions.slice(0,3).map(p=>permissionNames[p]).join('、')+(x.permissions.length>3?` +${x.permissions.length-3}`:'');
-      return `
-        <div class="admin-user-row">
-          <span><i class="admin-state ${v58Boolish(x.enabled)?'on':'off'}"></i>${v58Boolish(x.enabled)?'啟用':'停用'}</span>
-          <div class="admin-person"><b>${x.name}</b><small>${x.username} · ${x.email||'-'}</small></div>
-          <span class="role-pill">${x.role}</span>
-          <span class="permission-summary">${summary}</span>
-          <span class="last-login">${x.lastLogin||'尚未登入'}</span>
-          <div class="admin-user-actions">
-            <button class="icon-btn" data-edit-admin="${i}" title="編輯">${icon('pencil')}</button>
-            <button class="icon-btn" data-toggle-admin="${i}" title="${x.enabled?'停用':'啟用'}">${icon(x.enabled?'user-round-x':'user-round-check')}</button>
-            ${i===0?'':`<button class="icon-btn danger" data-delete-admin="${i}" title="刪除">${icon('trash-2')}</button>`}
-          </div>
-        </div>`;
-    }).join('');
-    lucide.createIcons();
-  };
+  const renderAdminUsers = () => {};
 
   const renderGoogleSheetsStatus = () => {
     const el=$('#gsAdminStatus');
@@ -709,27 +739,50 @@
 
   const gsGet = async action => {
     if(!GS_ADMIN_URL) throw new Error('尚未設定 Google Apps Script Web App URL');
-    const res = await fetch(`${GS_ADMIN_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`,{
-      method:'GET',
-      redirect:'follow'
-    });
+    const token=getStoredToken();
+    if(!token) throw new Error('unauthorized');
+
+    const res = await fetch(
+      `${GS_ADMIN_URL}?action=${encodeURIComponent(action)}&token=${encodeURIComponent(token)}&_=${Date.now()}`,
+      {method:'GET', redirect:'follow', cache:'no-store'}
+    );
+
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data=await res.json();
-    if(!data.ok) throw new Error(data.error||'API error');
+
+    if(!data.ok){
+      if(data.error==='unauthorized' || data.error==='session_expired'){
+        clearAuth();
+        showLogin();
+      }
+      throw new Error(data.error||'API error');
+    }
     return data.data||[];
   };
 
   const gsPost = async(action,data={})=>{
     if(!GS_ADMIN_URL) throw new Error('尚未設定 Google Apps Script Web App URL');
+    const token=getStoredToken();
+    if(!token) throw new Error('unauthorized');
+
     const res=await fetch(GS_ADMIN_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({action,data}),
-      redirect:'follow'
+      body:JSON.stringify({action,data,token}),
+      redirect:'follow',
+      cache:'no-store'
     });
+
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const result=await res.json();
-    if(!result.ok) throw new Error(result.error||'API error');
+
+    if(!result.ok){
+      if(result.error==='unauthorized' || result.error==='session_expired'){
+        clearAuth();
+        showLogin();
+      }
+      throw new Error(result.error||'API error');
+    }
     return result;
   };
 
@@ -1043,12 +1096,19 @@
     loadGsNews();loadGsFaq();loadGsInquiries();
   };
 
+  const bootAdmin = async () => {
+    showLogin();
 
-  const bootAdmin = () => {
-    if (sessionStorage.getItem('cc_admin_preview') === '1') {
-      if (!location.hash) history.replaceState(null,'','#dashboard');
+    const token=getStoredToken();
+    if(!token) return;
+
+    try{
+      const result=await authGet('adminSession',token);
+      saveAuth(token,result.profile);
+      if(!location.hash) history.replaceState(null,'','#dashboard');
       showAdmin();
-    } else {
+    }catch(_){
+      clearAuth();
       showLogin();
     }
   };
@@ -1130,35 +1190,34 @@
     }
   });
 
-
-
   // ==========================================================
-  // V47 管理員 CRUD（唯一命名避免與舊版衝突）
+  // V63 管理員管理：Google Sheets 安全 API（不回傳帳號／密碼）
   // ==========================================================
-  const V47_ADMIN_KEY='cc_admin_users_v47';
   const V47_MODULES=[
     ['dashboard','儀表板'],['news','最新消息'],['faq-admin','常見問題'],['forms','客戶表單'],
     ['home','首頁內容'],['services','服務項目'],['products','產品設備'],['industries','適用產業'],
     ['company','公司資訊'],['links','連結設定'],['appearance','外觀設定'],['admins','後台管理員'],['system','系統設定']
   ];
-  const v47DefaultAdmins=()=>[{id:'ADMIN-MAIN',displayName:'系統管理員',username:'admin',password:'1234',enabled:true,permissions:V47_MODULES.map(x=>x[0])}];
-  const v47ReadAdmins=()=>{
+  let v47Admins=[];
+
+  const v47LoadAdmins=async()=>{
     try{
-      const raw=localStorage.getItem(V47_ADMIN_KEY);
-      const rows=raw?JSON.parse(raw):v47DefaultAdmins();
-      return Array.isArray(rows)&&rows.length?rows:v47DefaultAdmins();
-    }catch(_){return v47DefaultAdmins();}
+      v47Admins=await gsGet('adminUsers');
+      v47RenderAdmins();
+    }catch(err){
+      console.warn('管理員讀取失敗',err);
+      const list=$('#v47AdminList');
+      if(list) list.innerHTML='<div class="gs-empty"><b>管理人員讀取失敗</b><span>請確認登入權限與 Google Apps Script 部署版本。</span></div>';
+    }
   };
-  const v47WriteAdmins=rows=>localStorage.setItem(V47_ADMIN_KEY,JSON.stringify(rows));
-  let v47Admins=v47ReadAdmins();
 
   const v47RenderAdmins=()=>{
     const list=$('#v47AdminList'); if(!list)return;
-    $('#v47AdminCount').textContent=`${v47Admins.length} 位`;
+    if($('#v47AdminCount')) $('#v47AdminCount').textContent=`${v47Admins.length} 位`;
     list.innerHTML=v47Admins.map((u,i)=>`
       <div class="admin-row gs-data-row">
         <time>${i+1}</time>
-        <div class="row-copy"><b>${gsSafe(u.displayName||u.username)}</b><small>帳號：${gsSafe(u.username)}｜權限 ${Array.isArray(u.permissions)?u.permissions.length:0} 項</small></div>
+        <div class="row-copy"><b>${gsSafe(u.displayName||'管理員')}</b><small>登入帳號已保護｜權限 ${Array.isArray(u.permissions)?u.permissions.length:0} 項</small></div>
         <span class="gs-state ${u.enabled?'on':'off'}">${u.enabled?'啟用':'停用'}</span>
         <div class="row-actions">
           <button class="icon-btn" data-v47-edit-admin="${gsSafe(u.id)}" title="編輯">${icon('pencil')}</button>
@@ -1172,8 +1231,10 @@
     $('#v47AdminModalTitle').textContent=user?'編輯管理員':'新增管理員';
     $('#v47AdminId').value=user?.id||'';
     $('#v47AdminName').value=user?.displayName||'';
-    $('#v47AdminUsername').value=user?.username||'';
-    $('#v47AdminPassword').value=user?.password||'';
+    $('#v47AdminUsername').value='';
+    $('#v47AdminPassword').value='';
+    $('#v47AdminUsername').placeholder=user?'帳號已保護；留空不變':'新增時必填';
+    $('#v47AdminPassword').placeholder=user?'留空不變；輸入則更新密碼':'新增至少 8 碼';
     $('#v47AdminEnabled').value=user?.enabled===false?'false':'true';
     const p=new Set(user?.permissions||V47_MODULES.map(x=>x[0]));
     $('#v47PermissionGrid').innerHTML=V47_MODULES.map(([id,label])=>`
@@ -1184,10 +1245,10 @@
   const v47CloseAdmin=()=>{$('#v47AdminModal')?.classList.remove('open');$('#v47AdminModal')?.setAttribute('aria-hidden','true');};
 
   $('#v47AddAdminBtn')?.addEventListener('click',()=>v47OpenAdmin());
-  $('#v47AdminForm')?.addEventListener('submit',e=>{
+  $('#v47AdminForm')?.addEventListener('submit',async e=>{
     e.preventDefault();
-    const id=$('#v47AdminId').value||`ADMIN-${Date.now()}`;
-    const row={
+    const id=$('#v47AdminId').value||'';
+    const payload={
       id,
       displayName:$('#v47AdminName').value.trim(),
       username:$('#v47AdminUsername').value.trim(),
@@ -1195,23 +1256,29 @@
       enabled:$('#v47AdminEnabled').value==='true',
       permissions:[...document.querySelectorAll('#v47PermissionGrid input:checked')].map(x=>x.value)
     };
-    if(!row.displayName||!row.username||!row.password){alert('請完整填寫名稱、帳號與密碼。');return;}
-    if(v47Admins.some(x=>x.username.toLowerCase()===row.username.toLowerCase()&&x.id!==id)){alert('此登入帳號已存在。');return;}
-    const idx=v47Admins.findIndex(x=>x.id===id);
-    if(idx>=0)v47Admins[idx]=row;else v47Admins.push(row);
-    v47WriteAdmins(v47Admins);v47RenderAdmins();v47CloseAdmin();
+    if(!payload.displayName){alert('請填寫管理員名稱。');return;}
+    if(!id && (!payload.username || payload.password.length<8)){alert('新增管理員需要帳號與至少 8 碼密碼。');return;}
+    try{
+      await gsPost('saveAdminUser',payload);
+      await v47LoadAdmins();
+      v47CloseAdmin();
+    }catch(err){alert(`儲存失敗：${err.message}`);}
   });
 
-  document.addEventListener('click',e=>{
+  document.addEventListener('click',async e=>{
     const edit=e.target.closest('[data-v47-edit-admin]');
     if(edit){const u=v47Admins.find(x=>x.id===edit.dataset.v47EditAdmin);if(u)v47OpenAdmin(u);return;}
     const del=e.target.closest('[data-v47-delete-admin]');
-    if(del){const u=v47Admins.find(x=>x.id===del.dataset.v47DeleteAdmin);if(u&&confirm(`確定刪除「${u.displayName}」？`)){v47Admins=v47Admins.filter(x=>x.id!==u.id);v47WriteAdmins(v47Admins);v47RenderAdmins();}return;}
+    if(del){
+      const u=v47Admins.find(x=>x.id===del.dataset.v47DeleteAdmin);
+      if(u&&confirm(`確定刪除「${u.displayName}」？`)){
+        try{await gsPost('deleteAdminUser',{id:u.id});await v47LoadAdmins();}
+        catch(err){alert(`刪除失敗：${err.message}`);}
+      }
+      return;
+    }
     if(e.target.closest('[data-v47-admin-close]'))v47CloseAdmin();
   });
-  v47RenderAdmins();
-
-
 
 
   // ==========================================================

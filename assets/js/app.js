@@ -250,27 +250,7 @@
       submit.textContent=oldText;
     }
   });
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&frontAdminModal.classList.contains('open')) closeFrontAdminLogin();
-  });
-
-  $('#frontAdminTogglePass')?.addEventListener('click',()=>{
-    frontAdminPass.type=frontAdminPass.type==='password'?'text':'password';
-  });
-
-  $('#frontAdminLoginForm')?.addEventListener('submit',e=>{
-    e.preventDefault();
-    const user=frontAdminUser.value.trim();
-    const pass=frontAdminPass.value;
-    if(user==='admin'&&pass==='1234'){
-      sessionStorage.setItem('cc_admin_preview','1');
-      location.href='admin/index.html#dashboard';
-      return;
-    }
-    frontAdminError.textContent='帳號或密碼不正確。';
-  });
-
-  const animateCount = el => {
+const animateCount = el => {
     if (el.dataset.counted === '1') return;
     el.dataset.counted = '1';
     const target = Number(el.dataset.count || 0);
@@ -361,21 +341,20 @@
 
 
 
-  // V38: ChengChuang front square admin icon
-  const frontAdminTrigger = document.getElementById('adminLoginTrigger');
-  const frontAdminModal = document.getElementById('frontAdminLogin');
-  const frontAdminForm = document.getElementById('frontAdminLoginForm');
+
+
+  
+
+  // V64：保留前台方形後台 ICON 與登入視窗，但使用 V63 Google Apps Script 安全驗證。
+  const frontAdminModal = $('#frontAdminLogin');
+  const frontAdminTrigger = $('#adminLoginTrigger');
 
   const openFrontAdminLogin = () => {
     if(!frontAdminModal) return;
     frontAdminModal.classList.add('open');
     frontAdminModal.setAttribute('aria-hidden','false');
     document.body.classList.add('modal-open');
-    const err=document.getElementById('frontAdminLoginError');
-    if(err) err.textContent='';
-    const user=document.getElementById('frontAdminUser');
-    if(user) setTimeout(()=>user.focus(),50);
-    if(window.lucide) lucide.createIcons();
+    setTimeout(()=>$('#frontAdminUser')?.focus(), 30);
   };
 
   const closeFrontAdminLogin = () => {
@@ -383,59 +362,94 @@
     frontAdminModal.classList.remove('open');
     frontAdminModal.setAttribute('aria-hidden','true');
     document.body.classList.remove('modal-open');
+    if($('#frontAdminError')) $('#frontAdminError').textContent='';
+    if($('#frontAdminPass')) $('#frontAdminPass').value='';
   };
 
+  const secureFrontAuthPost = async (action, data={}) => {
+    const url=String((window.GOOGLE_SHEETS_CONFIG||{}).webAppUrl||'').trim();
+    if(!url) throw new Error('尚未設定 Google Apps Script Web App URL');
 
-  // V56：登入視窗關閉按鈕／背景遮罩直接綁定。
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action,data}),
+      redirect:'follow',
+      cache:'no-store'
+    });
+
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json=await res.json();
+    if(!json.ok) throw new Error(json.error||'驗證失敗');
+    return json;
+  };
+
+  frontAdminTrigger?.addEventListener('click', e=>{
+    e.preventDefault();
+    openFrontAdminLogin();
+  });
+
   document.querySelectorAll('[data-front-admin-close],[data-admin-login-close]').forEach(el=>{
-    el.addEventListener('click',e=>{
+    el.addEventListener('click', e=>{
       e.preventDefault();
-      e.stopPropagation();
       closeFrontAdminLogin();
     });
   });
 
+  $('#frontAdminTogglePass')?.addEventListener('click',()=>{
+    const p=$('#frontAdminPass');
+    if(!p) return;
+    p.type=p.type==='password'?'text':'password';
+  });
 
-  if(frontAdminTrigger){
-    frontAdminTrigger.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      openFrontAdminLogin();
-    });
-  }
+  $('#frontAdminLoginForm')?.addEventListener('submit', async e=>{
+    e.preventDefault();
 
-  document.addEventListener('click', e => {
-    if(e.target.closest('[data-front-admin-close],[data-admin-login-close]')){
+    const user=($('#frontAdminUser')?.value||'').trim();
+    const pass=$('#frontAdminPass')?.value||'';
+    const error=$('#frontAdminError');
+    const btn=e.currentTarget.querySelector('button[type="submit"]');
+
+    if(!user || !pass){
+      if(error) error.textContent='請輸入帳號與密碼。';
+      return;
+    }
+
+    if(btn) btn.disabled=true;
+    if(error) error.textContent='驗證中…';
+
+    try{
+      const result=await secureFrontAuthPost('adminLogin',{
+        username:user,
+        password:pass
+      });
+
+      // 只保存 Session Token 與安全 Profile，不保存密碼。
+      sessionStorage.setItem('cc_admin_token_v63', result.token||'');
+      sessionStorage.setItem('cc_admin_profile_v63', JSON.stringify(result.profile||{}));
+
+      if(error) error.textContent='';
       closeFrontAdminLogin();
+      location.href='admin/index.html#dashboard';
+    }catch(err){
+      if(error){
+        error.textContent=
+          err.message==='invalid_credentials'
+            ? '帳號或密碼不正確，或管理員已停用。'
+            : `登入失敗：${err.message}`;
+      }
+    }finally{
+      if(btn) btn.disabled=false;
     }
   });
 
-  if(frontAdminForm){
-    frontAdminForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const user=(document.getElementById('frontAdminUser')?.value||'').trim();
-      const pass=document.getElementById('frontAdminPass')?.value||'';
-      const err=document.getElementById('frontAdminLoginError');
-
-      if(user==='admin' && pass==='1234'){
-        sessionStorage.setItem('cc_admin_preview','1');
-        sessionStorage.setItem('cc_admin_user','admin');
-        window.location.href='admin/index.html#dashboard';
-        return;
-      }
-      if(err) err.textContent='帳號或密碼不正確。';
-    });
-  }
-
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown',e=>{
     if(e.key==='Escape' && frontAdminModal?.classList.contains('open')){
       closeFrontAdminLogin();
     }
   });
 
-
-
-  document.addEventListener('click', e => {
+document.addEventListener('click', e => {
     if(e.target.closest('[data-submit-success-close]')){
       closeSubmitSuccess();
     }

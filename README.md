@@ -66,7 +66,7 @@ service@chuang-c.com
 ## 後台預覽
 - 路徑：`/admin/`
 - 介面預覽帳號：`admin`
-- 介面預覽密碼：`1234`
+- 後台改用 Google Apps Script 驗證，不再使用固定預覽密碼。
 - 此登入只供 GitHub Pages 靜態介面預覽，不是正式安全驗證。
 - 正式後台請接伺服器端登入、Session/Token 與資料庫。
 

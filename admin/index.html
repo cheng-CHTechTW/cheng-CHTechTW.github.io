@@ -71,7 +71,7 @@
     </div>
   </div>
 
-  <div id="adminView" class="admin-app" hidden>
+  <div id="adminView" class="admin-app" hidden inert aria-hidden="true">
     <aside class="sidebar">
       <button class="mobile-sidebar-close" id="mobileSidebarClose" type="button" aria-label="關閉目錄">
         <i data-lucide="x"></i>
@@ -416,9 +416,9 @@
           <div class="settings-grid">
             <article class="panel setting-card"><i data-lucide="database"></i><div><b>網站資料檔</b><span>assets/js/content.js</span></div><button class="ghost" id="exportBtn2">下載</button></article>
             <article class="panel setting-card"><i data-lucide="github"></i><div><b>部署方式</b><span>GitHub Pages / GitHub Actions</span></div></article>
-            <article class="panel setting-card"><i data-lucide="shield-check"></i><div><b>正式登入驗證</b><span>尚未接 API；靜態版不具安全權限</span></div></article>
+            <article class="panel setting-card"><i data-lucide="shield-check"></i><div><b>正式登入驗證</b><span>Google Apps Script Session Token 驗證</span></div></article>
           </div>
-          <article class="panel warning-panel"><i data-lucide="triangle-alert"></i><div><b>正式後台建議</b><p>若要真正做到「登入 → 修改 → 儲存 → 前台立即更新」，建議接 Cloudflare Pages Functions + D1/R2，並使用伺服器端 Session / Token 驗證。</p></div></article>
+          <article class="panel warning-panel"><i data-lucide="shield-check"></i><div><b>後台安全驗證</b><p>管理資料 API 需登入後取得 Session Token 才能讀寫；前端不會取得試算表中的管理員密碼。</p></div></article>
         </section>
       </div>
     </main>
@@ -574,8 +574,8 @@
         <input type="hidden" id="v47AdminId">
         <div class="two-col">
           <label>顯示名稱<input id="v47AdminName" required></label>
-          <label>登入帳號<input id="v47AdminUsername" required></label>
-          <label>登入密碼<input id="v47AdminPassword" type="password" required></label>
+          <label>登入帳號<input id="v47AdminUsername" autocomplete="off" placeholder="新增時必填；編輯時留空不變"></label>
+          <label>登入密碼<input id="v47AdminPassword" type="password" autocomplete="new-password" placeholder="新增至少 8 碼；編輯時留空不變"></label>
           <label>狀態<select id="v47AdminEnabled"><option value="true">啟用</option><option value="false">停用</option></select></label>
           <div class="wide">
             <span class="field-title">可使用模組</span>
@@ -590,6 +590,7 @@
     </div>
   </div>
 
+  <script src="../assets/js/security-guard.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
