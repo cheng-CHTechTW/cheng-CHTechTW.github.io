@@ -91,7 +91,13 @@
   const $$ = s => [...document.querySelectorAll(s)];
   const icon = n => `<i data-lucide="${n}"></i>`;
 
-  $('#serviceGrid').innerHTML = C.services.map(x=>`<article class="service-card reveal"><div class="icon-box">${icon(x.icon)}</div><h3>${x.title}</h3><p>${x.text}</p><a href="#contactFormModal" data-contact-modal>了解更多 →</a></article>`).join('');
+  $('#serviceGrid').innerHTML = C.services.map(x=>{
+    const isInvoice = x.title === '電子發票';
+    const link = isInvoice ? 'invoice/index.html' : '#contactFormModal';
+    const attrs = isInvoice ? '' : ' data-contact-modal';
+    const label = isInvoice ? '進入電子發票專區 →' : '了解更多 →';
+    return `<article class="service-card reveal"><div class="icon-box">${icon(x.icon)}</div><h3>${x.title}</h3><p>${x.text}</p><a href="${link}"${attrs}>${label}</a></article>`;
+  }).join('');
   $('#advantageGrid').innerHTML = C.advantages.map(x=>{
     const m = String(x.stat || '').match(/^(\d+)(.*)$/);
     const statHtml = x.stat
