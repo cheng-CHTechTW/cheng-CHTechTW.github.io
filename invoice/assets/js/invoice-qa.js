@@ -3,7 +3,6 @@
   const URL = String(CFG.webAppUrl || '').trim();
   const mount = document.getElementById('invoiceQaDynamic');
   const fallback = document.getElementById('invoiceQaStatic');
-  const status = document.getElementById('invoiceQaSyncStatus');
 
   const esc = (s='') => String(s)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
@@ -76,19 +75,11 @@
     mount.querySelector('#qaLiveSearchBtn')?.addEventListener('click',apply);
     input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();apply();}});
     input?.addEventListener('input',()=>{if(!input.value) apply();});
-
-    if(status){
-      status.textContent='已同步電子發票專用 Google 試算表';
-      status.classList.add('ok');
-    }
     return true;
   }
 
   async function load(){
-    if(!URL){
-      if(status) status.textContent='目前使用網站內建 QA；設定電子發票專用試算表後會自動同步。';
-      return;
-    }
+    if(!URL) return;
     try{
       const endpoint=`${URL}?action=getInvoiceFaqs&_=${Date.now()}`;
       const res=await fetch(endpoint,{method:'GET',redirect:'follow',cache:'no-store'});
@@ -98,10 +89,6 @@
       if(!render(items)) throw new Error('EMPTY');
     }catch(err){
       console.warn('Invoice QA Google Sheet sync failed:',err);
-      if(status){
-        status.textContent='Google 試算表暫時無法讀取，已切換為網站內建 QA。';
-        status.classList.add('warn');
-      }
     }
   }
   load();

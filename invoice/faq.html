@@ -312,6 +312,18 @@ footer{padding:0 0 40px;text-align:center;color:var(--muted);font-size:10px}
     min-width:max-content!important;
   }
 }
+
+/* V15 移除 QA 說明側欄後改為全寬 */
+.layout{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+#faqArea{
+  width:100%!important;
+  min-width:0!important;
+}
+
+/* V16 前端不顯示系統做法、同步狀態或資料架構 */
+#invoiceQaSyncStatus,.qa-sync-note{display:none!important}
 </style>
 </head>
 <body>
@@ -348,14 +360,13 @@ footer{padding:0 0 40px;text-align:center;color:var(--muted);font-size:10px}
 
 </div></section>
 
-<div id="invoiceQaSyncStatus" class="qa-sync-note">正在讀取電子發票相關問題 QA…</div>
 <div id="invoiceQaDynamic" hidden></div>
 <div id="invoiceQaStatic">
 <input class="cat-radio" type="radio" name="cat" id="cat-all" checked><input class="cat-radio" type="radio" name="cat" id="cat-1"><input class="cat-radio" type="radio" name="cat" id="cat-2"><input class="cat-radio" type="radio" name="cat" id="cat-3"><input class="cat-radio" type="radio" name="cat" id="cat-4"><input class="cat-radio" type="radio" name="cat" id="cat-5"><input class="cat-radio" type="radio" name="cat" id="cat-6"><input class="cat-radio" type="radio" name="cat" id="cat-7"><input class="cat-radio" type="radio" name="cat" id="cat-8"><input class="cat-radio" type="radio" name="cat" id="cat-9">
 <section class="faq-shell"><div class="wrap">
 <div class="filterbar"><label for="cat-all">全部</label><label for="cat-1">基礎認識</label><label for="cat-2">申請與憑證</label><label for="cat-3">申請流程</label><label for="cat-4">總分公司</label><label for="cat-5">字軌與配號</label><label for="cat-6">開立與時限</label><label for="cat-7">作廢與折讓</label><label for="cat-8">服務與設定</label><label for="cat-9">其他</label></div>
 <div class="layout">
-<aside class="side"><h3>相關問題分類</h3><p>上方標籤已改為純 HTML＋CSS 切換，不依賴 JavaScript。點選分類即可立即切換。</p><div class="stat">目前共整理 <b>23</b> 題 FAQ</div></aside>
+
 <div id="faqArea"><section class="faq-group group-1" data-group="基礎認識">
 <details class="faq-item" name="faq-group">
   <summary><span class="qmark">Q</span><span>電子發票是甚麼？</span><span class="chev">⌄</span></summary>
