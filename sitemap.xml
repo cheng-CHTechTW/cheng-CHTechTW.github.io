@@ -10,4 +10,13 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <url><loc>https://chuang-c.com/invoice/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/apply.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/number-track.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/types.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/rules.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/faq.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/calculator.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/business-certificate.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/natural-person-certificate.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
