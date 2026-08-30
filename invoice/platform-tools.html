@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電子發票整合服務平台常用功能｜誠創科技</title>
+<meta name="description" content="電子發票整合服務平台常用功能教學：電子發票字軌號碼增加組數取號、空白發票查詢與新增、媒體申報檔操作。">
+<style>
+:root{--bg:#f5f1eb;--paper:#fff;--ink:#34312e;--muted:#746d66;--line:#e1d9d0;--tea:#94765c;--tea2:#eee5db;--dark:#403d39;--soft:#faf8f5;--green:#5f7465;--blue:#5e7388;--warn:#fff7e6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif}
+.wrap{width:min(1160px,calc(100% - 28px));margin:auto}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.nav{height:66px;display:flex;align-items:center;gap:11px}
+.logo{width:39px;height:39px;border-radius:11px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900}
+.brand{font-weight:900} .brand small{display:block;font-size:9px;color:var(--muted);letter-spacing:.12em;margin-top:2px}
+.pageid{margin-left:auto;font-size:10px;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:999px}
+.hero{padding:52px 0 28px} .ey{font-size:10px;color:var(--tea);font-weight:900;letter-spacing:.15em}
+h1{font-size:clamp(32px,4.8vw,54px);line-height:1.14;margin:9px 0 12px}
+.hero p{max-width:900px;color:var(--muted);font-size:14px;line-height:1.9}
+.flowline{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.flowline span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:10px;font-weight:900}
+.tabs{padding-bottom:60px}
+input[name=feature]{position:absolute;opacity:0;pointer-events:none}
+.tabbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#e9e3dc;padding:7px;border-radius:18px;position:sticky;top:75px;z-index:25;box-shadow:0 8px 25px rgba(55,48,43,.07)}
+.tabbar label{padding:14px 9px;text-align:center;border-radius:13px;font-weight:900;cursor:pointer;font-size:13px}
+.tabbar small{display:block;margin-top:4px;color:var(--muted);font-size:9px;font-weight:700}
+#f1:checked~.tabbar label[for=f1],#f2:checked~.tabbar label[for=f2],#f3:checked~.tabbar label[for=f3],#f4:checked~.tabbar label[for=f4]{background:#fff;color:var(--tea);box-shadow:0 4px 14px rgba(35,30,26,.08)}
+.panels{margin-top:18px} .panel{display:none} #f1:checked~.panels .p1,#f2:checked~.panels .p2,#f3:checked~.panels .p3,#f4:checked~.panels .p4{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(40,35,30,.05)}
+.head{display:flex;gap:13px;margin-bottom:18px} .num{width:45px;height:45px;flex:0 0 45px;border-radius:14px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900}
+.head h2{margin:0 0 6px;font-size:22px} .head p{margin:0;color:var(--muted);font-size:12px;line-height:1.8}
+.rulebox{padding:16px;border:1px solid var(--line);background:var(--soft);border-radius:16px;margin-bottom:18px}
+.rulebox h3{margin:0 0 8px;font-size:15px} .rulebox p,.rulebox li{font-size:12px;line-height:1.85;color:#5d5751}
+.rulebox ul{margin:8px 0 0;padding-left:20px}
+.guide{display:grid;gap:14px}
+.gstep{display:grid;grid-template-columns:46px 1fr;gap:14px;padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.gnum{width:40px;height:40px;border-radius:12px;background:var(--tea2);display:grid;place-items:center;font-weight:900;color:var(--tea)}
+.gcontent h3{margin:2px 0 7px;font-size:16px} .gcontent p{margin:0 0 10px;font-size:12px;line-height:1.85;color:var(--muted)}
+.shot{border:1px solid var(--line);background:#f7f7f7;border-radius:14px;overflow:hidden}
+.shot img{display:block;width:100%;height:auto}
+.notice{margin-top:12px;padding:12px 14px;background:#fff7e6;border:1px solid #ead9b6;border-radius:13px;font-size:12px;line-height:1.8}
+.status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.status{border:1px solid var(--line);border-radius:13px;padding:12px;background:var(--soft);font-size:11px;line-height:1.7}
+.status b{display:block;margin-bottom:4px}
+.placeholder{padding:34px 20px;text-align:center;border:1px dashed #cfc5bb;border-radius:18px;background:var(--soft)}
+.placeholder h3{margin:0 0 8px} .placeholder p{margin:0;color:var(--muted);font-size:12px;line-height:1.8}
+footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:10px}
+.zoom-label{display:block;cursor:zoom-in}
+.lightbox-radio{position:fixed;left:-9999px;opacity:0;pointer-events:none}
+.radio-lightbox{display:none;position:fixed;inset:0;z-index:2147483647;background:rgba(10,10,10,.95);align-items:center;justify-content:center;padding:18px}
+.radio-lightbox .bg{position:absolute;inset:0}
+.radio-lightbox .inner{position:relative;z-index:2;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:60px 64px 52px}
+.radio-lightbox img{max-width:94vw;max-height:86vh;width:auto;height:auto;object-fit:contain;background:#fff;border-radius:10px}
+.lb-close,.lb-nav{position:absolute;z-index:4;display:grid;place-items:center;background:#fff;color:#222;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28)}
+.lb-close{top:16px;right:16px;width:46px;height:46px;border-radius:50%;font-size:30px}
+.lb-nav{top:50%;transform:translateY(-50%);width:48px;height:64px;border-radius:14px;font-size:30px} .prev{left:14px} .next{right:14px}
+.lb-count{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:7px 11px;border-radius:999px;font-size:12px;font-weight:700}
+#lb-1:checked ~ #lightbox-1{display:flex}
+#lb-2:checked ~ #lightbox-2{display:flex}
+#lb-3:checked ~ #lightbox-3{display:flex}
+#lb-4:checked ~ #lightbox-4{display:flex}
+#lb-5:checked ~ #lightbox-5{display:flex}
+#lb-6:checked ~ #lightbox-6{display:flex}
+#lb-7:checked ~ #lightbox-7{display:flex}
+#lb-8:checked ~ #lightbox-8{display:flex}
+#lb-9:checked ~ #lightbox-9{display:flex}
+#lb-10:checked ~ #lightbox-10{display:flex}
+#lb-11:checked ~ #lightbox-11{display:flex}
+#lb-12:checked ~ #lightbox-12{display:flex}
+#lb-13:checked ~ #lightbox-13{display:flex}
+#lb-14:checked ~ #lightbox-14{display:flex}
+#lb-15:checked ~ #lightbox-15{display:flex}
+#lb-16:checked ~ #lightbox-16{display:flex}
+#lb-17:checked ~ #lightbox-17{display:flex}
+#lb-18:checked ~ #lightbox-18{display:flex}
+#lb-19:checked ~ #lightbox-19{display:flex}
+#lb-20:checked ~ #lightbox-20{display:flex}
+#lb-21:checked ~ #lightbox-21{display:flex}
+#lb-22:checked ~ #lightbox-22{display:flex}
+#lb-23:checked ~ #lightbox-23{display:flex}
+#lb-24:checked ~ #lightbox-24{display:flex}
+#lb-25:checked ~ #lightbox-25{display:flex}
+#lb-26:checked ~ #lightbox-26{display:flex}
+#lb-27:checked ~ #lightbox-27{display:flex}
+#lb-28:checked ~ #lightbox-28{display:flex}
+#lb-29:checked ~ #lightbox-29{display:flex}
+#lb-30:checked ~ #lightbox-30{display:flex}
+@media(max-width:980px){.tabbar{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){
+.tabbar{grid-template-columns:1fr;position:static}
+.gstep{grid-template-columns:38px 1fr;padding:13px}.gnum{width:34px;height:34px}
+.status-grid{grid-template-columns:1fr}
+.radio-lightbox .inner{padding:58px 8px 54px}
+.lb-nav{top:auto;bottom:12px;transform:none;width:42px;height:42px;border-radius:50%}
+}
+
+/* ===== CH Invoice 共用目錄 / 頁尾 ===== */
+.ch-invoice-global{position:sticky;top:0;z-index:9999;background:rgba(255,255,255,.96);border-bottom:1px solid #e5dfd6;backdrop-filter:blur(10px)}
+.ch-invoice-global .cg-wrap{width:min(1180px,calc(100% - 28px));margin:auto;min-height:68px;display:flex;align-items:center;gap:18px}
+.cg-brand{display:flex;flex-direction:column;text-decoration:none;color:#303236;flex:0 0 auto;font-weight:900;font-family:"Microsoft JhengHei",sans-serif}
+.cg-brand b{font-size:17px}.cg-brand small{font-size:9px;letter-spacing:.14em;color:#80776e;margin-top:2px}
+.cg-menu{display:flex;align-items:center;justify-content:flex-end;gap:3px;flex:1;flex-wrap:wrap}
+.cg-menu a{display:inline-flex;align-items:center;min-height:34px;padding:7px 9px;border-radius:8px;color:#3c3b39;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap;font-family:"Microsoft JhengHei",sans-serif}
+.cg-menu a:hover{background:#f2ede6}
+.cg-menu a.cg-active{background:#393939;color:#fff}
+.cg-menu a.cg-company{border:1px solid #ddd5ca;background:#faf8f4;margin-left:5px}
+.cg-toggle{display:none;border:1px solid #ddd5ca;border-radius:9px;background:#fff;padding:6px 10px;font-size:20px;cursor:pointer}
+.ch-back-home{width:min(1120px,calc(100% - 32px));margin:18px auto 0;display:flex;justify-content:flex-end}
+.ch-back-home a{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#4c4944;background:#fff;border:1px solid #ddd5ca;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:800}
+.ch-invoice-footer{margin-top:46px;background:#343434;color:#eee;font-family:"Microsoft JhengHei",sans-serif}
+.ch-invoice-footer .cf-wrap{width:min(1120px,calc(100% - 32px));margin:auto;padding:28px 0 18px}
+.cf-main{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:24px}
+.cf-brand{font-size:18px;font-weight:900;margin-bottom:8px}.cf-desc{font-size:12px;color:#c7c7c7;line-height:1.75}
+.cf-title{font-size:12px;font-weight:900;margin-bottom:9px;color:#fff}.cf-links{display:flex;flex-direction:column;gap:6px}
+.cf-links a{color:#d7d7d7;text-decoration:none;font-size:12px}.cf-links a:hover{color:#fff;text-decoration:underline}
+.cf-copy{border-top:1px solid #4d4d4d;margin-top:20px;padding-top:14px;font-size:11px;color:#aaa;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){
+  .ch-invoice-global .cg-wrap{position:relative;justify-content:space-between;min-height:64px}
+  .cg-toggle{display:block}
+  .cg-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5dfd6;border-radius:0 0 14px 14px;padding:10px;box-shadow:0 12px 30px rgba(0,0,0,.09)}
+  .cg-menu.cg-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .cg-menu a{background:#faf8f4;padding:10px 12px}
+  .cg-menu a.cg-company{margin-left:0}
+}
+@media(max-width:640px){
+  .cg-menu.cg-open{grid-template-columns:1fr}
+  .cg-brand b{font-size:15px}
+  .cf-main{grid-template-columns:1fr}
+  .ch-back-home{justify-content:stretch}.ch-back-home a{width:100%;justify-content:center}
+}
+
+/* ===== 公司主頁同款頁尾：電子發票各頁共用 ===== */
+.footer{
+  --footer-charcoal:#3d3a38;
+  --footer-muted:#77736e;
+  --footer-gold:#d5a77f;
+  --footer-line:#e6ddd3;
+  font-family:"Microsoft JhengHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  width:100%;
+  margin-top:56px;
+  color:#303236;
+  background:#fff;
+}
+.footer *{box-sizing:border-box}
+.footer .container{width:min(1056px,calc(100% - 32px));margin-left:auto;margin-right:auto}
+.footer .footer-service-strip{background:#faf7f2;border-top:1px solid #e9e0d7}
+.footer .footer-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:34px 0}
+.footer .footer-cards>div,
+.footer .footer-cards>a{
+  min-width:0;background:#fff;border:1px solid #e6ddd3;border-radius:15px;
+  padding:22px;text-align:center;color:#222;text-decoration:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.footer .footer-cards svg{width:25px;height:25px;stroke-width:1.8}
+.footer .footer-cards b,.footer .footer-cards span{display:block}
+.footer .footer-cards b{margin:7px 0;font-size:14px;font-weight:700}
+.footer .footer-cards span{font-size:12px;color:var(--footer-muted)}
+.footer .footer-links{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px;padding:38px 0;
+}
+.footer .footer-links>div{min-width:0}
+.footer .footer-links h4{
+  margin:0 0 18px;font-size:18px;font-weight:700;
+  border-bottom:1px solid #ded6cf;padding-bottom:10px;color:#222;
+}
+.footer .footer-links a{
+  display:block;margin:9px 0;color:#444;text-decoration:none;font-size:14px;line-height:1.45;
+}
+.footer .footer-links a:hover{text-decoration:underline}
+.footer .footer-main{background:var(--footer-charcoal);color:#fff;padding-top:45px}
+.footer .footer-main-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.footer .footer-logo{display:flex;gap:18px;align-items:center}
+.footer .footer-logo>img{width:132px;height:102px;object-fit:contain;flex:0 0 auto}
+.footer .footer-logo div{display:grid}
+.footer .footer-logo strong{
+  font-size:24px;color:var(--footer-gold);letter-spacing:.18em;line-height:1.5;font-weight:700;
+}
+.footer .footer-logo small{font-size:9px;color:var(--footer-gold);letter-spacing:.02em}
+.footer .footer-brand p{text-align:center;color:var(--footer-gold);margin:12px 0 0}
+.footer .company-info{display:grid;gap:9px}
+.footer .company-info h3{margin:0 0 6px;font-size:23px;color:#fff}
+.footer .company-info a,.footer .company-info span{
+  display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-size:14px;line-height:1.55;
+}
+.footer .company-info svg{width:21px;height:21px;color:var(--footer-gold);stroke:var(--footer-gold)}
+.footer .copyright{
+  border-top:1px solid rgba(255,255,255,.22);
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;padding:20px 0;margin-top:28px;width:min(1056px,calc(100% - 32px));
+}
+.footer .copyright>span{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  width:auto;margin:0 auto;text-align:center;color:#fff;font-size:13px;
+}
+.footer .copyright-admin-link{
+  width:24px;height:24px;border-radius:6px;background:#f4f1ec;
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.footer .copyright-admin-link img{width:19px;height:19px;object-fit:contain}
+@media(max-width:1000px){
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .footer .footer-main-grid{grid-template-columns:1fr;gap:30px}
+}
+@media(max-width:640px){
+  .footer .container{width:min(100% - 28px,1056px)}
+  .footer .footer-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:24px 0}
+  .footer .footer-cards>div,.footer .footer-cards>a{padding:16px 10px;min-height:108px}
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding:30px 0}
+  .footer .footer-links h4{font-size:15px}
+  .footer .footer-links a{font-size:13px}
+  .footer .footer-main{padding-top:32px}
+  .footer .footer-logo{justify-content:center}
+  .footer .footer-logo>img{width:102px;height:78px}
+  .footer .footer-logo strong{font-size:18px}
+  .footer .footer-brand p{text-align:center}
+  .footer .company-info{max-width:520px;margin:0 auto;width:100%}
+  .footer .company-info h3{text-align:center;font-size:19px}
+  .footer .company-info a,.footer .company-info span{font-size:12px}
+  .footer .copyright{padding:17px 0}
+  .footer .copyright>span{font-size:11px;line-height:1.6;flex-wrap:wrap}
+}
+
+
+/* V9 公司頁尾校正：電子發票功能卡外框 + 所有權置中 */
+.footer .footer-cards>a.footer-service-link{
+  background:#fff!important;
+  border:1px solid #e6ddd3!important;
+  border-radius:15px!important;
+  padding:22px!important;
+  color:#222!important;
+  text-decoration:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.footer .copyright{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin:28px auto 0!important;
+}
+.footer .copyright>span{
+  display:inline-flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  width:auto!important;
+}
+
+
+/* V10 電子發票品牌 LOGO */
+.cg-brand{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  min-width:210px;text-decoration:none!important;
+}
+.cg-brand .invoice-brand-logo{
+  display:block!important;width:210px!important;height:52px!important;
+  max-width:100%!important;object-fit:contain!important;object-position:left center!important;
+}
+.cg-brand b,.cg-brand small{display:none!important}
+@media(max-width:640px){
+  .cg-brand{min-width:0!important}
+  .cg-brand .invoice-brand-logo{width:165px!important;height:44px!important}
+}
+
+</style>
+</head>
+<body>
+<div class="ch-invoice-global">
+  <div class="cg-wrap">
+    <a class="cg-brand" href="index.html"><img class="invoice-brand-logo" src="../chlogo.svg" alt="誠創科技｜電子發票知識站"></a>
+    <button class="cg-toggle" type="button" aria-label="開啟目錄" aria-expanded="false" onclick="cgToggle(this)">☰</button>
+    <nav class="cg-menu" id="cgMenu" aria-label="電子發票知識站目錄">
+      <a class="" href="index.html">主頁</a><a class="" href="apply.html">申請流程</a><a class="" href="types.html">發票種類</a><a class="" href="number-track.html">字軌申請</a><a class="cg-active" href="platform-tools.html">平台操作</a><a class="" href="faq.html">相關問題 QA</a><a class="" href="rules.html">服務說明</a><a class="" href="calculator.html">手開發票工具</a><a class="cg-company" href="../index.html">誠創科技首頁</a>
+    </nav>
+  </div>
+</div>
+
+<header><div class="wrap nav"><div class="logo">CH</div><div class="brand">誠創科技｜電子發票知識站<small>E-INVOICE KNOWLEDGE</small></div><div class="pageid">inv04-8</div></div></header>
+
+<main>
+<section class="hero"><div class="wrap">
+<div class="ey">E-INVOICE PLATFORM GUIDE</div>
+<h1>電子發票整合服務平台<br>常用功能</h1>
+<p>整理營業人最常使用的整合服務平台操作，分成「增加組數取號」、「空白發票查詢與新增」、「媒體申報檔操作」三大類，依需求切換查看。</p>
+<div class="flowline"><span>01 字軌增加組數取號</span><span>02 空白發票查詢＆新增</span><span>03 媒體申報檔</span></div>
+</div></section>
+
+<section class="tabs"><div class="wrap">
+<input type="radio" name="feature" id="f1" checked>
+<input type="radio" name="feature" id="f2">
+<input type="radio" name="feature" id="f3">
+<input type="radio" name="feature" id="f4">
+
+<div class="tabbar">
+<label for="f1">電子發票字軌號碼增加組(本)數取號<small>取號・配號・匯入</small></label>
+<label for="f2">空白發票查詢＆新增<small>查詢・補登・新增</small></label>
+<label for="f3">媒體申報檔操作<small>下載・申報・檢查</small></label>
+<label for="f4">工商憑證線上設定<small>憑證・授權・種子密碼</small></label>
+</div>
+
+<div class="panels">
+<article class="panel p1 card">
+<div class="head"><div class="num">01</div><div><h2>電子發票字軌號碼增加組(本)數取號</h2><p>適用於非首次取號，或已核准增加字軌本數後，需要到電子發票整合服務平台實際取號的情況。</p></div></div>
+
+<div class="rulebox">
+<h3>非首次取號規則</h3>
+<p>依你提供的教學資料，國稅局固定於每雙月 18 日或 19 日進行自動配號，並依該時間點前實際已取用的字軌本數作為下一期配號依據。</p>
+<ul>
+<li>單月 1 日至雙月 19 日前完成增加本數並取號：下一期自動配號會依最新總本數處理。</li>
+<li>雙月 20 日至月底才增加本數並取號：因下一期自動配號已完成，通常需再人工操作下一期新增本數取號。</li>
+</ul>
+</div>
+
+<div class="guide">
+<section class="gstep"><div class="gnum">1</div><div class="gcontent"><h3>進入電子發票整合服務平台並點選「登入」</h3><p>進入平台首頁後，點選右上角「登入」。</p><div class="shot"><label class="zoom-label" for="lb-1" aria-label="點擊放大圖片"><img src="assets/images/platform-tools/platform-tools-01.png" alt="{uris[0][1]}" class="zoomable-image"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">2</div><div class="gcontent"><h3>選擇「營業人／扣繳單位」登入</h3><p>選擇營業人身分後，以帳號或憑證方式登入平台。</p><div class="shot"><label class="zoom-label" for="lb-2" aria-label="點擊放大圖片"><img src="assets/images/platform-tools/platform-tools-02.png" alt="{uris[1][1]}" class="zoomable-image"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">3</div><div class="gcontent"><h3>進入字軌取號功能並填寫增加本數</h3><p>左側選單進入「電子發票字軌號碼取號」→「電子發票字軌號碼取號（營業人）」→ 點「取號」。發票類別選擇「一般稅額計算」，再依畫面「可取用本數－已取用本數」填入要增加的本數，最後按「提交取號」。</p><div class="shot"><label class="zoom-label" for="lb-3" aria-label="點擊放大圖片"><img src="assets/images/platform-tools/platform-tools-03.png" alt="{uris[2][1]}" class="zoomable-image"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">4</div><div class="gcontent"><h3>約 15 分鐘後查詢配號結果</h3><p>切換至「查詢」，選擇發票期別後查詢。確認「是否已配號」欄位狀態。</p>
+<div class="status-grid"><div class="status"><b>否</b>尚未完成配號。</div><div class="status"><b>已配號，檢核中</b>已完成配號，但尚未開放查詢與下載。</div><div class="status"><b>是</b>已完成配號，可查詢與下載。</div></div>
+<div class="shot" style="margin-top:10px"><label class="zoom-label" for="lb-4" aria-label="點擊放大圖片"><img src="assets/images/platform-tools/platform-tools-04.png" alt="{uris[3][1]}" class="zoomable-image"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">5</div><div class="gcontent"><h3>收到「電子發票配號成功通知」Email</h3><p>配號完成後，會收到財政部電子發票整合服務平台寄送的配號成功通知，信件中會顯示發票期別、申請本數、增加本數、字軌名稱與起訖號碼。</p><div class="shot"><label class="zoom-label" for="lb-5" aria-label="點擊放大圖片"><img src="assets/images/platform-tools/platform-tools-05.png" alt="{uris[4][1]}" class="zoomable-image"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">6</div><div class="gcontent"><h3>確認加值中心的字軌匯入模式</h3><p>若公司同時配合其他加值中心或平台使用公司字軌號碼開立電子發票，應特別確認「字軌自動匯入」模式，避免相同字軌重複匯入或重複開立。</p><div class="shot"></div></div></section>
+
+<section class="gstep"><div class="gnum">7</div><div class="gcontent"><h3>需要時手動新增／匯入字軌</h3><p>若加值中心設定為「不自動匯入」，可至發票字軌列表確認財政部配號的該期字軌區間，再依實際授權與系統需求進行手動新增或匯入。</p><div class="shot"></div>
+<div class="notice"><strong>提醒：</strong>若同時有兩套以上加值中心或系統使用同一家公司字軌，務必確認各系統實際使用的字軌區間不可重複，以避免重複開立。</div></div></section>
+</div>
+</article>
+
+
+<article class="panel p2 card">
+<div class="head"><div class="num">02</div><div><h2>空白發票查詢＆新增</h2><p>上傳與查詢未使用的空白發票號碼。若字軌已匯入系統使用，系統通常會依設定處理前一期剩餘空白號碼；仍建議依實際系統與平台資料確認。</p></div></div>
+
+<div class="notice"><strong>操作重點：</strong>本區分成「新增／上傳」與「查詢確認」兩段。建立後務必再查詢，確認下方有顯示該筆資料，才代表平台已有建立紀錄。</div>
+
+<div class="guide-steps">
+<section class="gstep"><div class="gnum">1</div><div class="gcontent"><h3>進入電子發票整合服務平台</h3><p>進入財政部電子發票整合服務平台首頁後，點選右上角「登入」。</p><div class="shot"><label class="zoom-label" for="lb-6" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-06.png" alt="電子發票整合服務平台首頁登入"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">2</div><div class="gcontent"><h3>使用營業人帳號登入</h3><p>選擇「營業人／扣繳單位」，使用營業人的統一編號、帳號、密碼及圖形驗證碼登入。</p><div class="shot"><label class="zoom-label" for="lb-7" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-07.png" alt="營業人帳號登入畫面"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">3</div><div class="gcontent"><h3>進入「上傳空白未使用發票號碼作業」</h3><p>依序進入「營業人功能選單」→「每單月10日前應辦理事項」→「上傳空白未使用發票號碼作業」。</p></div></section>
+
+<section class="gstep"><div class="gnum">4</div><div class="gcontent"><h3>新增空白未使用發票號碼</h3><p>點選「＋新增」，選擇要新增空白字軌的發票期別，並在下方輸入該期未使用的發票字軌、發票起號與發票訖號。</p><div class="shot"><label class="zoom-label" for="lb-8" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-08.png" alt="上傳空白未使用發票號碼新增畫面"></label></div></div></section>
+
+<section class="gstep"><div class="gnum">5</div><div class="gcontent"><h3>確認資料後儲存</h3><p>再次核對期別、發票類別、字軌及起訖號碼，確認無誤後點選右下角「儲存」。</p><div class="notice"><strong>注意：</strong>不要重複建立、刪除或覆蓋既有系統已上傳的空白發票字軌資料；若同時使用多套系統，應先確認各系統負責的字軌區間。</div></div></section>
+
+<section class="gstep"><div class="gnum">6</div><div class="gcontent"><h3>查詢上傳情況</h3><p>切換至「查詢」，選擇相同發票期別及營業人統編後按「查詢」。</p></div></section>
+
+<section class="gstep"><div class="gnum">7</div><div class="gcontent"><h3>確認下方有顯示建立資料</h3><p>查詢結果下方若出現剛建立的統編、發票類別、期別、字軌與起訖號碼，即可確認平台已有該筆上傳資料。</p><div class="shot"><label class="zoom-label" for="lb-9" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-09.png" alt="查詢空白未使用發票號碼上傳結果"></label></div></div></section>
+</div>
+</article>
+
+
+<article class="panel p3 card">
+<div class="head"><div class="num">03</div><div><h2>媒體申報檔操作</h2><p>從財政部電子發票整合服務平台新增媒體申報檔申請、等待處理完成、查詢狀態並下載檔案。</p></div></div>
+
+<div class="notice"><strong>處理時間：</strong>依你提供的教學資料，官方說法一般約 3 小時；若遇單月申報期（1～15 日）可能需要 2～3 天。處理完成後，系統會寄通知信至目前登入帳號所設定的 Email。</div>
+
+<div class="guide">
+<section class="gstep"><div class="gnum">1</div><div class="gcontent">
+<h3>登入財政部電子發票整合服務平台</h3>
+<p>進入平台首頁後，點選右上角「登入」，以營業人身分登入。</p>
+<div class="shot"><label class="zoom-label" for="lb-10" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-10.jpg" alt="電子發票整合服務平台首頁登入"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">2</div><div class="gcontent">
+<h3>進入「媒體申報檔下載（非即時）」</h3>
+<p>從左側選單依序進入「營業人功能選單」→「查詢與下載」→「媒體申報檔下載（非即時）」；進入後先點選「新增」。</p>
+</div></section>
+
+<section class="gstep"><div class="gnum">3</div><div class="gcontent">
+<h3>設定媒體申報檔申請條件</h3>
+<p>選擇所需發票期別；「增加發票日期格式」選擇「是」；發票類別三個項目全部勾選；「彙加」一般選擇「是」，若事務所需逐筆核對則依需求選擇「否」；申請統編由系統自動帶入。確認後按「儲存」。</p>
+<div class="shot"><label class="zoom-label" for="lb-11" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-11.jpg" alt="媒體申報檔下載新增設定畫面"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">4</div><div class="gcontent">
+<h3>等待系統製作完成並留意通知信</h3>
+<p>送出申請後等待系統處理。完成後會寄出通知信至登入帳號所設定的 Email；如需變更收件信箱，需至人員帳號及權限管理中修改該帳號資料。</p>
+<div class="shot"><label class="zoom-label" for="lb-12" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-12.jpg" alt="媒體申報檔處理完成通知內容"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">5</div><div class="gcontent">
+<h3>回到查詢頁面輸入「申請日期」</h3>
+<p>切回媒體申報檔下載的「查詢」頁面，在「申請日期」欄位填入你實際提出申請的日期或日期區間，再按「查詢」。這裡的申請日期不是發票期別，而是你送出媒體申報檔申請的日期。</p>
+<div class="shot"><label class="zoom-label" for="lb-13" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-13.jpg" alt="媒體申報檔查詢與下載畫面"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">6</div><div class="gcontent">
+<h3>確認處理狀態為「處理完成」</h3>
+<p>查詢後，下方列表會顯示先前新增的申請資料。確認「處理狀態」欄位已變成「處理完成」，才可以進行下載。</p>
+<div class="shot"><label class="zoom-label" for="lb-14" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-14.jpg" alt="媒體申報檔處理完成狀態確認"></label></div>
+</div></section>
+
+<section class="gstep finish"><div class="gnum">7</div><div class="gcontent">
+<h3>下載媒體申報檔</h3>
+<p>勾選要下載的申請資料後，點選「下載媒體申報檔」。系統跳出確認視窗時，確認提示內容後再選擇「是」即可下載。</p>
+<div class="shot"><label class="zoom-label" for="lb-15" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-15.png" alt="下載媒體申報檔確認視窗"></label></div>
+<div class="notice"><strong>重要：</strong>依你提供的教學內容，下載後的媒體申報檔仍應與加值中心實際開立過的發票進行比對與複核，確認資料無誤後再提交給會計使用。</div>
+</div></section>
+</div>
+</article>
+
+
+<article class="panel p4 card">
+<div class="head"><div class="num">04</div><div>
+<h2>工商憑證線上設定</h2>
+<p>整理工商憑證首次登錄、授權加值服務中心／總公司接收，以及發票字軌號碼相關業務授權設定。操作時需準備工商憑證或符合資格的自然人憑證與卡片密碼。</p>
+</div></div>
+
+<div class="notice"><strong>本頁重點：</strong>先完成「營業人憑證資料登錄」，再設定「接收方式及授權」。若畫面跳出憑證驗證視窗，請輸入對應憑證卡片密碼後送出。</div>
+
+<div class="guide">
+<section class="gstep"><div class="gnum">1</div><div class="gcontent">
+<h3>進入「營業人憑證資料登錄作業」</h3>
+<p>登入電子發票整合服務平台後，從左側依序進入「營業人功能選單」→「基本資料」→「營業人憑證資料登錄作業」。</p>
+<div class="shot"><label class="zoom-label" for="lb-16" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-16.jpg" alt="工商憑證線上設定入口：營業人功能選單、基本資料、營業人憑證資料登錄作業"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">2</div><div class="gcontent">
+<h3>新增主憑證</h3>
+<p>點選「新增」，憑證種類下拉選擇「工商憑證」或「自然人憑證」，再輸入主憑證卡片密碼，接著點選「登錄憑證」。</p>
+<div class="shot"><label class="zoom-label" for="lb-17" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-17.jpg" alt="新增主憑證並選擇憑證種類、輸入卡片密碼"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">3</div><div class="gcontent">
+<h3>確認憑證資訊並完成登錄</h3>
+<p>平台會顯示憑證資訊確認視窗，確認憑證序號、主旨、發行者、起訖日期等資料後，點選「確認登錄」。</p>
+<div class="shot"><label class="zoom-label" for="lb-18" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-18.jpg" alt="憑證資訊確認與確認登錄"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">4</div><div class="gcontent">
+<h3>確認主憑證已登錄成功</h3>
+<p>回到查詢頁面後，如列表已出現憑證相關資料，即代表主憑證登錄完成。</p>
+<div class="shot"><label class="zoom-label" for="lb-19" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-19.jpg" alt="主憑證登錄成功後查詢頁顯示憑證資料"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">5</div><div class="gcontent">
+<h3>設定 B2B 接收方式</h3>
+<p>進入「接收方式及授權」→「設定接收方式及授權」並點「新增」。在 B2B 交換頁籤中，接收方式選擇「加值服務中心／總公司接收」，輸入加值服務中心／總公司統編，確認右側顯示正確公司名稱，再設定啟用日期並儲存。</p>
+<div class="shot"><label class="zoom-label" for="lb-20" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-20.jpg" alt="B2B交換設定：選擇加值服務中心／總公司接收並輸入統編"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">6</div><div class="gcontent">
+<h3>以憑證驗證接收方式設定</h3>
+<p>儲存時若跳出「憑證驗證」視窗，輸入工商憑證或自然人憑證的卡片密碼，確認內容後點選「送出」。</p>
+<div class="shot"><label class="zoom-label" for="lb-21" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-21.jpg" alt="憑證驗證視窗：輸入卡片密碼後送出"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">7</div><div class="gcontent">
+<h3>確認接收方式新增成功</h3>
+<p>右上角顯示「新增成功」，且查詢頁面已出現公司名稱、接收方式、設定區間等資料，即代表此設定完成。</p>
+<div class="shot"><label class="zoom-label" for="lb-22" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-22.jpg" alt="接收方式新增成功與查詢資料"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">8</div><div class="gcontent">
+<h3>進入授權設定並新增</h3>
+<p>同樣在「接收方式及授權」區塊，進入「設定接收方式及授權」後點選「＋新增」，準備設定發票字軌號碼相關業務的授權。</p>
+<div class="shot"><label class="zoom-label" for="lb-23" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-23.jpg" alt="接收方式及授權設定入口與新增"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">9</div><div class="gcontent">
+<h3>設定發票字軌號碼相關業務授權</h3>
+<p>切換至「發票字軌號碼相關業務」，接收方式選擇「加值服務中心／總公司接收」，輸入加值服務中心／總公司統編，確認公司名稱正確。授權期間依需求設定，並設定發票期間後按「儲存」。</p>
+<div class="shot"><label class="zoom-label" for="lb-24" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-24.jpg" alt="發票字軌號碼相關業務授權設定"></label></div>
+</div></section>
+
+<section class="gstep finish"><div class="gnum">10</div><div class="gcontent">
+<h3>完成授權憑證驗證</h3>
+<p>儲存授權設定時，輸入工商憑證或自然人憑證卡片密碼，確認授權內容後按「送出」。完成後即可回查詢頁確認設定結果。</p>
+<div class="shot"><label class="zoom-label" for="lb-25" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-25.jpg" alt="授權設定憑證驗證：輸入卡片密碼後送出"></label></div>
+
+</div></section>
+
+<section class="gstep"><div class="gnum">11</div><div class="gcontent">
+<h3>確認字軌授權新增成功</h3>
+<p>送出後，右上角出現「新增成功」，並在「發票字軌號碼相關業務」查詢頁看到接收方、接收方式、設定區間與可查詢發票期間等資料，即代表授權設定完成。</p>
+<div class="shot"><label class="zoom-label" for="lb-26" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-26.jpg" alt="確認發票字軌號碼相關業務授權新增成功"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">12</div><div class="gcontent">
+<h3>進入「密碼種子管理」</h3>
+<p>從左側選單進入「人員帳號及權限管理」→「密碼種子管理」。這裡用來設定提供系統／加值中心後續串接所需的種子密碼。</p>
+<div class="shot"><label class="zoom-label" for="lb-27" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-27.jpg" alt="進入人員帳號及權限管理的密碼種子管理"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">13</div><div class="gcontent">
+<h3>選擇 QRCode 種子密碼並查詢</h3>
+<p>種子密碼選擇「QRCode」，確認方式選擇「種子密碼」。首次設定時，在「種子密碼密碼」欄位輸入目前的種子密碼後點選「查詢」。</p>
+<div class="shot"><label class="zoom-label" for="lb-28" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-28.jpg" alt="種子密碼查詢設定畫面"></label></div>
+</div></section>
+
+<section class="gstep"><div class="gnum">14</div><div class="gcontent">
+<h3>設定新的 8–16 碼種子密碼</h3>
+<p>進入修改畫面後設定 <strong>8–16 碼</strong>種子密碼，再按「確認」。此密碼後續可能提供加值中心進行系統串接，請設定獨立密碼並妥善保存，不要使用個人常用密碼。</p>
+<div class="shot"><label class="zoom-label" for="lb-29" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-29.jpg" alt="設定8至16碼種子密碼並確認"></label></div>
+</div></section>
+
+<section class="gstep finish"><div class="gnum">15</div><div class="gcontent">
+<h3>確認種子密碼變更完成</h3>
+<p>變更完成後回到查詢畫面，可看到已建立的 QRCode 種子密碼資料。請依實際服務流程保存完成畫面；若需提供加值中心設定資料，僅透過約定的安全管道提供必要資訊。</p>
+<div class="shot"><label class="zoom-label" for="lb-30" aria-label="點擊放大圖片"><img class="zoomable-image" src="assets/images/platform-tools/platform-tools-30.jpg" alt="種子密碼變更完成畫面"></label></div>
+<div class="notice"><strong>安全提醒：</strong>憑證卡片密碼屬敏感驗證資訊，應由營業人自行保管與輸入，不建議以訊息、Email 或明文方式交付他人。</div>
+</div></section>
+</div>
+</article>
+
+</div>
+</div></section>
+</main>
+
+<footer>CH 誠創科技｜inv04-8｜電子發票整合服務平台常用功能</footer>
+
+
+
+
+
+
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-none" checked>
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-1">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-2">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-3">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-4">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-5">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-6">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-7">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-8">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-9">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-10">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-11">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-12">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-13">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-14">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-15">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-16">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-17">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-18">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-19">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-20">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-21">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-22">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-23">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-24">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-25">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-26">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-27">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-28">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-29">
+<input class="lightbox-radio" type="radio" name="lightbox" id="lb-30">
+<div class="radio-lightbox" id="lightbox-1"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-5" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-01.png" alt="{uris[0][1]}"><label class="lb-nav next" for="lb-2" aria-label="下一張">›</label><div class="lb-count">1 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-2"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-1" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-02.png" alt="{uris[1][1]}"><label class="lb-nav next" for="lb-3" aria-label="下一張">›</label><div class="lb-count">2 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-3"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-2" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-03.png" alt="{uris[2][1]}"><label class="lb-nav next" for="lb-4" aria-label="下一張">›</label><div class="lb-count">3 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-4"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-3" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-04.png" alt="{uris[3][1]}"><label class="lb-nav next" for="lb-5" aria-label="下一張">›</label><div class="lb-count">4 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-5"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-4" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-05.png" alt="{uris[4][1]}"><label class="lb-nav next" for="lb-1" aria-label="下一張">›</label><div class="lb-count">5 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-6"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-9" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-06.png" alt="電子發票整合服務平台首頁登入"><label class="lb-nav next" for="lb-7" aria-label="下一張">›</label><div class="lb-count">1 / 4</div></div></div>
+<div class="radio-lightbox" id="lightbox-7"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-6" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-07.png" alt="營業人帳號登入畫面"><label class="lb-nav next" for="lb-8" aria-label="下一張">›</label><div class="lb-count">2 / 4</div></div></div>
+<div class="radio-lightbox" id="lightbox-8"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-7" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-08.png" alt="上傳空白未使用發票號碼新增畫面"><label class="lb-nav next" for="lb-9" aria-label="下一張">›</label><div class="lb-count">3 / 4</div></div></div>
+<div class="radio-lightbox" id="lightbox-9"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-8" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-09.png" alt="查詢空白未使用發票號碼上傳結果"><label class="lb-nav next" for="lb-6" aria-label="下一張">›</label><div class="lb-count">4 / 4</div></div></div>
+<div class="radio-lightbox" id="lightbox-10"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-15" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-10.jpg" alt="電子發票整合服務平台首頁登入"><label class="lb-nav next" for="lb-11" aria-label="下一張">›</label><div class="lb-count">1 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-11"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-10" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-11.jpg" alt="媒體申報檔下載新增設定畫面"><label class="lb-nav next" for="lb-12" aria-label="下一張">›</label><div class="lb-count">2 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-12"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-11" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-12.jpg" alt="媒體申報檔處理完成通知內容"><label class="lb-nav next" for="lb-13" aria-label="下一張">›</label><div class="lb-count">3 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-13"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-12" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-13.jpg" alt="媒體申報檔查詢與下載畫面"><label class="lb-nav next" for="lb-14" aria-label="下一張">›</label><div class="lb-count">4 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-14"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-13" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-14.jpg" alt="媒體申報檔處理完成狀態確認"><label class="lb-nav next" for="lb-15" aria-label="下一張">›</label><div class="lb-count">5 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-15"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-14" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-15.png" alt="下載媒體申報檔確認視窗"><label class="lb-nav next" for="lb-10" aria-label="下一張">›</label><div class="lb-count">6 / 6</div></div></div>
+<div class="radio-lightbox" id="lightbox-16"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-25" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-16.jpg" alt="工商憑證線上設定入口：營業人功能選單、基本資料、營業人憑證資料登錄作業"><label class="lb-nav next" for="lb-17" aria-label="下一張">›</label><div class="lb-count">1 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-17"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-16" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-17.jpg" alt="新增主憑證並選擇憑證種類、輸入卡片密碼"><label class="lb-nav next" for="lb-18" aria-label="下一張">›</label><div class="lb-count">2 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-18"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-17" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-18.jpg" alt="憑證資訊確認與確認登錄"><label class="lb-nav next" for="lb-19" aria-label="下一張">›</label><div class="lb-count">3 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-19"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-18" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-19.jpg" alt="主憑證登錄成功後查詢頁顯示憑證資料"><label class="lb-nav next" for="lb-20" aria-label="下一張">›</label><div class="lb-count">4 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-20"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-19" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-20.jpg" alt="B2B交換設定：選擇加值服務中心／總公司接收並輸入統編"><label class="lb-nav next" for="lb-21" aria-label="下一張">›</label><div class="lb-count">5 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-21"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-20" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-21.jpg" alt="憑證驗證視窗：輸入卡片密碼後送出"><label class="lb-nav next" for="lb-22" aria-label="下一張">›</label><div class="lb-count">6 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-22"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-21" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-22.jpg" alt="接收方式新增成功與查詢資料"><label class="lb-nav next" for="lb-23" aria-label="下一張">›</label><div class="lb-count">7 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-23"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-22" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-23.jpg" alt="接收方式及授權設定入口與新增"><label class="lb-nav next" for="lb-24" aria-label="下一張">›</label><div class="lb-count">8 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-24"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-23" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-24.jpg" alt="發票字軌號碼相關業務授權設定"><label class="lb-nav next" for="lb-25" aria-label="下一張">›</label><div class="lb-count">9 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-25"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-24" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-25.jpg" alt="授權設定憑證驗證：輸入卡片密碼後送出"><label class="lb-nav next" for="lb-16" aria-label="下一張">›</label><div class="lb-count">10 / 10</div></div></div>
+<div class="radio-lightbox" id="lightbox-26"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-30" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-26.jpg" alt="確認發票字軌號碼相關業務授權新增成功"><label class="lb-nav next" for="lb-27" aria-label="下一張">›</label><div class="lb-count">1 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-27"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-26" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-27.jpg" alt="進入人員帳號及權限管理的密碼種子管理"><label class="lb-nav next" for="lb-28" aria-label="下一張">›</label><div class="lb-count">2 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-28"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-27" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-28.jpg" alt="種子密碼查詢設定畫面"><label class="lb-nav next" for="lb-29" aria-label="下一張">›</label><div class="lb-count">3 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-29"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-28" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-29.jpg" alt="設定8至16碼種子密碼並確認"><label class="lb-nav next" for="lb-30" aria-label="下一張">›</label><div class="lb-count">4 / 5</div></div></div>
+<div class="radio-lightbox" id="lightbox-30"><label class="bg" for="lb-none" aria-label="關閉"></label><div class="inner"><label class="lb-close" for="lb-none" aria-label="關閉">×</label><label class="lb-nav prev" for="lb-29" aria-label="上一張">‹</label><img src="assets/images/platform-tools/platform-tools-30.jpg" alt="種子密碼變更完成畫面"><label class="lb-nav next" for="lb-26" aria-label="下一張">›</label><div class="lb-count">5 / 5</div></div></div>
+
+<div class="ch-back-home"><a href="index.html">← 返回電子發票知識站主頁</a></div>
+
+
+<script>
+function cgToggle(btn){
+  const menu=document.getElementById('cgMenu');
+  if(!menu) return;
+  const open=menu.classList.toggle('cg-open');
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('cgMenu');
+  const btn=document.querySelector('.cg-toggle');
+  if(!menu||!btn||!menu.classList.contains('cg-open')) return;
+  if(!menu.contains(e.target)&&!btn.contains(e.target)){
+    menu.classList.remove('cg-open');
+    btn.setAttribute('aria-expanded','false');
+  }
+});
+</script>
+<footer class="footer" id="contact">
+    <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><a href="index.html" class="footer-service-link"><i data-lucide="receipt-text"></i><b>電子發票</b><span>申請 / 字軌 / 平台教學</span></a><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
+    <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="../index.html#home">首頁</a><a href="../index.html#about">關於我們</a><a href="../index.html#services">服務項目</a><a href="../index.html#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="../index.html#services">POS 系統</a><a href="index.html">電子發票</a><a href="../index.html#services">雲端串接</a><a href="../index.html#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="../index.html#faq">設備了解</a><a href="../index.html#faq">安裝教學</a><a href="../index.html#faq">紙捲規格</a><a href="../index.html#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="../index.html#contactFormModal" data-contact-modal>資訊表單</a><a href="../index.html#contact">保固登記</a><a href="../index.html#news">最新公告</a></div></div>
+    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 8623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
+<span><a class="admin-square-trigger copyright-admin-link" id="adminLoginTrigger"
+             href="../admin/index.html" aria-label="誠創後台登入" title="誠創後台登入">
+            <img src="../favicon.svg" alt="誠創後台入口">
+          </a>
+          Copyright © 2026 CH 誠創科技工作室 All Rights Reserved. 版權所有</span>
+      </div></div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.lucide){ window.lucide.createIcons(); }
+});
+</script>
+
+</body>
+</html>

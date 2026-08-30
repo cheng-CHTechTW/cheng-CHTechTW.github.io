@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>認識常見發票｜誠創科技</title>
+<meta name="description" content="認識電子發票、手開發票與傳統長條型發票，以自製示意圖說明常見樣式與辨識重點。">
+<style>
+:root{
+  --bg:#f4f0ea;--paper:#fff;--ink:#34312e;--muted:#756d66;--line:#ddd5cc;
+  --tea:#9a7a5f;--tea-soft:#eee4d9;--dark:#3d3b38;--soft:#faf8f5;
+  --bluegray:#55697d;--green:#617667
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif}
+.wrap{width:min(1160px,calc(100% - 28px));margin:auto}
+header{background:#fff;border-bottom:1px solid var(--line)}
+.nav{height:66px;display:flex;align-items:center;gap:11px}
+.logo{width:39px;height:39px;border-radius:11px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900}
+.brand{font-weight:900}.brand small{display:block;font-size:9px;color:var(--muted);letter-spacing:.12em;margin-top:2px}
+.pageid{margin-left:auto;font-size:10px;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:999px}
+.hero{padding:54px 0 26px}
+.eyebrow{font-size:10px;color:var(--tea);font-weight:900;letter-spacing:.15em}
+h1{font-size:clamp(34px,5vw,56px);margin:9px 0 12px;line-height:1.1}
+.hero p{max-width:850px;font-size:14px;line-height:1.9;color:var(--muted)}
+input[name="invoice-tab"]{position:absolute;opacity:0;pointer-events:none}
+.tabbar{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:#e9e3dc;
+  padding:7px;border-radius:18px;position:sticky;top:8px;z-index:20;
+  box-shadow:0 7px 24px rgba(55,48,43,.06)
+}
+.tabbar label{padding:14px 10px;border-radius:13px;text-align:center;font-weight:900;cursor:pointer}
+.tabbar small{display:block;font-size:9px;font-weight:700;color:var(--muted);margin-top:4px}
+#t1:checked~.tabbar label[for=t1],
+#t2:checked~.tabbar label[for=t2],
+#t3:checked~.tabbar label[for=t3]{background:#fff;color:var(--tea);box-shadow:0 4px 14px rgba(35,30,26,.08)}
+.panels{margin:18px 0 58px}.panel{display:none}
+#t1:checked~.panels .p1,#t2:checked~.panels .p2,#t3:checked~.panels .p3{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(40,35,30,.05)}
+.head{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.num{width:45px;height:45px;flex:0 0 45px;border-radius:14px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900}
+.head h2{font-size:29px;margin:0 0 6px}.head p{margin:0;font-size:12px;line-height:1.75;color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.summary div{border:1px solid var(--line);background:var(--soft);border-radius:13px;padding:13px}
+.summary b{display:block;font-size:11px;margin-bottom:5px}.summary span{font-size:10px;line-height:1.65;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}
+.explain{display:grid;gap:10px}.box{border:1px solid var(--line);border-radius:14px;padding:15px;background:#fff}
+.box h3{font-size:14px;margin:0 0 7px}.box p,.box li{font-size:11px;color:var(--muted);line-height:1.8}.box ul{padding-left:18px;margin:0}
+.notice{border-left:4px solid var(--tea);background:#faf5ef;border-radius:0 12px 12px 0;padding:13px 14px;font-size:11px;line-height:1.8}
+
+/* 自製電子發票樣式示意 */
+.receipts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start}
+.receipt-wrap{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:13px}
+.receipt-title{text-align:center;font-size:11px;font-weight:900;margin-bottom:10px}
+.receipt{
+  width:100%;min-height:420px;background:#fff;border:1px solid #d7d2cc;
+  box-shadow:0 9px 22px rgba(40,35,30,.08);padding:18px 14px;position:relative
+}
+.receipt:before{content:"";position:absolute;left:0;right:0;top:-5px;height:7px;background:repeating-linear-gradient(135deg,#fff 0 7px,#ddd 7px 8px)}
+.rbrand{text-align:center;font-weight:900;font-size:14px}.rsub{text-align:center;font-size:11px;margin-top:4px}.rno{text-align:center;font-size:20px;font-weight:900;letter-spacing:.05em;margin:12px 0}
+.rline{height:1px;background:#ddd;margin:9px 0}.row{display:flex;justify-content:space-between;gap:8px;font-size:9px;line-height:1.65}.barcode{height:34px;margin:12px 0;background:repeating-linear-gradient(90deg,#222 0 2px,transparent 2px 4px,#222 4px 5px,transparent 5px 8px)}
+.qrs{display:flex;justify-content:center;gap:10px;margin:12px 0}.qr{width:58px;height:58px;border:6px solid #222;background:repeating-conic-gradient(#222 0 25%,#fff 0 50%) 0/12px 12px}
+.cloud{min-height:420px;border:1px dashed #b8c1ca;border-radius:18px;background:linear-gradient(#fff,#f7f9fa);display:grid;place-items:center;text-align:center;padding:24px}
+.cloud-icon{width:140px;height:82px;border:3px solid var(--bluegray);border-top:0;border-radius:0 0 70px 70px;position:relative;margin:30px auto 25px}
+.cloud-icon:before,.cloud-icon:after{content:"";position:absolute;border:3px solid var(--bluegray);background:#fff;border-bottom:0;border-radius:70px 70px 0 0}
+.cloud-icon:before{width:78px;height:58px;left:15px;top:-48px}.cloud-icon:after{width:50px;height:40px;right:0;top:-29px}
+.cloud strong{display:block;font-size:19px;margin-bottom:8px}.cloud p{font-size:11px;color:var(--muted);line-height:1.8}
+
+/* 自製手開發票 */
+.hand-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-paper{background:#fff;border:1px solid #cfc8c0;box-shadow:0 9px 22px rgba(40,35,30,.07);padding:16px;min-height:470px}
+.form-head{text-align:center;font-size:19px;font-weight:900;letter-spacing:.18em;margin-bottom:10px}
+.form-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:10px;margin-bottom:10px}
+.form-line{border-bottom:1px solid #aaa;padding:5px 2px}.table{display:grid;grid-template-columns:1.5fr .45fr .6fr .7fr;border-top:1px solid #888;border-left:1px solid #888}
+.cell{min-height:29px;border-right:1px solid #888;border-bottom:1px solid #888;padding:6px;font-size:9px}
+.cell.h{font-weight:900;text-align:center;background:#fafafa}
+.total{margin-top:10px;display:grid;grid-template-columns:1fr auto;gap:8px;font-size:10px}.stamp{margin-left:auto;margin-top:14px;width:115px;height:75px;border:2px solid #b86858;border-radius:40%;color:#b86858;display:grid;place-items:center;text-align:center;font-size:10px;font-weight:900;transform:rotate(-2deg)}
+.legend{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}.legend span{font-size:9px;padding:6px 8px;border-radius:999px;background:var(--tea-soft);font-weight:900}
+
+/* 自製長條發票 */
+.long-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.long-paper{width:min(310px,100%);margin:auto;background:#fff;border:1px solid #d4cec7;box-shadow:0 10px 24px rgba(45,39,34,.08);padding:18px 15px;min-height:560px}
+.long-paper .rbrand{font-size:13px}.machine{font-size:10px;text-align:center;margin:8px 0}.items{margin-top:12px}.item{display:grid;grid-template-columns:1.7fr .35fr .7fr;gap:4px;font-size:9px;padding:5px 0;border-bottom:1px dotted #ccc}.sum{margin-top:15px;font-size:10px;line-height:1.9}.mark{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--soft);font-size:10px;color:var(--muted);line-height:1.7}
+
+
+.paper-info{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:center;background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:20px}
+.roll-visual{height:220px;position:relative;overflow:hidden}
+.roll-core{position:absolute;left:58px;top:18px;width:180px;height:150px;border-radius:90px 90px 62px 62px;background:linear-gradient(90deg,#fdfdfd,#ddd,#fafafa);box-shadow:0 16px 27px rgba(0,0,0,.13);transform:rotate(-7deg)}
+.roll-core:after{content:"";position:absolute;left:55px;bottom:5px;width:72px;height:28px;border-radius:50%;background:#bdb8b0;box-shadow:inset 0 0 0 14px #e9e6e2}
+.roll-sheet{position:absolute;left:130px;top:105px;width:180px;height:105px;background:#fff;border:1px solid #dedad5;transform:rotate(8deg);box-shadow:0 12px 20px rgba(0,0,0,.08)}
+.roll-print{padding:20px 14px;text-align:center;font-size:11px;color:#687b8a;line-height:1.65}.roll-print small{font-size:8px}
+.paper-badge{display:inline-block;font-size:9px;font-weight:900;padding:6px 9px;border-radius:999px;background:var(--tea-soft);color:#6f5743}.paper-copy h3{font-size:22px;margin:9px 0 7px}.paper-copy p{font-size:11px;line-height:1.8;color:var(--muted)}
+.paper-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.paper-checks span{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:10px;font-weight:900}
+.real-receipt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px}
+.real-card{background:var(--soft);border:1px solid var(--line);border-radius:17px;padding:14px}.real-card-title{text-align:center;font-size:12px;font-weight:900;margin-bottom:12px}
+.thermal-receipt{width:min(285px,100%);margin:auto;background:#fff;border:1px solid #d7d2cc;box-shadow:0 10px 24px rgba(35,30,26,.09);padding:18px 16px 22px;position:relative}
+.thermal-receipt:before,.thermal-receipt:after{content:"";position:absolute;left:0;right:0;height:6px;background:repeating-linear-gradient(135deg,#fff 0 7px,#d6d2cc 7px 8px)}
+.thermal-receipt:before{top:-5px}.thermal-receipt:after{bottom:-5px;transform:rotate(180deg)}
+.store{text-align:center;font-size:13px;font-weight:900}.sub{text-align:center;font-size:12px;font-weight:900;margin-top:4px}.period{text-align:center;font-size:11px;margin-top:5px}.invno{text-align:center;font-size:24px;font-weight:900;letter-spacing:.04em;margin:5px 0 10px}
+.meta{font-size:9px;line-height:1.75}.meta.two{display:flex;justify-content:space-between;gap:7px}.meta strong{font-size:10px}
+.cut{font-size:8px;color:#888;border-bottom:1px dashed #999;text-align:right;margin:7px 0 8px;padding-bottom:4px}
+.detail-title{text-align:center;font-size:10px;font-weight:900;margin-bottom:5px}.detail-row{display:grid;grid-template-columns:1.6fr .4fr .6fr .7fr;gap:4px;font-size:8px;padding:4px 0}.detail-row.h{font-weight:900;border-bottom:1px solid #aaa}.sumline,.taxrow{display:flex;justify-content:space-between;font-size:9px;padding-top:5px}.sumline.total{font-size:11px;border-top:1px solid #999;margin-top:5px;padding-top:7px}.real-note{margin-top:11px;font-size:10px;line-height:1.7;color:var(--muted)}
+.carrier-card{min-height:510px;background:#fff;border:1px dashed #b9c0c6;border-radius:15px;padding:34px 20px;text-align:center;display:flex;flex-direction:column;justify-content:center}.cloud-symbol{font-size:70px;line-height:1;color:#647c91}.carrier-card h3{font-size:20px;margin:13px 0 8px}.carrier-card p{font-size:11px;color:var(--muted);line-height:1.8}.carrier-types{display:grid;gap:8px;margin:15px 0}.carrier-types span{background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:9px;font-size:10px;font-weight:900}.carrier-code{margin-top:15px;border:1px solid var(--line);border-radius:12px;padding:12px}.mini-barcode{height:35px;background:repeating-linear-gradient(90deg,#222 0 2px,transparent 2px 4px,#222 4px 5px,transparent 5px 8px);margin-bottom:8px}
+.paper-back{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;align-items:center}.paper-back-demo{min-height:145px;background:#f7f5f1;border:1px solid var(--line);border-radius:14px;padding:18px;background-image:repeating-linear-gradient(0deg,transparent 0 26px,rgba(145,122,96,.04) 26px 27px)}.back-title{font-weight:900;font-size:12px;margin-bottom:18px}.back-repeat{font-size:10px;line-height:2.1;color:#8a745f;word-spacing:7px}.back-repeat.small{font-size:8px;color:#978c82}.paper-back-copy h3{font-size:18px;margin:0 0 7px}.paper-back-copy p{font-size:11px;line-height:1.8;color:var(--muted)}
+
+.actual-invoice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+.actual-card{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:15px}
+.actual-head{margin-bottom:12px}.actual-badge{display:inline-block;background:var(--tea-soft);color:#6d5644;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:900}
+.actual-head h3{font-size:18px;margin:8px 0 6px}.actual-head p{font-size:10px;line-height:1.75;color:var(--muted);margin:0}
+.actual-img{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:460px}
+.actual-img img{width:100%;height:460px;object-fit:contain;display:block;cursor:zoom-in}
+.actual-img.carrier img{object-fit:contain}
+.actual-points{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+.actual-points span{font-size:9px;line-height:1.55;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+.actual-note{margin-top:16px;background:#faf5ef;border-left:4px solid var(--tea);border-radius:0 12px 12px 0;padding:13px 14px;font-size:11px;line-height:1.8}
+.actual-modal[hidden]{display:none}.actual-modal{position:fixed;inset:0;background:rgba(18,17,16,.94);z-index:999;display:grid;place-items:center;padding:18px}
+.actual-modal img{max-width:95vw;max-height:90vh;background:#fff;border-radius:10px}
+.actual-close{position:fixed;right:18px;top:16px;width:42px;height:42px;border:0;border-radius:50%;background:#fff;font-size:25px;cursor:pointer}
+
+.actual-img.animated{position:relative;overflow:hidden}
+.normal-invoice img,.tax-invoice img,.scan-image img{width:100%;height:460px;object-fit:contain;display:block}
+.cut-line-overlay{
+  position:absolute;left:7%;right:7%;top:65.8%;height:2px;
+  background:repeating-linear-gradient(90deg,#6f8aa3 0 10px,transparent 10px 18px);
+  opacity:.85
+}
+.scissor{position:absolute;top:63.1%;font-size:30px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.14));animation:snipMove 2.6s linear infinite}
+.scissor.left{left:2%;transform:rotate(4deg)}.scissor.right{right:2%;transform:scaleX(-1) rotate(4deg)}
+.cut-caption{position:absolute;left:50%;top:68.5%;transform:translateX(-50%);background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:9px;font-weight:900}
+.normal-invoice:after{
+  content:"";position:absolute;left:7%;right:7%;top:65.8%;height:0;
+  border-top:2px solid rgba(255,255,255,.96);
+  transform:scaleX(0);transform-origin:left center;
+  animation:cutOpen 2.6s linear infinite;
+  box-shadow:0 2px 0 rgba(0,0,0,.08)
+}
+@keyframes snipMove{
+  0%{left:2%;transform:translateX(0) rotate(0deg)}
+  12%{transform:translateX(0) rotate(-8deg)}
+  18%{transform:translateX(0) rotate(4deg)}
+  28%{left:18%;transform:rotate(-5deg)}
+  42%{left:34%;transform:rotate(4deg)}
+  56%{left:50%;transform:rotate(-5deg)}
+  70%{left:66%;transform:rotate(4deg)}
+  84%{left:82%;transform:rotate(-5deg)}
+  100%{left:88%;transform:rotate(0deg)}
+}
+.scissor.left{left:2%}
+.scissor.right{display:none}
+@keyframes cutOpen{
+  0%,10%{transform:scaleX(0);opacity:0}
+  18%{opacity:1}
+  84%{transform:scaleX(1);opacity:1}
+  100%{transform:scaleX(1);opacity:0}
+}
+
+
+
+.normal-invoice .cut-caption{animation:captionPulse 2.6s ease-in-out infinite}
+@keyframes captionPulse{0%,15%,100%{opacity:.45}35%,80%{opacity:1}}
+.buyer-underline{
+  position:absolute;left:49%;top:37.3%;height:5px;width:0;
+  background:#bd2e35;border-radius:999px;
+  box-shadow:0 0 0 1px rgba(189,46,53,.08);
+  animation:underlineBuyer 2.4s ease-in-out infinite
+}
+.buyer-label{
+  position:absolute;left:49%;top:32.6%;
+  background:#bd2e35;color:#fff;border-radius:8px;padding:5px 9px;
+  font-size:10px;font-weight:900;opacity:0;transform:translateX(-12px);
+  animation:buyerText 2.4s ease-in-out infinite
+}
+@keyframes underlineBuyer{
+  0%,12%{width:0;opacity:0}
+  25%{opacity:1}
+  55%,78%{width:43%;opacity:1}
+  100%{width:43%;opacity:0}
+}
+@keyframes buyerText{
+  0%,18%{opacity:0;transform:translateX(-12px)}
+  35%,78%{opacity:1;transform:translateX(0)}
+  100%{opacity:0;transform:translateX(12px)}
+}
+
+.scanner-beam{
+  position:absolute;left:18%;right:15%;top:51%;
+  height:3px;background:linear-gradient(90deg,transparent,#ff2d2d 12%,#ff5959 50%,#ff2d2d 88%,transparent);
+  box-shadow:0 0 8px rgba(255,45,45,.95),0 0 16px rgba(255,45,45,.55);
+  transform-origin:center;animation:scanBeam 1.6s ease-in-out infinite alternate
+}
+.scanner-dot{
+  position:absolute;left:49%;top:50.3%;width:10px;height:10px;border-radius:50%;
+  background:#ff2d2d;box-shadow:0 0 12px #ff2d2d,0 0 22px rgba(255,45,45,.8);
+  animation:pulseDot 1s ease-in-out infinite
+}
+.scan-caption{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);background:rgba(55,51,47,.88);color:#fff;padding:6px 10px;border-radius:999px;font-size:9px;font-weight:900}
+@keyframes scanBeam{
+  from{transform:translateX(-11%) rotate(-1deg);opacity:.45}
+  to{transform:translateX(11%) rotate(1deg);opacity:1}
+}
+@keyframes pulseDot{0%,100%{transform:scale(.8);opacity:.6}50%{transform:scale(1.25);opacity:1}}
+@media(max-width:900px){
+  .normal-invoice img,.tax-invoice img,.scan-image img{height:auto;max-height:650px}
+}
+
+.actual-roll-photo,.paper-back-photo{
+  background:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;min-height:280px
+}
+.actual-roll-photo img,.paper-back-photo img{
+  width:100%;height:320px;object-fit:contain;display:block
+}
+.paper-back-photo{background:#fff}
+.paper-back-photo img{height:260px}
+
+.manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.manual-card{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:15px}
+.manual-title{margin-bottom:12px}.manual-tag{display:inline-block;background:var(--tea-soft);color:#6d5644;font-size:9px;font-weight:900;padding:5px 8px;border-radius:999px}
+.manual-title h3{font-size:20px;margin:8px 0 5px}.manual-title p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
+.manual-photo{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;overflow:hidden}
+.manual-photo img{width:100%;height:360px;object-fit:contain;display:block}
+.manual-flow{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:12px}
+.manual-flow.three{grid-template-columns:1fr auto 1fr 1fr}
+.manual-flow .keep,.manual-flow .give{border:1px solid var(--line);border-radius:11px;padding:10px;background:#fff}
+.manual-flow .keep{background:#f4f0ea}
+.manual-flow b{display:block;font-size:10px;margin-bottom:4px}.manual-flow span{font-size:9px;color:var(--muted);line-height:1.55}
+.manual-flow .arrow{font-weight:900;color:var(--tea);text-align:center}
+.manual-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.manual-compare>div{border:1px solid var(--line);border-radius:13px;padding:14px;background:#fff}
+.manual-compare strong{font-size:12px}.manual-compare p{font-size:11px;color:var(--muted);margin:6px 0 0;line-height:1.7}
+@media(max-width:900px){
+  .manual-grid,.manual-compare{grid-template-columns:1fr}
+  .manual-flow,.manual-flow.three{grid-template-columns:1fr}
+  .manual-flow .arrow{transform:rotate(90deg)}
+  .manual-photo img{height:auto;max-height:520px}
+}
+footer{text-align:center;padding:25px;color:var(--muted);font-size:10px}
+@media(max-width:900px){.receipts{grid-template-columns:1fr}.grid2,.hand-grid,.long-grid,.paper-info,.paper-back{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.real-receipt-grid,.actual-invoice-grid{grid-template-columns:1fr}.paper-checks{grid-template-columns:1fr}.roll-visual{max-width:330px;margin:auto}.actual-img,.actual-img img{min-height:0;height:auto;max-height:650px}.actual-points{grid-template-columns:1fr}.actual-roll-photo img,.paper-back-photo img{height:auto;max-height:420px}}
+@media(max-width:560px){.tabbar{gap:4px;padding:5px}.tabbar label{font-size:12px;padding:11px 5px}.tabbar small{display:none}.card{padding:14px}.head h2{font-size:23px}}
+
+/* ===== CH Invoice 共用目錄 / 頁尾 ===== */
+.ch-invoice-global{position:sticky;top:0;z-index:9999;background:rgba(255,255,255,.96);border-bottom:1px solid #e5dfd6;backdrop-filter:blur(10px)}
+.ch-invoice-global .cg-wrap{width:min(1180px,calc(100% - 28px));margin:auto;min-height:68px;display:flex;align-items:center;gap:18px}
+.cg-brand{display:flex;flex-direction:column;text-decoration:none;color:#303236;flex:0 0 auto;font-weight:900;font-family:"Microsoft JhengHei",sans-serif}
+.cg-brand b{font-size:17px}.cg-brand small{font-size:9px;letter-spacing:.14em;color:#80776e;margin-top:2px}
+.cg-menu{display:flex;align-items:center;justify-content:flex-end;gap:3px;flex:1;flex-wrap:wrap}
+.cg-menu a{display:inline-flex;align-items:center;min-height:34px;padding:7px 9px;border-radius:8px;color:#3c3b39;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap;font-family:"Microsoft JhengHei",sans-serif}
+.cg-menu a:hover{background:#f2ede6}
+.cg-menu a.cg-active{background:#393939;color:#fff}
+.cg-menu a.cg-company{border:1px solid #ddd5ca;background:#faf8f4;margin-left:5px}
+.cg-toggle{display:none;border:1px solid #ddd5ca;border-radius:9px;background:#fff;padding:6px 10px;font-size:20px;cursor:pointer}
+.ch-back-home{width:min(1120px,calc(100% - 32px));margin:18px auto 0;display:flex;justify-content:flex-end}
+.ch-back-home a{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#4c4944;background:#fff;border:1px solid #ddd5ca;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:800}
+.ch-invoice-footer{margin-top:46px;background:#343434;color:#eee;font-family:"Microsoft JhengHei",sans-serif}
+.ch-invoice-footer .cf-wrap{width:min(1120px,calc(100% - 32px));margin:auto;padding:28px 0 18px}
+.cf-main{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:24px}
+.cf-brand{font-size:18px;font-weight:900;margin-bottom:8px}.cf-desc{font-size:12px;color:#c7c7c7;line-height:1.75}
+.cf-title{font-size:12px;font-weight:900;margin-bottom:9px;color:#fff}.cf-links{display:flex;flex-direction:column;gap:6px}
+.cf-links a{color:#d7d7d7;text-decoration:none;font-size:12px}.cf-links a:hover{color:#fff;text-decoration:underline}
+.cf-copy{border-top:1px solid #4d4d4d;margin-top:20px;padding-top:14px;font-size:11px;color:#aaa;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){
+  .ch-invoice-global .cg-wrap{position:relative;justify-content:space-between;min-height:64px}
+  .cg-toggle{display:block}
+  .cg-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5dfd6;border-radius:0 0 14px 14px;padding:10px;box-shadow:0 12px 30px rgba(0,0,0,.09)}
+  .cg-menu.cg-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .cg-menu a{background:#faf8f4;padding:10px 12px}
+  .cg-menu a.cg-company{margin-left:0}
+}
+@media(max-width:640px){
+  .cg-menu.cg-open{grid-template-columns:1fr}
+  .cg-brand b{font-size:15px}
+  .cf-main{grid-template-columns:1fr}
+  .ch-back-home{justify-content:stretch}.ch-back-home a{width:100%;justify-content:center}
+}
+
+/* ===== 公司主頁同款頁尾：電子發票各頁共用 ===== */
+.footer{
+  --footer-charcoal:#3d3a38;
+  --footer-muted:#77736e;
+  --footer-gold:#d5a77f;
+  --footer-line:#e6ddd3;
+  font-family:"Microsoft JhengHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  width:100%;
+  margin-top:56px;
+  color:#303236;
+  background:#fff;
+}
+.footer *{box-sizing:border-box}
+.footer .container{width:min(1056px,calc(100% - 32px));margin-left:auto;margin-right:auto}
+.footer .footer-service-strip{background:#faf7f2;border-top:1px solid #e9e0d7}
+.footer .footer-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:34px 0}
+.footer .footer-cards>div,
+.footer .footer-cards>a{
+  min-width:0;background:#fff;border:1px solid #e6ddd3;border-radius:15px;
+  padding:22px;text-align:center;color:#222;text-decoration:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.footer .footer-cards svg{width:25px;height:25px;stroke-width:1.8}
+.footer .footer-cards b,.footer .footer-cards span{display:block}
+.footer .footer-cards b{margin:7px 0;font-size:14px;font-weight:700}
+.footer .footer-cards span{font-size:12px;color:var(--footer-muted)}
+.footer .footer-links{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px;padding:38px 0;
+}
+.footer .footer-links>div{min-width:0}
+.footer .footer-links h4{
+  margin:0 0 18px;font-size:18px;font-weight:700;
+  border-bottom:1px solid #ded6cf;padding-bottom:10px;color:#222;
+}
+.footer .footer-links a{
+  display:block;margin:9px 0;color:#444;text-decoration:none;font-size:14px;line-height:1.45;
+}
+.footer .footer-links a:hover{text-decoration:underline}
+.footer .footer-main{background:var(--footer-charcoal);color:#fff;padding-top:45px}
+.footer .footer-main-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.footer .footer-logo{display:flex;gap:18px;align-items:center}
+.footer .footer-logo>img{width:132px;height:102px;object-fit:contain;flex:0 0 auto}
+.footer .footer-logo div{display:grid}
+.footer .footer-logo strong{
+  font-size:24px;color:var(--footer-gold);letter-spacing:.18em;line-height:1.5;font-weight:700;
+}
+.footer .footer-logo small{font-size:9px;color:var(--footer-gold);letter-spacing:.02em}
+.footer .footer-brand p{text-align:center;color:var(--footer-gold);margin:12px 0 0}
+.footer .company-info{display:grid;gap:9px}
+.footer .company-info h3{margin:0 0 6px;font-size:23px;color:#fff}
+.footer .company-info a,.footer .company-info span{
+  display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-size:14px;line-height:1.55;
+}
+.footer .company-info svg{width:21px;height:21px;color:var(--footer-gold);stroke:var(--footer-gold)}
+.footer .copyright{
+  border-top:1px solid rgba(255,255,255,.22);
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;padding:20px 0;margin-top:28px;width:min(1056px,calc(100% - 32px));
+}
+.footer .copyright>span{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  width:auto;margin:0 auto;text-align:center;color:#fff;font-size:13px;
+}
+.footer .copyright-admin-link{
+  width:24px;height:24px;border-radius:6px;background:#f4f1ec;
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.footer .copyright-admin-link img{width:19px;height:19px;object-fit:contain}
+@media(max-width:1000px){
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .footer .footer-main-grid{grid-template-columns:1fr;gap:30px}
+}
+@media(max-width:640px){
+  .footer .container{width:min(100% - 28px,1056px)}
+  .footer .footer-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:24px 0}
+  .footer .footer-cards>div,.footer .footer-cards>a{padding:16px 10px;min-height:108px}
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding:30px 0}
+  .footer .footer-links h4{font-size:15px}
+  .footer .footer-links a{font-size:13px}
+  .footer .footer-main{padding-top:32px}
+  .footer .footer-logo{justify-content:center}
+  .footer .footer-logo>img{width:102px;height:78px}
+  .footer .footer-logo strong{font-size:18px}
+  .footer .footer-brand p{text-align:center}
+  .footer .company-info{max-width:520px;margin:0 auto;width:100%}
+  .footer .company-info h3{text-align:center;font-size:19px}
+  .footer .company-info a,.footer .company-info span{font-size:12px}
+  .footer .copyright{padding:17px 0}
+  .footer .copyright>span{font-size:11px;line-height:1.6;flex-wrap:wrap}
+}
+
+
+/* V9 公司頁尾校正：電子發票功能卡外框 + 所有權置中 */
+.footer .footer-cards>a.footer-service-link{
+  background:#fff!important;
+  border:1px solid #e6ddd3!important;
+  border-radius:15px!important;
+  padding:22px!important;
+  color:#222!important;
+  text-decoration:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.footer .copyright{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin:28px auto 0!important;
+}
+.footer .copyright>span{
+  display:inline-flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  width:auto!important;
+}
+
+
+/* V10 電子發票品牌 LOGO */
+.cg-brand{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  min-width:210px;text-decoration:none!important;
+}
+.cg-brand .invoice-brand-logo{
+  display:block!important;width:210px!important;height:52px!important;
+  max-width:100%!important;object-fit:contain!important;object-position:left center!important;
+}
+.cg-brand b,.cg-brand small{display:none!important}
+@media(max-width:640px){
+  .cg-brand{min-width:0!important}
+  .cg-brand .invoice-brand-logo{width:165px!important;height:44px!important}
+}
+
+</style>
+</head>
+<body>
+<div class="ch-invoice-global">
+  <div class="cg-wrap">
+    <a class="cg-brand" href="index.html"><img class="invoice-brand-logo" src="../chlogo.svg" alt="誠創科技｜電子發票知識站"></a>
+    <button class="cg-toggle" type="button" aria-label="開啟目錄" aria-expanded="false" onclick="cgToggle(this)">☰</button>
+    <nav class="cg-menu" id="cgMenu" aria-label="電子發票知識站目錄">
+      <a class="" href="index.html">主頁</a><a class="" href="apply.html">申請流程</a><a class="cg-active" href="types.html">發票種類</a><a class="" href="number-track.html">字軌申請</a><a class="" href="platform-tools.html">平台操作</a><a class="" href="faq.html">相關問題 QA</a><a class="" href="rules.html">服務說明</a><a class="" href="calculator.html">手開發票工具</a><a class="cg-company" href="../index.html">誠創科技首頁</a>
+    </nav>
+  </div>
+</div>
+
+<header><div class="wrap nav"><div class="logo">CH</div><div class="brand">誠創科技｜電子發票知識站<small>INVOICE KNOWLEDGE</small></div><div class="pageid">inv02-12</div></div></header>
+
+<section class="hero"><div class="wrap">
+<div class="eyebrow">INVOICE TYPES</div>
+<h1>認識常見發票</h1>
+<p>以誠創科技重新整理的教學示意，帶你快速分辨電子發票、手開發票與傳統長條型發票。所有圖示皆為本頁自製示意，不直接使用外部教學圖。</p>
+</div></section>
+
+<section><div class="wrap">
+<input id="t1" name="invoice-tab" type="radio" checked>
+<input id="t2" name="invoice-tab" type="radio">
+<input id="t3" name="invoice-tab" type="radio">
+
+<div class="tabbar">
+<label for="t1">🥇 電子發票<small>無統編／有統編／載具</small></label>
+<label for="t2">手開發票<small>二聯式／三聯式</small></label>
+<label for="t3">傳統長條型發票<small>收銀機長條格式</small></label>
+</div>
+
+<div class="panels">
+
+<article class="panel p1 card">
+<div class="head"><div class="num">01</div><div><h2>電子發票</h2><p>改以實際門市會看到的熱感式電子發票樣式呈現。電子發票紙本證明聯使用熱感式列印，紙捲需符合電子發票紙張使用需求；實際使用時應採合格電子發票專用紙捲，並注意紙捲背面相關兌獎／使用資訊。</p></div></div>
+
+<div class="summary">
+<div><b>無統編電子發票</b><span>一般消費者常見，不顯示買方統一編號，可依設定列印交易明細。</span></div>
+<div><b>有統編電子發票</b><span>公司行號報帳時帶入買方統一編號，並完整呈現交易與稅額資訊。</span></div>
+<div><b>載具存雲端</b><span>使用手機條碼、會員載具等方式，可不列印紙本證明聯。</span></div>
+</div>
+
+
+<div class="paper-info">
+  <div class="actual-roll-photo">
+    <img src="assets/images/types/types-01.png" alt="電子發票專用熱感紙捲實際照片">
+  </div>
+  <div class="paper-copy">
+    <span class="paper-badge">實際電子發票耗材</span>
+    <h3>電子發票專用熱感紙捲</h3>
+    <p>門市電子發票證明聯使用熱感式列印。實際使用時應使用符合電子發票紙張規格需求的專用熱感紙捲，並留意紙捲背面印製的兌獎與使用相關資訊。</p>
+    <div class="paper-checks">
+      <span>✓ 熱感式列印</span>
+      <span>✓ 電子發票專用紙捲</span>
+      <span>✓ 背面印有兌獎相關資訊</span>
+      <span>✓ 適用電子發票列印設備</span>
+    </div>
+  </div>
+</div>
+
+<div class="actual-invoice-grid">
+  <section class="actual-card normal-card">
+    <div class="actual-head">
+      <span class="actual-badge">實際樣式</span>
+      <h3>無統編電子發票</h3>
+      <p>一般消費者常見。下方以動畫標示「可裁切交易明細」位置。</p>
+    </div>
+    <div class="actual-img animated normal-invoice">
+      <img src="assets/images/types/types-02.jpg" alt="無統編電子發票實際樣式">
+      <div class="cut-line-overlay"></div>
+      <div class="scissor left">✂</div>
+      <div class="scissor right">✂</div>
+      <div class="cut-caption">交易明細可依需要裁切</div>
+    </div>
+    <div class="actual-points">
+      <span>✓ 不顯示買方統一編號</span>
+      <span>✓ 可依設定列印交易明細</span>
+      <span>✓ 剪刀動畫標示裁切線</span>
+      <span>✓ 常見於一般消費者</span>
+    </div>
+  </section>
+
+  <section class="actual-card tax-card">
+    <div class="actual-head">
+      <span class="actual-badge">實際樣式</span>
+      <h3>有統編電子發票</h3>
+      <p>公司行號報帳時輸入買方統編。動畫會沿著實際買方統編位置由左至右顯示。</p>
+    </div>
+    <div class="actual-img animated tax-invoice">
+      <img src="assets/images/types/types-03.jpg" alt="有統編電子發票實際樣式">
+      <div class="buyer-underline"></div>
+      <div class="buyer-label">買方統編</div>
+    </div>
+    <div class="actual-points">
+      <span>✓ 顯示買方統一編號</span>
+      <span>✓ 紅底線動畫對準買方欄位</span>
+      <span>✓「買方統編」文字同步滑入</span>
+      <span>✓ 適合公司核銷／帳務用途</span>
+    </div>
+  </section>
+
+  <section class="actual-card scan-card">
+    <div class="actual-head">
+      <span class="actual-badge">載具掃描</span>
+      <h3>手機條碼載具</h3>
+      <p>模擬掃描器對準手機條碼中心，紅色掃描光會左右掃過條碼位置。</p>
+    </div>
+    <div class="actual-img animated scan-image">
+      <img src="assets/images/types/types-04.jpg" alt="電子發票手機條碼載具掃描畫面">
+      <div class="scanner-beam"></div>
+      <div class="scanner-dot"></div>
+      <div class="scan-caption">掃描手機條碼載具</div>
+    </div>
+    <div class="actual-points">
+      <span>✓ 手機條碼載具</span>
+      <span>✓ 掃描光對準條碼中心</span>
+      <span>✓ 發票存入雲端</span>
+      <span>✓ 可減少紙本列印</span>
+    </div>
+  </section>
+</div>
+
+<div class="actual-note">
+  <strong>實際使用差異：</strong>
+  <span>一般消費者未輸入統編 → 常見為無統編電子發票；公司行號需要報帳 → 輸入買方統編；使用載具 → 發票可直接存入雲端。</span>
+</div>
+
+
+<div class="notice"><strong>頁面說明：</strong>以上發票號碼、統一編號、商品、金額及條碼皆為誠創科技教學示意資料，不代表實際交易；正式發票內容仍以實際系統開立結果為準。</div>
+</article>
+
+
+<article class="panel p2 card">
+<div class="head"><div class="num">02</div><div><h2>手開發票</h2><p>手開型統一發票常見分為二聯式與三聯式，主要差異在於聯數，以及每一聯應由誰留存。</p></div></div>
+
+<div class="summary">
+  <div><b>二聯式發票</b><span>營業人開給一般消費者使用。第一聯存根聯由營業人自己留存；第二聯收執聯交給顧客。</span></div>
+  <div><b>三聯式發票</b><span>營業人開給公司行號使用，也就是公司對公司（B2B）交易。第一聯存根聯由營業人自己留存；第二聯扣抵聯與第三聯收執聯交給顧客。</span></div>
+  <div><b>開立內容</b><span>依實際交易填寫日期、買受人、統編、品名、數量、單價、金額等欄位。</span></div>
+</div>
+
+<div class="manual-grid">
+  <section class="manual-card">
+    <div class="manual-title">
+      <span class="manual-tag">二聯式</span>
+      <h3>統一發票（二聯式）</h3>
+      <p>營業人開給一般消費者使用。二聯式共有兩聯，營業人與顧客各自保留一聯。</p>
+    </div>
+    <div class="manual-photo"><img src="assets/images/types/types-05.jpg" alt="二聯式統一發票實際樣式"></div>
+    <div class="manual-flow">
+      <div class="keep"><b>第一聯｜存根聯</b><span>營業人自己留存</span></div>
+      <div class="arrow">→</div>
+      <div class="give"><b>第二聯｜收執聯</b><span>交給顧客</span></div>
+    </div>
+  </section>
+
+  <section class="manual-card">
+    <div class="manual-title">
+      <span class="manual-tag">三聯式</span>
+      <h3>統一發票（三聯式）</h3>
+      <p>營業人開給公司行號使用，也就是公司對公司（B2B）交易。三聯式共有三聯，其中兩聯交給買受公司行號。</p>
+    </div>
+    <div class="manual-photo"><img src="assets/images/types/types-06.jpg" alt="三聯式統一發票實際樣式"></div>
+    <div class="manual-flow three">
+      <div class="keep"><b>第一聯｜存根聯</b><span>營業人自己留存</span></div>
+      <div class="arrow">→</div>
+      <div class="give"><b>第二聯｜扣抵聯</b><span>交給顧客</span></div>
+      <div class="give"><b>第三聯｜收執聯</b><span>交給顧客</span></div>
+    </div>
+  </section>
+</div>
+
+<div class="manual-compare">
+  <div><strong>二聯式｜營業人 → 一般消費者</strong><p><b>存根聯自己留存，收執聯給顧客。</b></p></div>
+  <div><strong>三聯式｜營業人 → 公司行號（B2B）</strong><p><b>存根聯自己留存，扣抵聯＋收執聯給顧客。</b></p></div>
+</div>
+
+<div class="notice"><strong>簡單記法：</strong>二聯式是「1 留、1 給」；三聯式是「1 留、2 給」。實際開立與使用仍依營業人資格及主管機關規定辦理。</div>
+</article>
+
+<article class="panel p3 card">
+<div class="head"><div class="num">03</div><div><h2>傳統長條型發票</h2><p>常見於傳統收銀機／收銀機統一發票設備列印。這類發票為長條紙本形式，票面可呈現發票號碼、營業人資料、日期、品項、數量、單價與總額等資訊。</p></div></div>
+<div class="traditional-real">
+  <div class="traditional-photo">
+    <img src="assets/images/types/types-07.jpg" alt="傳統長條型收銀機統一發票實際樣式參考">
+  </div>
+  <div class="traditional-copy">
+    <h3>實際樣式｜收銀機統一發票</h3>
+    <p>以實際紙本外觀協助辨識傳統長條型發票。此類型與目前常見的電子發票證明聯不同，通常由收銀機設備直接列印紙本發票。</p>
+    <div class="quick">
+      <div><b>外觀</b><span>長條型紙本，依設備與使用格式列印。</span></div>
+      <div><b>常見內容</b><span>發票號碼、日期、營業人資料、交易品項與金額。</span></div>
+      <div><b>使用方式</b><span>由收銀機／相關發票設備列印後交付顧客。</span></div>
+    </div>
+    <p class="note">圖片僅作為「實際外觀辨識」參考；頁面不直接使用其他業者製作的教學圖解。</p>
+  </div>
+</div>
+<style>
+.traditional-real{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(320px,1.1fr);gap:28px;align-items:center;margin-top:24px}
+.traditional-photo{background:#f7f5f1;border:1px solid #e5e0d8;border-radius:24px;padding:18px;box-shadow:0 14px 38px rgba(40,44,48,.08)}
+.traditional-photo img{display:block;width:100%;height:auto;border-radius:16px;object-fit:contain}
+.traditional-copy h3{font-size:24px;margin:0 0 10px;color:#2f3337}
+.traditional-copy p{line-height:1.85;color:#62666a}
+.traditional-copy .quick{display:grid;gap:10px;margin:18px 0}
+.traditional-copy .quick>div{display:grid;grid-template-columns:88px 1fr;gap:12px;padding:13px 15px;background:#faf9f7;border:1px solid #ebe7e1;border-radius:14px}
+.traditional-copy .quick b{color:#3e4449}
+.traditional-copy .quick span{color:#666}
+.traditional-copy .note{font-size:14px;color:#8a8176}
+@media(max-width:760px){.traditional-real{grid-template-columns:1fr}.traditional-copy .quick>div{grid-template-columns:1fr;gap:4px}}
+</style>
+</section>
+
+
+<div class="actual-modal" id="actualModal" hidden>
+  <button type="button" class="actual-close" aria-label="關閉">×</button>
+  <img id="actualModalImg" alt="發票圖片放大預覽">
+</div>
+<footer>CH 誠創科技｜inv02-12 認識常見發票｜自製教學示意</footer>
+
+<script>
+(()=>{
+  const modal=document.getElementById('actualModal');
+  const img=document.getElementById('actualModalImg');
+  const closeBtn=document.querySelector('.actual-close');
+  document.querySelectorAll('[data-actual-zoom]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      img.src=el.src;
+      modal.hidden=false;
+      document.body.style.overflow='hidden';
+    });
+  });
+  function closeModal(){
+    modal.hidden=true;
+    img.src='';
+    document.body.style.overflow='';
+  }
+  closeBtn.addEventListener('click',closeModal);
+  modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!modal.hidden) closeModal(); });
+})();
+</script>
+
+<div class="ch-back-home"><a href="index.html">← 返回電子發票知識站主頁</a></div>
+
+
+<script>
+function cgToggle(btn){
+  const menu=document.getElementById('cgMenu');
+  if(!menu) return;
+  const open=menu.classList.toggle('cg-open');
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('cgMenu');
+  const btn=document.querySelector('.cg-toggle');
+  if(!menu||!btn||!menu.classList.contains('cg-open')) return;
+  if(!menu.contains(e.target)&&!btn.contains(e.target)){
+    menu.classList.remove('cg-open');
+    btn.setAttribute('aria-expanded','false');
+  }
+});
+</script>
+<footer class="footer" id="contact">
+    <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><a href="index.html" class="footer-service-link"><i data-lucide="receipt-text"></i><b>電子發票</b><span>申請 / 字軌 / 平台教學</span></a><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
+    <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="../index.html#home">首頁</a><a href="../index.html#about">關於我們</a><a href="../index.html#services">服務項目</a><a href="../index.html#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="../index.html#services">POS 系統</a><a href="index.html">電子發票</a><a href="../index.html#services">雲端串接</a><a href="../index.html#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="../index.html#faq">設備了解</a><a href="../index.html#faq">安裝教學</a><a href="../index.html#faq">紙捲規格</a><a href="../index.html#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="../index.html#contactFormModal" data-contact-modal>資訊表單</a><a href="../index.html#contact">保固登記</a><a href="../index.html#news">最新公告</a></div></div>
+    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 8623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
+<span><a class="admin-square-trigger copyright-admin-link" id="adminLoginTrigger"
+             href="../admin/index.html" aria-label="誠創後台登入" title="誠創後台登入">
+            <img src="../favicon.svg" alt="誠創後台入口">
+          </a>
+          Copyright © 2026 CH 誠創科技工作室 All Rights Reserved. 版權所有</span>
+      </div></div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.lucide){ window.lucide.createIcons(); }
+});
+</script>
+
+</body>
+</html>

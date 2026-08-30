@@ -1,0 +1,80 @@
+誠創科技｜電子發票圖片資料夾更換說明
+==================================================
+
+所有電子發票頁面的內嵌圖片已拆出為實體圖片檔案。
+日後只要用「相同檔名」覆蓋圖片即可，不需要修改 HTML。
+
+資料夾分類：
+invoice/assets/images/home/             電子發票主頁
+invoice/assets/images/apply/            申請流程
+invoice/assets/images/types/            發票種類
+invoice/assets/images/number-track/     字軌申請
+invoice/assets/images/platform-tools/   平台操作
+invoice/assets/images/faq/              FAQ
+invoice/assets/images/rules/            服務說明
+invoice/assets/images/calculator/       手開發票工具
+invoice/assets/images/shared/           共用圖片（預留）
+
+圖片清單：
+- apply.html -> assets/images/apply/apply-01.jpg  [embedded]
+- apply.html -> assets/images/apply/apply-02.jpg  [embedded]
+- types.html -> assets/images/types/types-01.png  [embedded]
+- types.html -> assets/images/types/types-02.jpg  [embedded]
+- types.html -> assets/images/types/types-03.jpg  [embedded]
+- types.html -> assets/images/types/types-04.jpg  [embedded]
+- types.html -> assets/images/types/types-05.jpg  [embedded]
+- types.html -> assets/images/types/types-06.jpg  [embedded]
+- types.html -> assets/images/types/types-07.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-01.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-02.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-03.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-04.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-05.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-06.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-07.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-08.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-09.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-10.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-11.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-12.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-13.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-14.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-15.jpg  [embedded]
+- number-track.html -> assets/images/number-track/number-track-16.png  [embedded]
+- number-track.html -> assets/images/number-track/number-track-17.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-01.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-02.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-03.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-04.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-05.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-06.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-07.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-08.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-09.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-10.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-11.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-12.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-13.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-14.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-15.png  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-16.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-17.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-18.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-19.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-20.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-21.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-22.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-23.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-24.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-25.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-26.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-27.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-28.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-29.jpg  [embedded]
+- platform-tools.html -> assets/images/platform-tools/platform-tools-30.jpg  [embedded]
+- calculator.html -> assets/images/calculator/invoice-triplicate-preview.jpg  [existing file]
+
+更換注意：
+1. 建議保持原圖片長寬比例，避免教學畫面變形。
+2. 使用相同副檔名及檔名直接覆蓋最方便。
+3. calculator/invoice-triplicate-preview.jpg 為三聯式發票底圖，請維持 1262×863，才能保留欄位座標。

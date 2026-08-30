@@ -1,0 +1,89 @@
+誠創科技｜電子發票相關問題 QA｜獨立 Google 試算表設定
+========================================================
+
+目的
+----
+電子發票「相關問題 QA」使用自己獨立的一份 Google 試算表與 Apps Script。
+不共用公司主頁原本的 GOOGLE_SHEETS_CONFIG，也不會寫入主頁的「常見問題」工作表。
+
+建議資料架構
+------------
+建立新的 Google 試算表，例如：
+  誠創科技_電子發票QA管理
+
+專用工作表：
+  電子發票相關問題QA
+
+欄位：
+  ID | 分類 | 問題 | 回答 | 排序 | 啟用 | 更新時間
+
+設定步驟
+--------
+1. 建立「全新 Google 試算表」。
+2. 開啟：擴充功能 → Apps Script。
+3. 貼上網站資料夾中的：
+   invoice/INVOICE-QA-GOOGLE-APPS-SCRIPT.gs
+4. Apps Script 專案設定 → 指令碼屬性：
+   INVOICE_ADMIN_KEY = 自行設定一組管理金鑰
+5. 執行 setupInvoiceQaSheet() 一次。
+6. 部署成「網頁應用程式」：
+   執行身分：我
+   存取權：所有人
+7. 複製 Apps Script Web App URL。
+8. 編輯：
+   invoice/config/invoice-google-sheets.js
+   把 webAppUrl 貼上。
+9. 發布 GitHub Pages。
+
+前台
+----
+invoice/faq.html
+會讀取電子發票專用 Google 試算表。
+若網址未設定或 Google 暫時失敗，會自動顯示目前網站內建 QA，不會整頁空白。
+
+後台
+----
+invoice/admin/index.html
+
+可執行：
+- 新增 QA
+- 編輯 QA
+- 刪除 QA
+- 分類
+- 排序
+- 啟用 / 停用
+- 搜尋
+- 重新同步
+
+安全
+----
+管理金鑰不寫在網站程式碼內。
+請放在 Apps Script「指令碼屬性 INVOICE_ADMIN_KEY」。
+後台輸入後只存於 sessionStorage，關閉瀏覽器工作階段後即失效。
+
+與主頁分離
+----------
+公司主頁仍使用原本：
+  window.GOOGLE_SHEETS_CONFIG
+
+電子發票 QA 使用：
+  window.INVOICE_QA_GOOGLE_SHEETS_CONFIG
+
+兩者是不同設定檔、不同 Web App URL、不同 Google 試算表。
+
+
+目前 23 題 QA 一次帶入
+----------------------
+這一版已把網站現在的 23 題「電子發票相關問題 QA」全部寫入 Apps Script。
+
+全新試算表：
+  直接執行 setupInvoiceQaSheet()
+  → 會建立欄位並一次寫入全部 23 題。
+
+已經建立過試算表：
+  執行 importCurrentInvoiceFaqs()
+  → 只補入尚未存在的問題，不會重複新增。
+
+另外也附：
+  invoice/電子發票相關問題QA_一次匯入.csv
+可直接用 Google 試算表「檔案 → 匯入」匯入。

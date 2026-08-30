@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電子發票相關問題 QA｜後台管理</title>
+<link rel="icon" href="../../chlogo.svg">
+<style>
+:root{--bg:#f4f0e9;--paper:#fff;--ink:#303236;--muted:#77736e;--line:#e1dbd2;--dark:#383838;--tea:#a08a74}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+.top{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:12px}.brand img{width:150px;height:48px;object-fit:contain}.top a{color:#555;text-decoration:none;font-size:12px}
+.wrap{width:min(1180px,calc(100% - 28px));margin:26px auto 60px}.head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}.head h1{font-size:25px;margin:0}.head p{margin:6px 0 0;color:var(--muted);font-size:12px}.status{font-size:11px;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid var(--line)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}.login-grid{display:grid;grid-template-columns:1fr auto;gap:10px}.login-grid input,.toolbar input,.toolbar select,.editor input,.editor textarea,.editor select{border:1px solid var(--line);border-radius:9px;padding:10px 11px;font:inherit;background:#fff}.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--dark);color:#fff;font-weight:800;cursor:pointer}.btn.light{background:#f1ede7;color:#444}.btn.danger{background:#7d4b48}.toolbar{display:grid;grid-template-columns:1fr 180px auto auto auto;gap:9px;align-items:center}
+.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:850px}.table th,.table td{border-bottom:1px solid #eee7de;padding:10px 8px;text-align:left;font-size:12px;vertical-align:top}.table th{font-size:11px;color:#777;background:#faf8f5}.qcell{font-weight:800;max-width:320px}.acell{max-width:390px;color:#555;line-height:1.55}
+.editor{display:none}.editor.open{display:block}.editor-grid{display:grid;grid-template-columns:1fr 130px 120px;gap:10px}.editor label{display:grid;gap:5px;font-size:11px;color:#666}.editor .wide{grid-column:1/-1}.editor textarea{min-height:150px;resize:vertical}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.note{font-size:11px;color:#7b736b;line-height:1.7}.empty{text-align:center;padding:28px;color:#888}
+@media(max-width:760px){.top{padding:0 14px}.brand img{width:120px}.head{display:block}.toolbar{grid-template-columns:1fr 1fr}.toolbar .btn{width:100%}.editor-grid{grid-template-columns:1fr}.editor .wide{grid-column:auto}.login-grid{grid-template-columns:1fr}.wrap{margin-top:16px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand"><img src="../../chlogo.svg" alt="誠創科技"><b>電子發票 QA 後台</b></div><a href="../faq.html">查看前台 QA →</a></header>
+<main class="wrap">
+  <div class="head"><div><h1>電子發票相關問題 QA 管理</h1><p>此後台只連線「電子發票專用 Google 試算表」，與公司主頁試算表完全分開。</p></div><div class="status" id="status">尚未連線</div></div>
+
+  <section class="panel" id="keyPanel">
+    <b>管理金鑰</b>
+    <p class="note">請輸入 Apps Script「指令碼屬性」中設定的 <code>INVOICE_ADMIN_KEY</code>。金鑰只保存在目前瀏覽器工作階段。</p>
+    <div class="login-grid"><input id="adminKey" type="password" placeholder="輸入電子發票後台管理金鑰"><button class="btn" id="connectBtn">連線後台</button></div>
+  </section>
+
+  <section class="panel">
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="搜尋問題 / 回答">
+      <select id="catFilter"><option value="">全部分類</option></select>
+      <button class="btn light" id="reloadBtn">重新同步</button><button class="btn light" id="seedBtn">帶入目前 23 題</button>
+      <button class="btn" id="newBtn">＋ 新增 QA</button>
+    </div>
+  </section>
+
+  <section class="panel editor" id="editor">
+    <b id="editorTitle">新增 QA</b>
+    <div class="editor-grid" style="margin-top:12px">
+      <label>分類<input id="fCategory" placeholder="例如：申請與憑證"></label>
+      <label>排序<input id="fSort" type="number" value="100"></label>
+      <label>啟用<select id="fEnabled"><option value="Y">啟用</option><option value="N">停用</option></select></label>
+      <label class="wide">問題<input id="fQuestion"></label>
+      <label class="wide">回答<textarea id="fAnswer"></textarea></label>
+    </div>
+    <div class="actions"><button class="btn light" id="cancelBtn">取消</button><button class="btn" id="saveBtn">儲存並同步</button></div>
+  </section>
+
+  <section class="panel table-wrap">
+    <table class="table"><thead><tr><th>排序</th><th>分類</th><th>問題</th><th>回答</th><th>狀態</th><th>操作</th></tr></thead><tbody id="tbody"><tr><td colspan="6" class="empty">請先連線電子發票專用 Google 試算表。</td></tr></tbody></table>
+  </section>
+</main>
+<script src="../config/invoice-google-sheets.js"></script>
+<script src="invoice-admin.js"></script>
+</body></html>

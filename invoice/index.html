@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>電子發票知識站｜申請・字軌・平台操作・FAQ｜誠創科技</title>
+<meta name="description" content="誠創科技電子發票知識站，提供統一發票申請流程、發票種類、字軌增減、電子發票整合服務平台操作、FAQ、服務說明與三聯式手開發票工具。">
+<link rel="canonical" href="https://chuang-c.com/invoice/">
+<style>
+:root{--bg:#f4f0e9;--paper:#fff;--ink:#303236;--muted:#77736e;--line:#e2ddd4;--tea:#a08a74;--dark:#343434;--soft:#ece5dc}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}body{font-family:"Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);background:#f7f4ef}
+.ch-invoice-global{position:sticky;top:0;z-index:9999;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.cg-wrap{width:min(1200px,calc(100% - 32px));margin:auto;min-height:70px;display:flex;align-items:center;gap:18px}
+.cg-brand{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);font-weight:900;flex:0 0 auto}.cg-brand b{font-size:17px}.cg-brand small{font-size:9px;letter-spacing:.15em;color:#817970;margin-top:3px}
+.cg-menu{display:flex;align-items:center;justify-content:flex-end;gap:3px;flex:1;flex-wrap:wrap}.cg-menu a{color:#3d3a37;text-decoration:none;font-size:12px;font-weight:800;padding:8px 9px;border-radius:8px;white-space:nowrap}.cg-menu a:hover{background:#f0ebe4}.cg-menu .cg-active{background:var(--dark);color:#fff}.cg-menu .cg-company{border:1px solid var(--line);background:#fff;margin-left:4px}
+.cg-toggle{display:none;border:1px solid var(--line);border-radius:9px;background:#fff;padding:6px 10px;font-size:20px}
+.ch-invoice-footer{background:#343434;color:#eee;margin-top:56px}.cf-wrap{width:min(1140px,calc(100% - 32px));margin:auto;padding:30px 0 18px}.cf-main{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:28px}.cf-brand{font-size:18px;font-weight:900;margin-bottom:8px}.cf-desc{font-size:12px;color:#c8c8c8;line-height:1.8}.cf-title{font-size:12px;font-weight:900;margin-bottom:9px}.cf-links{display:flex;flex-direction:column;gap:7px}.cf-links a{color:#d7d7d7;text-decoration:none;font-size:12px}.cf-links a:hover{color:#fff}.cf-copy{border-top:1px solid #4d4d4d;margin-top:22px;padding-top:14px;font-size:11px;color:#aaa;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:980px){.cg-wrap{position:relative;justify-content:space-between;min-height:64px}.cg-toggle{display:block}.cg-menu{display:none;position:absolute;left:0;right:0;top:100%;padding:10px;background:#fff;border:1px solid var(--line);border-radius:0 0 14px 14px;box-shadow:0 12px 28px rgba(0,0,0,.08)}.cg-menu.cg-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.cg-menu a{background:#faf8f4;padding:10px 12px}.cg-menu .cg-company{margin-left:0}}
+@media(max-width:640px){.cg-menu.cg-open{grid-template-columns:1fr}.cf-main{grid-template-columns:1fr}.cg-brand b{font-size:15px}}
+
+.hero{background:linear-gradient(135deg,#fbfaf8 0%,#efe9e0 100%);border-bottom:1px solid var(--line)}
+.hero-wrap{width:min(1200px,calc(100% - 32px));margin:auto;padding:66px 0 48px;display:grid;grid-template-columns:1.12fr .88fr;gap:44px;align-items:center}
+.kicker{font-size:11px;font-weight:900;letter-spacing:.18em;color:var(--tea)}.hero h1{font-size:clamp(38px,5.3vw,64px);line-height:1.08;margin:10px 0 14px;letter-spacing:-.035em}.hero h1 em{font-style:normal;color:#8e7964}.hero p{font-size:15px;line-height:1.95;color:var(--muted);max-width:730px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.hero-actions a{display:inline-flex;align-items:center;gap:6px;text-decoration:none;border-radius:10px;padding:11px 16px;font-size:13px;font-weight:900}.hero-actions .primary{background:var(--dark);color:#fff}.hero-actions .secondary{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.status-board{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 20px 55px rgba(56,47,39,.09)}.status-board .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}.status-board .top b{font-size:18px}.status-board .top span{font-size:10px;font-weight:900;padding:6px 8px;border-radius:999px;background:#eee8df;color:#756656}
+.route{display:grid;gap:9px}.route a{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;color:inherit;text-decoration:none;background:#faf8f5;border:1px solid #eee7de;border-radius:11px;padding:10px 11px}.route a:hover{background:#f1ebe3}.route i{font-style:normal;width:28px;height:28px;border-radius:50%;background:#3b3b3b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900}.route strong{font-size:12px}.route small{font-size:10px;color:#928b83}
+.quick{width:min(1200px,calc(100% - 32px));margin:-18px auto 0;position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.quick a{background:#fff;border:1px solid var(--line);box-shadow:0 8px 22px rgba(48,42,36,.05);border-radius:14px;padding:16px;text-decoration:none;color:inherit}.quick span{display:block;font-size:10px;color:var(--tea);font-weight:900;letter-spacing:.1em}.quick b{display:block;font-size:14px;margin:5px 0 4px}.quick small{font-size:11px;color:var(--muted)}
+.section{width:min(1200px,calc(100% - 32px));margin:auto;padding:58px 0 10px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}.section-head h2{font-size:28px;margin:5px 0 0}.section-head p{margin:0;color:var(--muted);font-size:12px}
+.directory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.directory-card{position:relative;min-height:205px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:21px;text-decoration:none;color:inherit;display:flex;flex-direction:column;transition:.18s;overflow:hidden}.directory-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(48,42,36,.08)}.directory-card:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;background:#f1ece5;right:-35px;top:-35px}.page-no{font-size:10px;letter-spacing:.16em;font-weight:900;color:var(--tea);position:relative;z-index:1}.directory-card h3{font-size:18px;margin:10px 0 9px;position:relative;z-index:1}.directory-card p{font-size:12px;color:var(--muted);line-height:1.75;margin:0;flex:1;position:relative;z-index:1}.card-link{font-size:12px;font-weight:900;margin-top:15px;position:relative;z-index:1}.directory-card.featured{background:#373737;color:#fff;border-color:#373737}.directory-card.featured p,.directory-card.featured .page-no{color:#d6cec5}.directory-card.featured:after{background:#454545}
+.help-band{width:min(1200px,calc(100% - 32px));margin:48px auto 0;background:#e9e2d8;border:1px solid #ddd3c7;border-radius:20px;padding:25px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:18px}.help-band h3{font-size:19px;margin:0 0 6px}.help-band p{font-size:12px;color:#706a64;margin:0}.help-band a{text-decoration:none;background:#363636;color:#fff;padding:10px 15px;border-radius:9px;font-size:12px;font-weight:900}
+@media(max-width:940px){.hero-wrap{grid-template-columns:1fr}.quick{grid-template-columns:repeat(2,minmax(0,1fr))}.directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.hero-wrap{padding:42px 0 34px}.quick{grid-template-columns:1fr}.directory-grid{grid-template-columns:1fr}.section-head{display:block}.section-head p{margin-top:7px}.help-band{grid-template-columns:1fr}.help-band a{text-align:center}}
+
+
+/* ===== 公司主頁同款頁尾：電子發票各頁共用 ===== */
+.footer{
+  --footer-charcoal:#3d3a38;
+  --footer-muted:#77736e;
+  --footer-gold:#d5a77f;
+  --footer-line:#e6ddd3;
+  font-family:"Microsoft JhengHei",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  width:100%;
+  margin-top:56px;
+  color:#303236;
+  background:#fff;
+}
+.footer *{box-sizing:border-box}
+.footer .container{width:min(1056px,calc(100% - 32px));margin-left:auto;margin-right:auto}
+.footer .footer-service-strip{background:#faf7f2;border-top:1px solid #e9e0d7}
+.footer .footer-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;padding:34px 0}
+.footer .footer-cards>div,
+.footer .footer-cards>a{
+  min-width:0;background:#fff;border:1px solid #e6ddd3;border-radius:15px;
+  padding:22px;text-align:center;color:#222;text-decoration:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.footer .footer-cards svg{width:25px;height:25px;stroke-width:1.8}
+.footer .footer-cards b,.footer .footer-cards span{display:block}
+.footer .footer-cards b{margin:7px 0;font-size:14px;font-weight:700}
+.footer .footer-cards span{font-size:12px;color:var(--footer-muted)}
+.footer .footer-links{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px;padding:38px 0;
+}
+.footer .footer-links>div{min-width:0}
+.footer .footer-links h4{
+  margin:0 0 18px;font-size:18px;font-weight:700;
+  border-bottom:1px solid #ded6cf;padding-bottom:10px;color:#222;
+}
+.footer .footer-links a{
+  display:block;margin:9px 0;color:#444;text-decoration:none;font-size:14px;line-height:1.45;
+}
+.footer .footer-links a:hover{text-decoration:underline}
+.footer .footer-main{background:var(--footer-charcoal);color:#fff;padding-top:45px}
+.footer .footer-main-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.footer .footer-logo{display:flex;gap:18px;align-items:center}
+.footer .footer-logo>img{width:132px;height:102px;object-fit:contain;flex:0 0 auto}
+.footer .footer-logo div{display:grid}
+.footer .footer-logo strong{
+  font-size:24px;color:var(--footer-gold);letter-spacing:.18em;line-height:1.5;font-weight:700;
+}
+.footer .footer-logo small{font-size:9px;color:var(--footer-gold);letter-spacing:.02em}
+.footer .footer-brand p{text-align:center;color:var(--footer-gold);margin:12px 0 0}
+.footer .company-info{display:grid;gap:9px}
+.footer .company-info h3{margin:0 0 6px;font-size:23px;color:#fff}
+.footer .company-info a,.footer .company-info span{
+  display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-size:14px;line-height:1.55;
+}
+.footer .company-info svg{width:21px;height:21px;color:var(--footer-gold);stroke:var(--footer-gold)}
+.footer .copyright{
+  border-top:1px solid rgba(255,255,255,.22);
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;padding:20px 0;margin-top:28px;width:min(1056px,calc(100% - 32px));
+}
+.footer .copyright>span{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  width:auto;margin:0 auto;text-align:center;color:#fff;font-size:13px;
+}
+.footer .copyright-admin-link{
+  width:24px;height:24px;border-radius:6px;background:#f4f1ec;
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.footer .copyright-admin-link img{width:19px;height:19px;object-fit:contain}
+@media(max-width:1000px){
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .footer .footer-main-grid{grid-template-columns:1fr;gap:30px}
+}
+@media(max-width:640px){
+  .footer .container{width:min(100% - 28px,1056px)}
+  .footer .footer-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:24px 0}
+  .footer .footer-cards>div,.footer .footer-cards>a{padding:16px 10px;min-height:108px}
+  .footer .footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding:30px 0}
+  .footer .footer-links h4{font-size:15px}
+  .footer .footer-links a{font-size:13px}
+  .footer .footer-main{padding-top:32px}
+  .footer .footer-logo{justify-content:center}
+  .footer .footer-logo>img{width:102px;height:78px}
+  .footer .footer-logo strong{font-size:18px}
+  .footer .footer-brand p{text-align:center}
+  .footer .company-info{max-width:520px;margin:0 auto;width:100%}
+  .footer .company-info h3{text-align:center;font-size:19px}
+  .footer .company-info a,.footer .company-info span{font-size:12px}
+  .footer .copyright{padding:17px 0}
+  .footer .copyright>span{font-size:11px;line-height:1.6;flex-wrap:wrap}
+}
+
+
+/* V9 公司頁尾校正：電子發票功能卡外框 + 所有權置中 */
+.footer .footer-cards>a.footer-service-link{
+  background:#fff!important;
+  border:1px solid #e6ddd3!important;
+  border-radius:15px!important;
+  padding:22px!important;
+  color:#222!important;
+  text-decoration:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.footer .copyright{
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin:28px auto 0!important;
+}
+.footer .copyright>span{
+  display:inline-flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  width:auto!important;
+}
+
+
+/* V10 電子發票品牌 LOGO */
+.cg-brand{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  min-width:210px;text-decoration:none!important;
+}
+.cg-brand .invoice-brand-logo{
+  display:block!important;width:210px!important;height:52px!important;
+  max-width:100%!important;object-fit:contain!important;object-position:left center!important;
+}
+.cg-brand b,.cg-brand small{display:none!important}
+@media(max-width:640px){
+  .cg-brand{min-width:0!important}
+  .cg-brand .invoice-brand-logo{width:165px!important;height:44px!important}
+}
+
+</style>
+</head>
+<body>
+<div class="ch-invoice-global">
+  <div class="cg-wrap">
+    <a class="cg-brand" href="index.html"><img class="invoice-brand-logo" src="../chlogo.svg" alt="誠創科技｜電子發票知識站"></a>
+    <button class="cg-toggle" type="button" aria-label="開啟目錄" aria-expanded="false" onclick="cgToggle(this)">☰</button>
+    <nav class="cg-menu" id="cgMenu" aria-label="電子發票知識站目錄">
+      <a class="cg-active" href="index.html">主頁</a>
+      <a href="apply.html">申請流程</a>
+      <a href="types.html">發票種類</a>
+      <a href="number-track.html">字軌申請</a>
+      <a href="platform-tools.html">平台操作</a>
+      <a href="faq.html">相關問題 QA</a>
+      <a href="rules.html">服務說明</a>
+      <a href="calculator.html">手開發票工具</a>
+      <a class="cg-company" href="../index.html">誠創科技首頁</a>
+    </nav>
+  </div>
+</div>
+<main>
+<section class="hero">
+  <div class="hero-wrap">
+    <div>
+      <div class="kicker">CH E-INVOICE KNOWLEDGE CENTER</div>
+      <h1>電子發票<br><em>知識與操作中心</em></h1>
+      <p>將申請、發票種類、字軌、平台設定、相關問題與手開發票工具集中在同一個入口。第一次導入可依流程閱讀；已經使用中的營業人，也可以直接從上方目錄快速找到需要的操作。</p>
+      <div class="hero-actions">
+        <a class="primary" href="apply.html">第一次申請從這裡開始 →</a>
+        <a class="secondary" href="calculator.html">開啟手開發票工具</a>
+      </div>
+    </div>
+    <aside class="status-board">
+      <div class="top"><b>第一次導入建議順序</b><span>4 STEP</span></div>
+      <div class="route">
+        <a href="apply.html"><i>01</i><strong>確認申請方式與資格</strong><small>申請流程 →</small></a>
+        <a href="number-track.html"><i>02</i><strong>申請或增加發票字軌</strong><small>字軌教學 →</small></a>
+        <a href="platform-tools.html"><i>03</i><strong>完成平台設定與授權</strong><small>平台操作 →</small></a>
+        <a href="faq.html"><i>04</i><strong>正式使用與相關問題</strong><small>相關問題 QA →</small></a>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="quick" aria-label="快速入口">
+  <a href="apply.html"><span>START</span><b>我要申請電子發票</b><small>從資格與申請流程開始</small></a>
+  <a href="number-track.html"><span>TRACK</span><b>我要增加字軌組數</b><small>線上／書面申請方式</small></a>
+  <a href="platform-tools.html"><span>PLATFORM</span><b>我要操作電子發票平台</b><small>取號、空白、申報與授權</small></a>
+  <a href="faq.html"><span>相關問題 QA</span><b>我遇到電子發票問題</b><small>直接查相關問題與時限</small></a>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div><div class="kicker">COMPLETE GUIDE</div><h2>完整教學目錄</h2></div>
+    <p>七個頁面皆可從上方目錄互相切換。</p>
+  </div>
+  <div class="directory-grid">
+    <a class="directory-card" href="apply.html"><div class="page-no">PAGE 01</div><h3>統一發票申請流程</h3><p>電子發票、手開發票及傳統發票申請方式，並整理電子發票通過後的首次設定流程。</p><div class="card-link">查看申請流程 →</div></a>
+    <a class="directory-card" href="types.html"><div class="page-no">PAGE 02</div><h3>認識常見發票</h3><p>電子發票、二聯式／三聯式手開發票及傳統長條型發票的用途、聯別與差異。</p><div class="card-link">認識發票種類 →</div></a>
+    <a class="directory-card" href="number-track.html"><div class="page-no">PAGE 03</div><h3>字軌增加／減少申請</h3><p>財政部線上申辦、郵寄／臨櫃書面申請，以及工商憑證與自然人憑證說明。</p><div class="card-link">查看字軌教學 →</div></a>
+    <a class="directory-card" href="platform-tools.html"><div class="page-no">PAGE 04</div><h3>平台常用功能</h3><p>字軌取號、空白發票、媒體申報檔、工商憑證授權及種子密碼等平台操作。</p><div class="card-link">進入平台教學 →</div></a>
+    <a class="directory-card" href="faq.html"><div class="page-no">PAGE 05</div><h3>電子發票相關問題 QA</h3><p>申請、憑證、上傳時限、字軌、作廢折讓、列印與日常操作相關問題整理。</p><div class="card-link">查詢相關問題 →</div></a>
+    <a class="directory-card" href="rules.html"><div class="page-no">PAGE 06</div><h3>相關服務說明</h3><p>統編／載具／捐贈碼檢查、重複開立規範與電子發票使用時的必要提醒。</p><div class="card-link">查看服務說明 →</div></a>
+    <a class="directory-card featured" href="calculator.html"><div class="page-no">PAGE 07 · TOOL</div><h3>三聯式手開發票小幫手</h3><p>統編自動帶入、商品計算、未稅外加、含稅逐項倒算與三聯式發票即時填寫預覽。</p><div class="card-link">立即使用工具 →</div></a>
+  </div>
+</section>
+
+
+<section class="help-band">
+  <div><h3>電子發票相關服務</h3><p>需要從公司網站查看 POS、設備或其他系統整合服務，可直接返回誠創科技主頁。</p></div>
+  <a href="../index.html">返回誠創科技首頁</a>
+</section>
+</main>
+
+<script>
+function cgToggle(btn){
+  const menu=document.getElementById('cgMenu');
+  if(!menu)return;
+  const open=menu.classList.toggle('cg-open');
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('cgMenu');
+  const btn=document.querySelector('.cg-toggle');
+  if(!menu||!btn||!menu.classList.contains('cg-open'))return;
+  if(!menu.contains(e.target)&&!btn.contains(e.target)){
+    menu.classList.remove('cg-open');
+    btn.setAttribute('aria-expanded','false');
+  }
+});
+</script>
+<footer class="footer" id="contact">
+    <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><a href="index.html" class="footer-service-link"><i data-lucide="receipt-text"></i><b>電子發票</b><span>申請 / 字軌 / 平台教學</span></a><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
+    <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="../index.html#home">首頁</a><a href="../index.html#about">關於我們</a><a href="../index.html#services">服務項目</a><a href="../index.html#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="../index.html#services">POS 系統</a><a href="index.html">電子發票</a><a href="../index.html#services">雲端串接</a><a href="../index.html#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="../index.html#faq">設備了解</a><a href="../index.html#faq">安裝教學</a><a href="../index.html#faq">紙捲規格</a><a href="../index.html#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="../index.html#contactFormModal" data-contact-modal>資訊表單</a><a href="../index.html#contact">保固登記</a><a href="../index.html#news">最新公告</a></div></div>
+    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 8623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
+<span><a class="admin-square-trigger copyright-admin-link" id="adminLoginTrigger"
+             href="../admin/index.html" aria-label="誠創後台登入" title="誠創後台登入">
+            <img src="../favicon.svg" alt="誠創後台入口">
+          </a>
+          Copyright © 2026 CH 誠創科技工作室 All Rights Reserved. 版權所有</span>
+      </div></div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  if(window.lucide){ window.lucide.createIcons(); }
+});
+</script>
+
+</body>
+</html>
