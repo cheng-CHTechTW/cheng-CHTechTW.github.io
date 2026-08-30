@@ -261,6 +261,25 @@ body.invoice-form-lock{overflow:hidden!important}
 <meta name="twitter:description" content="電子發票申請流程、發票種類、字軌申請、電子發票整合服務平台操作、常見問題與手開發票工具完整整理。">
 <meta name="twitter:image" content="https://chuang-c.com/og-share.jpg">
 <script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebPage","name":"電子發票申請與操作教學｜誠創科技電子發票知識中心","description":"電子發票申請流程、發票種類、字軌申請、電子發票整合服務平台操作、常見問題與手開發票工具完整整理。","url":"https://chuang-c.com/invoice/","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"誠創科技","url":"https://chuang-c.com/"},"publisher":{"@type":"Organization","name":"誠創科技工作室","url":"https://chuang-c.com/","telephone":"+886-2-6623-7091","email":"service@chuang-c.com"}}</script>
+<script src="../assets/js/google-sheets-config.js"></script>
+<style>
+/* V26 與主頁相同的送出成功視窗 */
+.submit-success-modal{position:fixed;inset:0;z-index:10100;display:grid;place-items:center;padding:18px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
+.submit-success-modal.open{opacity:1;visibility:visible;pointer-events:auto}
+.submit-success-backdrop{position:absolute;inset:0;background:rgba(28,31,31,.52);backdrop-filter:blur(6px)}
+.submit-success-dialog{position:relative;z-index:1;width:min(420px,100%);padding:34px 30px 28px;border:1px solid #dfe8e1;border-radius:24px;background:#fff;text-align:center;box-shadow:0 30px 90px rgba(18,35,23,.22);transform:translateY(12px) scale(.97);transition:transform .28s ease}
+.submit-success-modal.open .submit-success-dialog{transform:translateY(0) scale(1)}
+.submit-success-icon{width:84px;height:84px;margin:0 auto 14px}.submit-success-icon svg{width:100%;height:100%;overflow:visible}
+.success-circle{fill:#54a568;stroke:#54a568;stroke-width:3;stroke-dasharray:170;stroke-dashoffset:170;transform-origin:50% 50%}
+.success-check{fill:none;stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:42;stroke-dashoffset:42}
+.submit-success-modal.open .success-circle{animation:successCircleDraw .48s ease forwards}
+.submit-success-modal.open .success-check{animation:successCheckDraw .4s .38s ease forwards}
+@keyframes successCircleDraw{0%{stroke-dashoffset:170;transform:scale(.76)}70%{transform:scale(1.08)}100%{stroke-dashoffset:0;transform:scale(1)}}
+@keyframes successCheckDraw{to{stroke-dashoffset:0}}
+.submit-success-kicker{display:block;margin-top:2px;font-size:9px;font-weight:900;letter-spacing:.18em;color:#54805f}
+.submit-success-dialog h3{margin:7px 0 9px;font-size:24px;color:#3c4540}.submit-success-dialog p{margin:0 auto 20px;max-width:330px;font-size:12px;line-height:1.8;color:#6d756f}.submit-success-dialog p b{color:#478359}
+.submit-success-close-btn{min-width:120px;min-height:42px;border:0;border-radius:999px;background:#54a568;color:#fff;font-weight:800;cursor:pointer}.submit-success-dialog small{display:block;margin-top:10px;font-size:9px;color:#999}
+</style>
 </head>
 <body>
 <div class="ch-invoice-global">
@@ -436,6 +455,87 @@ document.addEventListener('DOMContentLoaded',function(){
     </form>
   </div>
 </div>
-<script>/* V21-INVOICE-FORM-MODAL */(function(){const m=document.getElementById("invoiceFormModal"),f=document.getElementById("invoiceQuickInquiryForm"),s=document.getElementById("invoiceFormMsg");if(!m||!f)return;function o(){m.classList.add("open");m.setAttribute("aria-hidden","false");document.body.classList.add("invoice-form-lock")}function c(){m.classList.remove("open");m.setAttribute("aria-hidden","true");document.body.classList.remove("invoice-form-lock")}document.addEventListener("click",function(e){const a=e.target.closest("[data-open-invoice-form]");if(a){e.preventDefault();o();return}const x=e.target.closest("[data-invoice-form-close]");if(x&&m.contains(x)){e.preventDefault();c()}});document.addEventListener("keydown",e=>{if(e.key==="Escape")c()});f.addEventListener("submit",async function(e){e.preventDefault();const b=f.querySelector(".invoice-form-submit");b.disabled=true;s.textContent="表單送出中…";try{const d=Object.fromEntries(new FormData(f).entries()),g=window.GOOGLE_SHEETS_CONFIG||{},u=g.webAppUrl||g.googleScriptUrl||g.url||"";if(!u)throw 0;await fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({type:"submitForm",formType:"quote",siteId:"chengchuang",...d,pageUrl:location.href})});f.reset();s.className="invoice-form-msg ok";s.textContent="完成送出表單";setTimeout(c,1800)}catch(x){s.className="invoice-form-msg err";s.textContent="目前無法送出，請使用 LINE、電話或 Email 與我們聯繫。"}finally{b.disabled=false}})})();</script>
+
+<div class="submit-success-modal" id="invoiceSubmitSuccessModal" aria-hidden="true">
+  <div class="submit-success-backdrop" data-invoice-submit-success-close></div>
+  <div class="submit-success-dialog" role="dialog" aria-modal="true" aria-labelledby="invoiceSubmitSuccessTitle">
+    <div class="submit-success-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <circle class="success-circle" cx="32" cy="32" r="27"></circle>
+        <path class="success-check" d="M19 33.5 28.5 43 46 23"></path>
+      </svg>
+    </div>
+    <span class="submit-success-kicker">FORM SUBMITTED</span>
+    <h3 id="invoiceSubmitSuccessTitle">完成送出表單</h3>
+    <p>本公司會盡快與您聯繫，或加入官方 LINE：<b>@905dqqgw</b></p>
+    <button type="button" class="submit-success-close-btn" data-invoice-submit-success-close>了解</button>
+    <small id="invoiceSubmitSuccessCountdown">10 秒後自動關閉</small>
+  </div>
+</div>
+<script>/* V26-INVOICE-FORM-SAME-AS-MAIN */
+(function(){
+  const GS_URL=(window.GOOGLE_SHEETS_CONFIG&&window.GOOGLE_SHEETS_CONFIG.webAppUrl)||'';
+  const modal=document.getElementById('invoiceFormModal');
+  const form=document.getElementById('invoiceQuickInquiryForm');
+  const msg=document.getElementById('invoiceFormMsg');
+  const success=document.getElementById('invoiceSubmitSuccessModal');
+  const countdown=document.getElementById('invoiceSubmitSuccessCountdown');
+  if(!modal||!form)return;
+
+  let successTimer=null,countdownTimer=null;
+  function openForm(){modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.classList.add('invoice-form-lock')}
+  function closeForm(){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.classList.remove('invoice-form-lock')}
+  function closeSuccess(){if(!success)return;clearTimeout(successTimer);clearInterval(countdownTimer);success.classList.remove('open');success.setAttribute('aria-hidden','true');document.body.classList.remove('invoice-form-lock')}
+  function openSuccess(){
+    if(!success)return;
+    clearTimeout(successTimer);clearInterval(countdownTimer);
+    let left=10;if(countdown)countdown.textContent=left+' 秒後自動關閉';
+    success.classList.add('open');success.setAttribute('aria-hidden','false');document.body.classList.add('invoice-form-lock');
+    countdownTimer=setInterval(function(){left--;if(countdown&&left>0)countdown.textContent=left+' 秒後自動關閉';if(left<=0)clearInterval(countdownTimer)},1000);
+    successTimer=setTimeout(closeSuccess,10000);
+  }
+  async function googleSheetsPost(action,data){
+    if(!GS_URL)throw new Error('GOOGLE_SHEETS_NOT_CONFIGURED');
+    const res=await fetch(GS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:action,data:data}),redirect:'follow'});
+    if(!res.ok)throw new Error('Google Sheets API '+res.status);
+    return await res.json();
+  }
+
+  document.addEventListener('click',function(e){
+    const opener=e.target.closest('[data-open-invoice-form]');
+    if(opener){e.preventDefault();openForm();return}
+    if(e.target.closest('[data-invoice-form-close]')){e.preventDefault();closeForm();return}
+    if(e.target.closest('[data-invoice-submit-success-close]')){e.preventDefault();closeSuccess()}
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(success&&success.classList.contains('open'))closeSuccess();else closeForm()}});
+
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    const fd=new FormData(form);
+    const payload={
+      storeName:String(fd.get('storeName')||'').trim(),
+      contactName:String(fd.get('contactName')||'').trim(),
+      phone:String(fd.get('phone')||'').trim(),
+      line:String(fd.get('line')||'').trim(),
+      email:String(fd.get('email')||'').trim(),
+      businessStatus:String(fd.get('businessStatus')||'').trim(),
+      service:String(fd.get('service')||'').trim(),
+      note:String(fd.get('note')||'').trim()
+    };
+    if(!payload.storeName||!payload.contactName||!payload.phone||!payload.businessStatus){
+      msg.className='invoice-form-msg err';msg.textContent='請填寫必填欄位：店家／公司名稱、聯絡人姓名、聯繫電話、門店狀態。';return;
+    }
+    const btn=form.querySelector('.invoice-form-submit'),old=btn.textContent;
+    btn.disabled=true;btn.textContent='送出中...';msg.textContent='';msg.className='invoice-form-msg';
+    try{
+      const result=await googleSheetsPost('submitInquiry',payload);
+      if(!result||!result.ok)throw new Error((result&&result.error)||'submit_failed');
+      form.reset();closeForm();setTimeout(openSuccess,120);
+    }catch(err){
+      console.error(err);msg.className='invoice-form-msg err';msg.textContent='送出失敗，請稍後再試或使用電話、LINE 聯繫。';
+    }finally{btn.disabled=false;btn.textContent=old}
+  });
+})();
+</script>
 </body>
 </html>
