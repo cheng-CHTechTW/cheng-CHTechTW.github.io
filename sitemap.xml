@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://www.chuang-c.com/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://www.chuang-c.com/news/</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url><loc>https://chuang-c.com/invoice/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/apply.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/number-track.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/types.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/rules.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/faq.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/calculator.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/business-certificate.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://chuang-c.com/invoice/natural-person-certificate.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://chuang-c.com/admin.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/home.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://chuang-c.com/invoice/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/apply.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/calculator.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/faq.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/number-track.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/platform-tools.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/rules.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/invoice/types.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://chuang-c.com/news/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
 </urlset>

@@ -18,7 +18,7 @@
 - CH 誠創 科技·設計
 - https://chuang-c.com/
 - service@chuang-c.com
-- (02) 8623-7091
+- (02) 6623-7091
 - @905dqqgw
 - https://lin.ee/N8TErfC
 - 新北市淡水區水源街二段177巷104號6樓
