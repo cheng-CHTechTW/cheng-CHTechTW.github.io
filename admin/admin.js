@@ -18,7 +18,7 @@ const GOOGLE_SHEETS_ADMIN_CONFIG = window.GOOGLE_SHEETS_CONFIG || {};
     adminEntry:'版權列左側菱形 ICON',
     company:{
       name:'誠創科技工作室',
-      phone:'(02) 8623-7091',
+      phone:'(02) 6623-7091',
       phoneHref:'tel:+886286237091',
       email:'service@chuang-c.com',
       emailHref:'mailto:service@chuang-c.com',

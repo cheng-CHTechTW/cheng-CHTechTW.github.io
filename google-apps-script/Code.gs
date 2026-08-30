@@ -586,7 +586,7 @@ function seedCompanyInfo_() {
     ['website','官方網站','https://chuang-c.com/',true,now],
     ['email','公司信箱','service@chuang-c.com',true,now],
     ['inquiry_email','主要接收Email','service@chuang-c.com',false,now],
-    ['phone','聯絡電話','(02) 8623-7091',true,now],
+    ['phone','聯絡電話','(02) 6623-7091',true,now],
     ['line_id','LINE ID','@905dqqgw',true,now],
     ['line_url','LINE 官方連結','https://lin.ee/N8TErfC',true,now],
     ['address','公司地址','新北市淡水區水源街二段177巷104號6樓',true,now],
