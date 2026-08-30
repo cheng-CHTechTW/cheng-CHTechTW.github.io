@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>申請增加／減少發票字軌號碼組數｜誠創科技</title>
-<meta name="description" content="電子發票相關申請教學：增加或減少發票字軌號碼組數，可採線上申辦或書面申請，並認識自然人憑證與工商憑證。">
+<title>電子發票字軌增加與減少組數申請教學｜誠創科技</title>
 <style>
 :root{--bg:#f5f1eb;--paper:#fff;--ink:#34312e;--muted:#746d66;--line:#e1d9d0;--tea:#94765c;--tea2:#eee5db;--dark:#403d39;--soft:#faf8f5;--green:#5f7465;--blue:#5e7388;--warn:#fff7e6}
 *{box-sizing:border-box}
@@ -257,6 +256,13 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:10px}
   .cg-brand .invoice-brand-logo{width:165px!important;height:44px!important}
 }
 
+
+/* V18 電子發票右側聯絡快捷按鈕 */
+.invoice-quick-actions{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;gap:8px}
+.invoice-quick-btn{width:58px;min-height:58px;padding:7px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#fff;color:#343434;border:1px solid rgba(52,52,52,.14);border-radius:14px;text-decoration:none!important;box-shadow:0 6px 20px rgba(0,0,0,.10);font-size:10px;font-weight:700;line-height:1.1;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.invoice-quick-btn svg{width:20px;height:20px;stroke-width:1.8}
+.invoice-quick-btn:hover{transform:translateX(-3px);background:#f7f4ef;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+@media(max-width:760px){.invoice-quick-actions{right:8px;top:auto;bottom:18px;transform:none;gap:6px}.invoice-quick-btn{width:48px;min-height:48px;border-radius:12px;padding:5px 2px;font-size:9px}.invoice-quick-btn svg{width:18px;height:18px}}
 </style>
 
 
@@ -336,6 +342,89 @@ footer{text-align:center;padding:26px;color:var(--muted);font-size:10px}
 #lb-16:checked ~ #lightbox-16{display:flex}
 #lb-17:checked ~ #lightbox-17{display:flex}
 @media(max-width:700px){.radio-lightbox .lb-inner{padding:58px 8px 54px}.radio-lightbox img{max-width:98vw;max-height:84vh}.lb-nav{top:auto;bottom:12px;transform:none;width:42px;height:42px;border-radius:50%;font-size:24px}.lb-prev{left:14px}.lb-next{right:14px}.lb-count{bottom:18px}}</style>
+<link rel="icon" type="image/svg+xml" href="../chlogo.svg">
+<link rel="shortcut icon" href="../chlogo.svg">
+<link rel="apple-touch-icon" href="../chlogo.svg">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+/* V22 電子發票諮詢表單：完整彈窗樣式 */
+.invoice-form-modal{
+  position:fixed!important;inset:0!important;z-index:10050!important;
+  display:none!important;align-items:center!important;justify-content:center!important;
+  padding:20px!important;box-sizing:border-box!important;
+}
+.invoice-form-modal.open{display:flex!important}
+.invoice-form-backdrop{
+  position:absolute!important;inset:0!important;background:rgba(20,20,20,.58)!important;
+  backdrop-filter:blur(3px)!important;-webkit-backdrop-filter:blur(3px)!important;
+}
+.invoice-form-dialog{
+  position:relative!important;z-index:1!important;width:min(720px,100%)!important;
+  max-height:90vh!important;overflow:auto!important;background:#fff!important;
+  border-radius:20px!important;padding:28px!important;box-sizing:border-box!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.28)!important;color:#343434!important;
+}
+.invoice-form-close{
+  position:absolute!important;right:16px!important;top:12px!important;border:0!important;
+  background:transparent!important;font-size:30px!important;color:#555!important;cursor:pointer!important;
+}
+.invoice-form-head small{letter-spacing:.16em!important;color:#8b7a68!important;font-weight:700!important}
+.invoice-form-head h2{margin:6px 0 4px!important;font-size:27px!important;color:#333!important}
+.invoice-form-head p{margin:0 0 20px!important;color:#777!important}
+.invoice-form-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:14px!important}
+.invoice-form-grid label{display:flex!important;flex-direction:column!important;gap:7px!important;font-size:14px!important;font-weight:700!important;color:#4a4a4a!important}
+.invoice-form-grid label b{color:#9d5b4b!important}
+.invoice-form-grid input,.invoice-form-grid select,.invoice-form-grid textarea{
+  width:100%!important;box-sizing:border-box!important;border:1px solid #d8d5d0!important;
+  border-radius:10px!important;background:#faf9f7!important;padding:11px 12px!important;
+  font:inherit!important;color:#333!important;outline:none!important;
+}
+.invoice-form-grid input:focus,.invoice-form-grid select:focus,.invoice-form-grid textarea:focus{border-color:#8f8273!important;background:#fff!important}
+.invoice-form-wide{grid-column:1/-1!important}
+.invoice-form-actions{display:flex!important;justify-content:flex-end!important;gap:10px!important;margin-top:20px!important}
+.invoice-form-actions button{border-radius:10px!important;padding:10px 20px!important;font-weight:700!important;cursor:pointer!important}
+.invoice-form-cancel{border:1px solid #d5d0c9!important;background:#fff!important;color:#555!important}
+.invoice-form-submit{border:1px solid #343434!important;background:#343434!important;color:#fff!important}
+.invoice-form-msg{margin-top:12px!important;text-align:right!important;font-size:13px!important}
+.invoice-form-msg.ok{color:#287744!important}.invoice-form-msg.err{color:#a33!important}
+body.invoice-form-lock{overflow:hidden!important}
+@media(max-width:650px){
+  .invoice-form-modal{padding:10px!important}
+  .invoice-form-dialog{padding:24px 16px 18px!important;border-radius:16px!important}
+  .invoice-form-grid{grid-template-columns:1fr!important}
+  .invoice-form-wide{grid-column:auto!important}
+}
+</style>
+<style>/* V24 表單排版修正 */
+.invoice-form-dialog *{box-sizing:border-box!important}
+.invoice-form-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:16px 18px!important;align-items:start!important}
+.invoice-field{display:flex!important;flex-direction:column!important;min-width:0!important;gap:7px!important}
+.invoice-field>label{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:4px!important;margin:0!important;padding:0!important;width:100%!important;min-height:20px!important;font-size:14px!important;font-weight:700!important;line-height:1.35!important;color:#4a4a4a!important}
+.invoice-field>label .req{display:inline-block!important;flex:0 0 auto!important;color:#b34f42!important;font-weight:800!important;line-height:1!important}
+.invoice-field>input,.invoice-field>select,.invoice-field>textarea{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+.invoice-field>textarea{resize:vertical!important;min-height:105px!important}
+.invoice-form-wide{grid-column:1/-1!important}
+@media(max-width:650px){.invoice-form-grid{grid-template-columns:minmax(0,1fr)!important;gap:13px!important}.invoice-form-wide{grid-column:1!important}.invoice-form-dialog{width:100%!important;max-height:92vh!important}}
+</style>
+<!-- V25 SEO -->
+<meta name="description" content="電子發票字軌號碼組數增加或減少申請教學，包含線上申辦、書面申請、自然人憑證與工商憑證操作說明。">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="googlebot" content="index,follow">
+<meta name="author" content="誠創科技工作室">
+<link rel="canonical" href="https://chuang-c.com/invoice/number-track.html">
+<meta property="og:title" content="電子發票字軌增加與減少組數申請教學｜誠創科技">
+<meta property="og:description" content="電子發票字軌號碼組數增加或減少申請教學，包含線上申辦、書面申請、自然人憑證與工商憑證操作說明。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chuang-c.com/invoice/number-track.html">
+<meta property="og:site_name" content="誠創科技">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:image" content="https://chuang-c.com/og-share.jpg">
+<meta property="og:image:alt" content="誠創科技">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="電子發票字軌增加與減少組數申請教學｜誠創科技">
+<meta name="twitter:description" content="電子發票字軌號碼組數增加或減少申請教學，包含線上申辦、書面申請、自然人憑證與工商憑證操作說明。">
+<meta name="twitter:image" content="https://chuang-c.com/og-share.jpg">
+<script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebPage","name":"電子發票字軌增加與減少組數申請教學｜誠創科技","description":"電子發票字軌號碼組數增加或減少申請教學，包含線上申辦、書面申請、自然人憑證與工商憑證操作說明。","url":"https://chuang-c.com/invoice/number-track.html","inLanguage":"zh-TW","isPartOf":{"@type":"WebSite","name":"誠創科技","url":"https://chuang-c.com/"},"publisher":{"@type":"Organization","name":"誠創科技工作室","url":"https://chuang-c.com/","telephone":"+886-2-6623-7091","email":"service@chuang-c.com"}}</script>
 </head>
 <body>
 <div class="ch-invoice-global">
@@ -668,7 +757,7 @@ document.addEventListener('click',function(e){
 <footer class="footer" id="contact">
     <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><a href="index.html" class="footer-service-link"><i data-lucide="receipt-text"></i><b>電子發票</b><span>申請 / 字軌 / 平台教學</span></a><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
     <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="../index.html#home">首頁</a><a href="../index.html#about">關於我們</a><a href="../index.html#services">服務項目</a><a href="../index.html#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="../index.html#services">POS 系統</a><a href="index.html">電子發票</a><a href="../index.html#services">雲端串接</a><a href="../index.html#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="../index.html#faq">設備了解</a><a href="../index.html#faq">安裝教學</a><a href="../index.html#faq">紙捲規格</a><a href="../index.html#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="../index.html#contactFormModal" data-contact-modal>資訊表單</a><a href="../index.html#contact">保固登記</a><a href="../index.html#news">最新公告</a></div></div>
-    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 8623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
+    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 6623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
 <span><a class="admin-square-trigger copyright-admin-link" id="adminLoginTrigger"
              href="../admin/index.html" aria-label="誠創後台登入" title="誠創後台登入">
             <img src="../favicon.svg" alt="誠創後台入口">
@@ -683,5 +772,73 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 
+
+<!-- V18-INVOICE-QUICK-ACTIONS -->
+<div class="invoice-quick-actions" aria-label="聯絡誠創科技">
+  <a class="invoice-quick-btn" href="https://lin.ee/N8TErfC" target="_blank" rel="noopener" aria-label="LINE 洽詢" title="LINE"><i data-lucide="message-circle"></i><span>LINE</span></a>
+  <a class="invoice-quick-btn" href="tel:0266237091" aria-label="電話聯絡" title="電話"><i data-lucide="phone"></i><span>電話</span></a>
+  <a class="invoice-quick-btn" href="mailto:service@chuang-c.com" aria-label="Email 聯絡" title="EMAIL"><i data-lucide="mail"></i><span>EMAIL</span></a>
+  <a class="invoice-quick-btn" href="#" data-open-invoice-form aria-label="開啟諮詢表單" title="表單"><i data-lucide="clipboard-list"></i><span>表單</span></a>
+</div>
+
+<script>/* V18-LUCIDE-INIT */ if(window.lucide){lucide.createIcons();}</script>
+<!-- V24 電子發票諮詢表單 -->
+<div class="invoice-form-modal" id="invoiceFormModal" aria-hidden="true">
+  <div class="invoice-form-backdrop" data-invoice-form-close></div>
+  <div class="invoice-form-dialog" role="dialog" aria-modal="true" aria-labelledby="invoiceFormTitle">
+    <button type="button" class="invoice-form-close" data-invoice-form-close aria-label="關閉表單">×</button>
+    <div class="invoice-form-head">
+      <small>CONTACT US</small>
+      <h2 id="invoiceFormTitle">資訊表單</h2>
+      <p>請留下您的需求與聯絡方式，我們將由專人與您聯繫。</p>
+    </div>
+    <form id="invoiceQuickInquiryForm">
+      <div class="invoice-form-grid">
+        <div class="invoice-field">
+          <label for="iq-store"><span class="req">*</span><span>店家／公司名稱</span></label>
+          <input id="iq-store" name="storeName" required autocomplete="organization">
+        </div>
+        <div class="invoice-field">
+          <label for="iq-contact"><span class="req">*</span><span>聯絡人姓名</span></label>
+          <input id="iq-contact" name="contactName" required autocomplete="name">
+        </div>
+        <div class="invoice-field">
+          <label for="iq-phone"><span class="req">*</span><span>聯繫電話</span></label>
+          <input id="iq-phone" name="phone" required inputmode="tel" autocomplete="tel">
+        </div>
+        <div class="invoice-field">
+          <label for="iq-line"><span>LINE ID</span></label>
+          <input id="iq-line" name="line">
+        </div>
+        <div class="invoice-field">
+          <label for="iq-email"><span>Email</span></label>
+          <input id="iq-email" name="email" type="email" autocomplete="email">
+        </div>
+        <div class="invoice-field">
+          <label for="iq-status"><span class="req">*</span><span>門店狀態</span></label>
+          <select id="iq-status" name="businessStatus" required>
+            <option value="">請選擇</option><option>籌備中</option><option>營業中</option><option>其他</option>
+          </select>
+        </div>
+        <div class="invoice-field invoice-form-wide">
+          <label for="iq-service"><span>需求服務</span></label>
+          <select id="iq-service" name="service">
+            <option value="">請選擇</option><option>POS 系統</option><option>電子發票</option><option>雲端串接</option><option>系統開發</option><option>其他</option>
+          </select>
+        </div>
+        <div class="invoice-field invoice-form-wide">
+          <label for="iq-note"><span>需求說明</span></label>
+          <textarea id="iq-note" name="note" rows="4" placeholder="可簡單說明目前需求"></textarea>
+        </div>
+      </div>
+      <div class="invoice-form-actions">
+        <button type="button" class="invoice-form-cancel" data-invoice-form-close>取消</button>
+        <button type="submit" class="invoice-form-submit">送出表單</button>
+      </div>
+      <div class="invoice-form-msg" id="invoiceFormMsg" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+<script>/* V21-INVOICE-FORM-MODAL */(function(){const m=document.getElementById("invoiceFormModal"),f=document.getElementById("invoiceQuickInquiryForm"),s=document.getElementById("invoiceFormMsg");if(!m||!f)return;function o(){m.classList.add("open");m.setAttribute("aria-hidden","false");document.body.classList.add("invoice-form-lock")}function c(){m.classList.remove("open");m.setAttribute("aria-hidden","true");document.body.classList.remove("invoice-form-lock")}document.addEventListener("click",function(e){const a=e.target.closest("[data-open-invoice-form]");if(a){e.preventDefault();o();return}const x=e.target.closest("[data-invoice-form-close]");if(x&&m.contains(x)){e.preventDefault();c()}});document.addEventListener("keydown",e=>{if(e.key==="Escape")c()});f.addEventListener("submit",async function(e){e.preventDefault();const b=f.querySelector(".invoice-form-submit");b.disabled=true;s.textContent="表單送出中…";try{const d=Object.fromEntries(new FormData(f).entries()),g=window.GOOGLE_SHEETS_CONFIG||{},u=g.webAppUrl||g.googleScriptUrl||g.url||"";if(!u)throw 0;await fetch(u,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({type:"submitForm",formType:"quote",siteId:"chengchuang",...d,pageUrl:location.href})});f.reset();s.className="invoice-form-msg ok";s.textContent="完成送出表單";setTimeout(c,1800)}catch(x){s.className="invoice-form-msg err";s.textContent="目前無法送出，請使用 LINE、電話或 Email 與我們聯繫。"}finally{b.disabled=false}})})();</script>
 </body>
 </html>
