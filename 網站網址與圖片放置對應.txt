@@ -365,3 +365,51 @@ CH 誠創｜科技｜設計
 官方 LINE：@905dqqgw
 Email：service@chuang-c.com
 ==================================================
+
+
+=== CH-SEO｜Google 關鍵字曝光布局 V29 ===
+
+index.html
+Title: POS系統｜餐飲POS收銀系統・電子發票整合｜誠創科技
+Canonical: https://chuang-c.com/
+目標字: POS系統,餐飲POS系統,POS收銀系統,餐飲收銀機,雲端POS,電子發票,誠創科技
+
+invoice/index.html
+Title: 電子發票申請與操作教學｜字軌・平台設定｜誠創科技
+Canonical: https://chuang-c.com/invoice/
+目標字: 電子發票,電子發票申請,電子發票教學,電子發票字軌,電子發票平台
+
+invoice/apply.html
+Title: 電子發票申請流程｜申請資格・取號・首次設定｜誠創科技
+Canonical: https://chuang-c.com/invoice/apply.html
+目標字: 電子發票申請流程,電子發票怎麼申請,電子發票申請,電子發票取號
+
+invoice/types.html
+Title: 電子發票種類｜二聯式・三聯式・傳統發票說明｜誠創科技
+Canonical: https://chuang-c.com/invoice/types.html
+目標字: 電子發票種類,二聯式發票,三聯式發票,手開發票,傳統發票
+
+invoice/number-track.html
+Title: 電子發票字軌申請｜增加組數・線上申辦・取號教學｜誠創科技
+Canonical: https://chuang-c.com/invoice/number-track.html
+目標字: 電子發票字軌申請,增加發票字軌,字軌取號,發票字軌組數
+
+invoice/platform-tools.html
+Title: 電子發票整合服務平台教學｜字軌・空白發票・媒體申報｜誠創科技
+Canonical: https://chuang-c.com/invoice/platform-tools.html
+目標字: 電子發票整合服務平台,電子發票平台操作,空白發票,媒體申報檔,工商憑證
+
+invoice/faq.html
+Title: 電子發票常見問題 QA｜載具・B2B B2C・上傳期限｜誠創科技
+Canonical: https://chuang-c.com/invoice/faq.html
+目標字: 電子發票問題,電子發票QA,電子發票常見問題,B2B發票,B2C發票
+
+invoice/rules.html
+Title: 電子發票注意事項｜統編・載具・重複開立規範｜誠創科技
+Canonical: https://chuang-c.com/invoice/rules.html
+目標字: 電子發票注意事項,重複開立發票,統一編號檢查,發票載具,捐贈碼
+
+invoice/calculator.html
+Title: 手開三聯式發票工具｜未稅・含稅・稅額計算｜誠創科技
+Canonical: https://chuang-c.com/invoice/calculator.html
+目標字: 手開發票,三聯式發票,發票金額計算,含稅計算,未稅計算
