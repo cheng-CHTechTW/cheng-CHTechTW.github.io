@@ -105,7 +105,7 @@
       : '';
     return `<article class="adv-card reveal"><div class="round-icon">${icon(x.icon)}</div>${statHtml}<b>${x.title}</b><p>${x.text}</p></article>`;
   }).join('');
-  $('#industryGrid').innerHTML = C.industries.map(x=>`<article class="industry-card reveal"><div class="industry-image">${x.image ? `<img src="${x.image}" alt="${x.title}" loading="lazy">` : ''}</div><div class="round-icon">${icon(x.icon)}</div><h3>${x.title}</h3><p>${x.text}</p></article>`).join('');
+  $('#industryGrid').innerHTML = C.industries.map(x=>`<article class="industry-card reveal"><div class="industry-image">${x.image ? `<img src="${x.image}" alt="${x.title}" width="1448" height="1086" loading="lazy" decoding="async">` : ''}</div><div class="round-icon">${icon(x.icon)}</div><h3>${x.title}</h3><p>${x.text}</p></article>`).join('');
   $('#processGrid').innerHTML = C.process.map((x,i)=>`<article class="process-card reveal"><span class="num">${String(i+1).padStart(2,'0')}</span>${icon(x.icon)}<b>${x.title}</b><small>${x.text}</small></article>`).join('');
   const ABOUT_MAP={
     pos:{title:'POS 系統規劃',text:'提供餐飲、零售、小吃、美食街與多店管理 POS 規劃，從需求訪談、流程設定、設備搭配、電子發票到交機教學，協助店家快速導入。'},
@@ -186,7 +186,7 @@
     if(e.key==='Escape'&&newsModal.classList.contains('open')) closeNewsModal();
   });
 
-  function renderProducts(type='hardware'){$('#productGrid').innerHTML=C.products[type].map(x=>`<article class="product-card reveal visible"><div class="product-visual">${x.image ? `<img src="${x.image}" alt="${x.title}" loading="lazy" />` : icon(x.icon)}</div><div class="copy"><h3>${x.title}</h3><p>${x.text}</p></div></article>`).join(''); lucide.createIcons();}
+  function renderProducts(type='hardware'){$('#productGrid').innerHTML=C.products[type].map(x=>`<article class="product-card reveal visible"><div class="product-visual">${x.image ? `<img src="${x.image}" alt="${x.title}" width="320" height="220" loading="lazy" decoding="async" />` : icon(x.icon)}</div><div class="copy"><h3>${x.title}</h3><p>${x.text}</p></div></article>`).join(''); lucide.createIcons();}
   renderProducts();
   $$('[data-product-tab]').forEach(b=>b.addEventListener('click',()=>{$$('[data-product-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderProducts(b.dataset.productTab)}));
 
