@@ -1,0 +1,381 @@
+﻿誠創科技網站｜最終網址與圖片放置對應表
+版本：V28
+正式網域：https://chuang-c.com
+網站根目錄：chengchuang-github-site/
+
+==================================================
+一、公開頁面網址
+==================================================
+
+【誠創科技主網站】
+1. 主頁
+網址：https://chuang-c.com/
+檔案：index.html
+
+2. 最新公告
+網址：https://chuang-c.com/news/
+檔案：news/index.html
+
+【電子發票知識與操作中心】
+3. 電子發票主頁
+網址：https://chuang-c.com/invoice/
+檔案：invoice/index.html
+
+4. 申請流程
+網址：https://chuang-c.com/invoice/apply.html
+檔案：invoice/apply.html
+
+5. 發票種類
+網址：https://chuang-c.com/invoice/types.html
+檔案：invoice/types.html
+
+6. 字軌申請
+網址：https://chuang-c.com/invoice/number-track.html
+檔案：invoice/number-track.html
+
+7. 電子發票整合服務平台操作
+網址：https://chuang-c.com/invoice/platform-tools.html
+檔案：invoice/platform-tools.html
+
+8. 電子發票相關問題 QA
+網址：https://chuang-c.com/invoice/faq.html
+檔案：invoice/faq.html
+
+9. 服務說明／注意事項
+網址：https://chuang-c.com/invoice/rules.html
+檔案：invoice/rules.html
+
+10. 三聯式手開發票工具
+網址：https://chuang-c.com/invoice/calculator.html
+檔案：invoice/calculator.html
+
+==================================================
+二、管理頁面（不提供搜尋引擎收錄）
+==================================================
+
+主網站後台：
+https://chuang-c.com/admin/
+檔案：admin/index.html
+
+主網站密碼重設：
+https://chuang-c.com/admin/reset-password.html
+檔案：admin/reset-password.html
+
+電子發票 QA 後台：
+https://chuang-c.com/invoice/admin/
+檔案：invoice/admin/index.html
+
+==================================================
+三、主網站圖片放置位置
+==================================================
+
+【公司 LOGO】
+網站主要 LOGO：
+chlogo.svg
+
+其他 SVG：
+converted.svg
+favicon.svg
+
+【網站分享圖片】
+assets/img/share-cover.png
+line-share.jpg
+line-share.png
+line-share-v61.jpg
+
+【主視覺／POS】
+assets/img/one-stop-pos.svg
+
+【適用產業圖片】
+assets/img/industries/restaurant.png
+assets/img/industries/retail.png
+assets/img/industries/snack-shop.png
+assets/img/industries/foodcourt.png
+assets/img/industries/shopping-district.png
+assets/img/industries/lifestyle-store.png
+
+同資料夾亦保留對應 SVG：
+assets/img/industries/
+
+【產品／設備圖片】
+assets/img/products/pos-terminal.svg
+assets/img/products/receipt-printer.svg
+assets/img/products/label-printer.svg
+assets/img/products/barcode-scanner.svg
+assets/img/products/cash-drawer.svg
+assets/img/products/thermal-roll.svg
+assets/img/products/label-sticker.svg
+assets/img/products/e-invoice-paper.svg
+assets/img/products/supplies-kit.svg
+assets/img/products/spec-check.svg
+
+==================================================
+四、電子發票各頁圖片對應
+==================================================
+
+【第 1 頁｜申請流程 apply.html】
+圖片資料夾：
+invoice/assets/images/apply/
+
+圖片：
+apply-01.jpg
+apply-02.jpg
+
+用途：
+電子發票申請流程與相關教學圖片。
+
+--------------------------------------------------
+
+【第 2 頁｜發票種類 types.html】
+圖片資料夾：
+invoice/assets/images/types/
+
+圖片：
+types-01.png
+types-02.jpg
+types-03.jpg
+types-04.jpg
+types-05.jpg
+types-06.jpg
+types-07.jpg
+
+用途：
+電子發票、手開發票、傳統長條型發票實際圖片與說明。
+
+--------------------------------------------------
+
+【第 3 頁｜字軌申請 number-track.html】
+圖片資料夾：
+invoice/assets/images/number-track/
+
+圖片：
+number-track-01.jpg
+number-track-02.jpg
+number-track-03.jpg
+number-track-04.jpg
+number-track-05.jpg
+number-track-06.jpg
+number-track-07.jpg
+number-track-08.jpg
+number-track-09.jpg
+number-track-10.jpg
+number-track-11.jpg
+number-track-12.jpg
+number-track-13.jpg
+number-track-14.jpg
+number-track-15.jpg
+number-track-16.png
+number-track-17.png
+
+用途：
+字軌增加／減少組數、線上申辦、書面申請及憑證操作步驟圖片。
+
+--------------------------------------------------
+
+【第 4 頁｜平台操作 platform-tools.html】
+圖片資料夾：
+invoice/assets/images/platform-tools/
+
+圖片：
+platform-tools-01.png ～ platform-tools-09.png
+platform-tools-10.jpg ～ platform-tools-14.jpg
+platform-tools-15.png
+platform-tools-16.jpg ～ platform-tools-30.jpg
+
+用途：
+電子發票整合服務平台操作步驟，包括：
+・字軌增加組數取號
+・空白發票查詢與新增
+・媒體申報檔
+・工商憑證授權
+・種子密碼設定
+
+--------------------------------------------------
+
+【第 5 頁｜相關問題 QA faq.html】
+目前主要為文字 QA。
+如日後增加 QA 圖片，建議統一放：
+invoice/assets/images/faq/
+
+--------------------------------------------------
+
+【第 6 頁｜服務說明 rules.html】
+目前主要為文字與規範說明。
+如日後增加說明圖片，建議統一放：
+invoice/assets/images/rules/
+
+--------------------------------------------------
+
+【第 7 頁｜手開發票工具 calculator.html】
+圖片資料夾：
+invoice/assets/images/calculator/
+
+主要底圖：
+invoice-triplicate-preview.jpg
+
+用途：
+三聯式手開發票實體預覽底圖。
+
+重要：
+若要更換這張圖片，請直接使用相同檔名：
+invoice-triplicate-preview.jpg
+
+建議維持原始尺寸：
+1262 × 863 px
+
+這樣可以避免買受人名稱、統編、商品、數量、單價、金額、稅額、
+總計及中文大寫金額的位置發生偏移。
+
+==================================================
+五、電子發票圖片更換原則
+==================================================
+
+1. 最簡單方式：
+直接把新圖片改成「完全相同的檔名」，覆蓋原圖片即可。
+
+2. 不要任意更改圖片檔名。
+如果更改檔名，HTML 裡面的圖片路徑也必須一起修改。
+
+3. 第 7 頁發票底圖特別注意：
+請盡量維持 1262 × 863 px。
+
+4. 教學截圖建議：
+保持文字清楚，不要過度壓縮。
+JPG 適合一般畫面截圖；
+PNG 適合文字、介面、線條較多的圖片。
+
+5. 電子發票圖片總資料夾：
+invoice/assets/images/
+
+==================================================
+六、Google Apps Script
+==================================================
+
+主網站／主頁諮詢單：
+google-apps-script/Code.gs
+
+可直接複製貼上的版本：
+google-apps-script/程式碼.gs
+
+電子發票 QA 專用 Apps Script：
+invoice/INVOICE-QA-GOOGLE-APPS-SCRIPT.gs
+invoice/程式碼.gs
+
+注意：
+主網站諮詢表單與電子發票頁右側諮詢表單，
+目前共用主網站的 submitInquiry，
+資料寫入同一個「客戶表單／諮詢單」。
+
+V27 起表單輸入資料以純文字保存，
+例如：
+0900123450
+001230
+1.20
+0000
+皆應完整保留，不可省略 0。
+
+==================================================
+七、SEO 相關檔案
+==================================================
+
+robots.txt
+sitemap.xml
+site.webmanifest
+
+正式 Sitemap：
+https://chuang-c.com/sitemap.xml
+
+robots：
+https://chuang-c.com/robots.txt
+
+電子發票及主網站公開頁面已設定：
+・Title
+・Meta Description
+・Canonical
+・Robots
+・Open Graph
+・Twitter Card
+・JSON-LD 結構化資料
+
+==================================================
+八、網站上傳時注意
+==================================================
+
+GitHub Pages 上傳時，請維持以下最上層結構：
+
+chengchuang-github-site/
+├─ index.html
+├─ chlogo.svg
+├─ assets/
+├─ invoice/
+├─ admin/
+├─ news/
+├─ google-apps-script/
+├─ robots.txt
+└─ sitemap.xml
+
+不要只上傳 invoice 資料夾，
+也不要把 chengchuang-github-site 再多包一層資料夾，
+否則網址及圖片路徑可能失效。
+
+==================================================
+九、常用正式網址快速複製
+==================================================
+
+主頁
+https://chuang-c.com/
+
+電子發票首頁
+https://chuang-c.com/invoice/
+
+電子發票申請流程
+https://chuang-c.com/invoice/apply.html
+
+發票種類
+https://chuang-c.com/invoice/types.html
+
+字軌申請
+https://chuang-c.com/invoice/number-track.html
+
+平台操作
+https://chuang-c.com/invoice/platform-tools.html
+
+相關問題 QA
+https://chuang-c.com/invoice/faq.html
+
+服務說明
+https://chuang-c.com/invoice/rules.html
+
+手開發票工具
+https://chuang-c.com/invoice/calculator.html
+
+最新公告
+https://chuang-c.com/news/
+
+主網站後台
+https://chuang-c.com/admin/
+
+電子發票 QA 後台
+https://chuang-c.com/invoice/admin/
+
+==================================================
+誠創科技工作室
+CH 誠創｜科技｜設計
+客服電話：(02) 6623-7091
+官方 LINE：@905dqqgw
+Email：service@chuang-c.com
+==================================================
+
+
+【V29｜首頁效能優化顯示資產】
+assets/img/hero/converted-hero.jpg
+- 首頁第一屏封面圖。由原 converted.svg 內嵌 JPEG 原樣抽出，畫面內容不變；設定高優先載入。
+
+assets/img/chlogo-display.webp
+- 前台顯示用輕量 LOGO；原 chlogo.svg 保留作品牌/SEO 原始資產。
+
+chlogo-favicon.png
+- 瀏覽器 favicon / Apple Touch Icon 輕量版。
+
+assets/img/one-stop-pos.webp
+- 「專業 POS 解決方案」顯示用輕量圖；改為畫面接近時才載入。
