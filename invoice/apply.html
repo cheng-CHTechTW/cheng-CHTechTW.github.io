@@ -227,10 +227,9 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.95);backdro
 .invoice-quick-btn:hover{transform:translateX(-3px);background:#f7f4ef;box-shadow:0 8px 24px rgba(0,0,0,.14)}
 @media(max-width:760px){.invoice-quick-actions{right:8px;top:auto;bottom:18px;transform:none;gap:6px}.invoice-quick-btn{width:48px;min-height:48px;border-radius:12px;padding:5px 2px;font-size:9px}.invoice-quick-btn svg{width:18px;height:18px}}
 </style>
-<link rel="icon" type="image/svg+xml" href="../chlogo.svg">
-<link rel="shortcut icon" href="../chlogo.svg">
-<link rel="apple-touch-icon" href="../chlogo.svg">
-<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="icon" type="image/svg+xml" href="../chlogo-favicon.png">
+<link rel="shortcut icon" href="../chlogo-favicon.png">
+<link rel="apple-touch-icon" href="../chlogo-favicon.png">
 <style>
 /* V22 電子發票諮詢表單：完整彈窗樣式 */
 .invoice-form-modal{
@@ -329,12 +328,18 @@ body.invoice-form-lock{overflow:hidden!important}
 .submit-success-dialog h3{margin:7px 0 9px;font-size:24px;color:#3c4540}.submit-success-dialog p{margin:0 auto 20px;max-width:330px;font-size:12px;line-height:1.8;color:#6d756f}.submit-success-dialog p b{color:#478359}
 .submit-success-close-btn{min-width:120px;min-height:42px;border:0;border-radius:999px;background:#54a568;color:#fff;font-weight:800;cursor:pointer}.submit-success-dialog small{display:block;margin-top:10px;font-size:9px;color:#999}
 </style>
+
+<style id="v30-invoice-performance">
+/* V30 CH-INV performance: preserve layout/content while reducing first-paint work. */
+@media (max-width:980px){.ch-invoice-global{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#fff!important}}
+.footer{content-visibility:auto;contain-intrinsic-size:auto 760px}
+</style>
   <meta name="keywords" content="電子發票申請流程,電子發票怎麼申請,電子發票申請,電子發票取號">
 </head>
 <body>
 <div class="ch-invoice-global">
   <div class="cg-wrap">
-    <a class="cg-brand" href="index.html"><img class="invoice-brand-logo" src="../chlogo.svg" alt="誠創科技｜電子發票知識站"></a>
+    <a class="cg-brand" href="index.html"><img class="invoice-brand-logo" src="../chlogo-favicon.png" width="256" height="256" decoding="async" alt="誠創科技｜電子發票知識站"></a>
     <button class="cg-toggle" type="button" aria-label="開啟目錄" aria-expanded="false" onclick="cgToggle(this)">☰</button>
     <nav class="cg-menu" id="cgMenu" aria-label="電子發票知識站目錄">
       <a class="" href="index.html">主頁</a><a class="cg-active" href="apply.html">申請流程</a><a class="" href="types.html">發票種類</a><a class="" href="number-track.html">字軌申請</a><a class="" href="platform-tools.html">平台操作</a><a class="" href="faq.html">相關問題 QA</a><a class="" href="rules.html">服務說明</a><a class="" href="calculator.html">手開發票工具</a><a class="cg-company" href="../index.html">誠創科技首頁</a>
@@ -509,7 +514,7 @@ document.addEventListener('click',function(e){
 <footer class="footer" id="contact">
     <div class="footer-service-strip"><div class="container footer-cards"><div><i data-lucide="monitor-smartphone"></i><b>POS 系統</b><span>收銀 / 會員 / 庫存整合</span></div><a href="index.html" class="footer-service-link"><i data-lucide="receipt-text"></i><b>電子發票</b><span>申請 / 字軌 / 平台教學</span></a><div><i data-lucide="cloud"></i><b>雲端串接</b><span>跨平台串接 / API 整合</span></div><div><i data-lucide="code-xml"></i><b>系統開發</b><span>客製系統 / 流程自動化</span></div></div></div>
     <div class="footer-links container"><div><h4>相關連結 Related</h4><a href="../index.html#home">首頁</a><a href="../index.html#about">關於我們</a><a href="../index.html#services">服務項目</a><a href="../index.html#cases">成功案例</a></div><div><h4>服務項目 Services</h4><a href="../index.html#services">POS 系統</a><a href="index.html">電子發票</a><a href="../index.html#services">雲端串接</a><a href="../index.html#services">系統開發</a></div><div><h4>技術支援 Support</h4><a href="../index.html#faq">設備了解</a><a href="../index.html#faq">安裝教學</a><a href="../index.html#faq">紙捲規格</a><a href="../index.html#contact">軟體詳情</a></div><div><h4>其他資訊 Information</h4><a href="../index.html#contactFormModal" data-contact-modal>資訊表單</a><a href="../index.html#contact">保固登記</a><a href="../index.html#news">最新公告</a></div></div>
-    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo.svg" alt="誠創科技" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 6623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
+    <div class="footer-main"><div class="container footer-main-grid"><div class="footer-brand"><div class="footer-logo"><img src="../chlogo-favicon.png" alt="誠創科技" width="256" height="256" loading="lazy" decoding="async" /><div><strong>誠 創 ｜ 科 技 ｜ 設 計</strong><small>CHENG CHUANG TECHNOLOGY · DESIGN</small></div></div><p>— 工作室 —</p></div><div class="company-info"><h3>公司資訊</h3><a href="tel:+886286237091"><i data-lucide="phone"></i> (02) 6623-7091</a><a href="https://lin.ee/N8TErfC" target="_blank" rel="noopener"><i data-lucide="message-circle-more"></i> @905dqqgw</a><a href="mailto:service@chuang-c.com"><i data-lucide="mail"></i> service@chuang-c.com</a><a href="https://www.google.com/maps/search/?api=1&query=新北市淡水區水源街二段177巷104號6樓" target="_blank" rel="noopener"><i data-lucide="map-pin"></i> 新北市淡水區水源街二段177巷104號6樓</a><span><i data-lucide="clock-3"></i> 週一～週五 09:00～18:00</span></div></div><div class="container copyright">
 <span><a class="admin-square-trigger copyright-admin-link" id="adminLoginTrigger"
              href="../admin/index.html" aria-label="誠創後台登入" title="誠創後台登入">
             <img src="../favicon.svg" alt="誠創後台入口">
@@ -517,10 +522,10 @@ document.addEventListener('click',function(e){
           Copyright © 2026 CH 誠創科技工作室 All Rights Reserved. 版權所有</span>
       </div></div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
-  if(window.lucide){ window.lucide.createIcons(); }
+  document.addEventListener("DOMContentLoaded",function(){if(window.lucide){window.lucide.createIcons();}});
 });
 </script>
 
@@ -533,7 +538,7 @@ document.addEventListener('DOMContentLoaded',function(){
   <a class="invoice-quick-btn" href="#" data-open-invoice-form aria-label="開啟諮詢表單" title="表單"><i data-lucide="clipboard-list"></i><span>表單</span></a>
 </div>
 
-<script>/* V18-LUCIDE-INIT */ if(window.lucide){lucide.createIcons();}</script>
+<script>/* V30-LUCIDE-INIT */ document.addEventListener("DOMContentLoaded",function(){if(window.lucide){window.lucide.createIcons();}});</script>
 <!-- V24 電子發票諮詢表單 -->
 <div class="invoice-form-modal" id="invoiceFormModal" aria-hidden="true">
   <div class="invoice-form-backdrop" data-invoice-form-close></div>
